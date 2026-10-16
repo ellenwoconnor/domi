@@ -32,7 +32,9 @@ Keep this list accurate.
 
 - Install: `npm install`
 - Backend (dev deployment, watches `convex/`, regenerates types, runs `init`): `npm run dev:backend`
-- Start app: `npm start` (then scan the QR code with Expo Go)
+- Start app: `npm start` (opens in the Domi development build; Expo Go does not support SDK 58)
+- Dev build on a plugged-in iPhone (Xcode): `npm run ios:device`
+- Dev build via EAS (cloud): `npm run build:dev:ios`
 - Run a function by hand: `npx convex run <module>:<fn> '{"arg": 1}'`
 - Open the Convex dashboard (data browser, logs): `npx convex dashboard`
 - Tests: `npm test`
@@ -56,7 +58,7 @@ Keep this list accurate.
 - Exact addresses are never stored on items or shown in feeds. Listings show an approximate area only.
 - Keep scope to the MVP in `docs/spec.md`. If a task seems to need an out-of-scope feature (payments, bidding, karma, calendar scheduling), stop and ask.
 - Prefer built-in Convex/Expo features over new vendors or libraries. Ask before adding a dependency that isn't in the stack above.
-- Expo changes between SDKs; check the docs for SDK 58 rather than relying on memory. Libraries with native code need a dev build (not Expo Go).
+- Expo changes between SDKs; check the docs for SDK 58 rather than relying on memory. The app runs in a development build (`expo-dev-client`), not Expo Go. Adding a library with native code means rebuilding the dev build.
 - Use "circle" in all user-facing copy. Use `communities` in the database.
 
 ## How to work
