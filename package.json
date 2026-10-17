@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@convex-dev/react-query": "^0.1.0",
+    "@expo/vector-icons": "^15.1.1",
     "@tanstack/react-query": "^5.104.3",
     "convex": "^1.47.0",
     "expo": "~57.0.30",
