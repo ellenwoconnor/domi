@@ -5,13 +5,13 @@ Work one milestone at a time. Each ends with its "done when" checks passing.
 Backend: Convex (switched from Supabase on 2026-10-16, before any backend code existed). Authorization lives in Convex functions, not row-level security; see "Access checks" in `CLAUDE.md`.
 
 ## M0. Project setup
-- Expo app with TypeScript, Expo Router, TanStack Query (via `@convex-dev/react-query`). Convex project initialized with a dev deployment.
+- Expo app (SDK 54, so it runs in App Store Expo Go) with TypeScript, Expo Router, TanStack Query (via `@convex-dev/react-query`). Convex project initialized with a dev deployment.
 - `.env.example` with `CONVEX_DEPLOYMENT` and `EXPO_PUBLIC_CONVEX_URL`; `.env.local` gitignored (written by `npx convex dev`).
 - `appConfig` table, idempotent `init` seed, and a `convex-test` suite.
 - Done when: app runs on a phone via Expo Go or a dev build and reads a row from the Convex dev deployment.
 
 ## M1. Auth and profile (spike native sign-in first)
-- **Spike first:** native Sign in with Apple and Google on a real device. Try Convex Auth; if native Apple/Google is awkward, fall back to Clerk + Convex. Decide before building profile screens. Session persists across restarts.
+- **Spike first:** set up an EAS development build (needs the paid Apple Developer account; local iOS builds don't work on the dev Mac), then native Sign in with Apple and Google on a real device. Try Convex Auth; if native Apple/Google is awkward, fall back to Clerk + Convex. Decide before building profile screens. Session persists across restarts.
 - Profile setup: display name, zip code, coarse location, terms acceptance. Account deletion.
 - Zip change with `previewZipChange` query and `changeZip` mutation (can land in M4 once items and requests exist).
 - `profiles` table with access checks and tests.

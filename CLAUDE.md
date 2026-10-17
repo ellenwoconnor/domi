@@ -7,7 +7,7 @@ Milestones and what "done" means for each: @docs/build-plan.md
 
 ## Stack
 
-- App: Expo SDK 58 (React Native), TypeScript (strict), Expo Router, TanStack Query (wired to Convex via `@convex-dev/react-query`)
+- App: Expo SDK 54 (React Native; pinned so it runs in App Store Expo Go), TypeScript (strict), Expo Router, TanStack Query (wired to Convex via `@convex-dev/react-query`)
 - Backend: Convex (database, queries/mutations/actions, live queries, file storage, scheduler, cron jobs)
 - Auth: to be decided in the M1 spike (Convex Auth, or Clerk + Convex if native Apple/Google sign-in needs it)
 - Push: Expo push service via `expo-notifications`, sent from a Convex action
@@ -32,9 +32,7 @@ Keep this list accurate.
 
 - Install: `npm install`
 - Backend (dev deployment, watches `convex/`, regenerates types, runs `init`): `npm run dev:backend`
-- Start app: `npm start` (opens in the Domi development build; Expo Go does not support SDK 58)
-- Dev build on a plugged-in iPhone (Xcode): `npm run ios:device`
-- Dev build via EAS (cloud): `npm run build:dev:ios`
+- Start app: `npm start` (runs in Expo Go; scan the QR code)
 - Run a function by hand: `npx convex run <module>:<fn> '{"arg": 1}'`
 - Open the Convex dashboard (data browser, logs): `npx convex dashboard`
 - Tests: `npm test`
@@ -58,7 +56,7 @@ Keep this list accurate.
 - Exact addresses are never stored on items or shown in feeds. Listings show an approximate area only.
 - Keep scope to the MVP in `docs/spec.md`. If a task seems to need an out-of-scope feature (payments, bidding, karma, calendar scheduling), stop and ask.
 - Prefer built-in Convex/Expo features over new vendors or libraries. Ask before adding a dependency that isn't in the stack above.
-- Expo changes between SDKs; check the docs for SDK 58 rather than relying on memory. The app runs in a development build (`expo-dev-client`), not Expo Go. Adding a library with native code means rebuilding the dev build.
+- Expo changes between SDKs; check the docs for SDK 54 rather than relying on memory. The app currently runs in Expo Go, so only use libraries bundled in Expo Go. When M1 needs native sign-in, switch to a development build built on EAS (the dev Mac is on macOS 14 and can't build iOS locally); at that point consider upgrading the SDK too.
 - Use "circle" in all user-facing copy. Use `communities` in the database.
 
 ## How to work
