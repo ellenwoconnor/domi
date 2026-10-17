@@ -5,7 +5,7 @@ Work one milestone at a time. Each ends with its "done when" checks passing.
 Backend: Convex (switched from Supabase on 2026-10-16, before any backend code existed). Authorization lives in Convex functions, not row-level security; see "Access checks" in `CLAUDE.md`.
 
 ## M0. Project setup
-- Expo app (SDK 54, so it runs in App Store Expo Go) with TypeScript, Expo Router, TanStack Query (via `@convex-dev/react-query`). Convex project initialized with a dev deployment.
+- Expo app (SDK 57, matching the App Store Expo Go) with TypeScript, Expo Router, TanStack Query (via `@convex-dev/react-query`). Convex project initialized with a dev deployment.
 - `.env.example` with `CONVEX_DEPLOYMENT` and `EXPO_PUBLIC_CONVEX_URL`; `.env.local` gitignored (written by `npx convex dev`).
 - `appConfig` table, idempotent `init` seed, and a `convex-test` suite.
 - Done when: app runs on a phone via Expo Go or a dev build and reads a row from the Convex dev deployment.

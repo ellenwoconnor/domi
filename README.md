@@ -4,7 +4,7 @@ Give away things for free within your circles. See `CLAUDE.md` for stack and con
 
 ## Run it locally
 
-Domi is on Expo SDK 54 so it runs in the App Store version of **Expo Go**. (Native sign-in in M1 will need a development build; see `docs/build-plan.md`.)
+Domi is on Expo SDK 57 so it runs in the current App Store version of **Expo Go**. (Native sign-in in M1 will need a development build; see `docs/build-plan.md`.)
 
 Prereqs: Node 20+, a Convex account, Expo Go on your iPhone, phone on the same Wi‑Fi as your Mac.
 
