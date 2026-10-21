@@ -4,6 +4,7 @@ Domi is a mobile-first app for giving away items for free within local and custo
 
 Full product and data details: @docs/spec.md
 Milestones and what "done" means for each: @docs/build-plan.md
+Vendors, public IDs, secrets, and costs: `docs/vendors.md`
 
 ## Stack
 

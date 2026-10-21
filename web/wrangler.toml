@@ -7,6 +7,6 @@ routes = [{ pattern = "domicircles.com", custom_domain = true }]
 
 [vars]
 # The Convex deployment the pages read from. Use the production URL once it exists.
-CONVEX_URL = "https://REPLACE-ME.convex.cloud"
+CONVEX_URL = "https://sincere-corgi-37.convex.cloud"
 # Android signing-key SHA-256 fingerprint(s), comma-separated, from `npx eas-cli credentials` (later).
 ANDROID_SHA256 = ""
