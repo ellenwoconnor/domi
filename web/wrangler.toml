@@ -1,0 +1,12 @@
+# domicircles.com landing pages and app-link files. See web/README.md.
+name = "domicircles"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+routes = [{ pattern = "domicircles.com", custom_domain = true }]
+
+[vars]
+# The Convex deployment the pages read from. Use the production URL once it exists.
+CONVEX_URL = "https://REPLACE-ME.convex.cloud"
+# Android signing-key SHA-256 fingerprint(s), comma-separated, from `npx eas-cli credentials` (later).
+ANDROID_SHA256 = ""

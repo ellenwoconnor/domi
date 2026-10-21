@@ -46,7 +46,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:dev:ios": "npx eas-cli@latest build --profile development --platform ios",
-    "setup:auth": "node scripts/setup-auth-keys.mjs"
+    "setup:auth": "node scripts/setup-auth-keys.mjs",
+    "test:web": "node --test web/src/index.test.mjs"
   },
   "private": true
 }

@@ -9,7 +9,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ellenwoconnor.domi",
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:domicircles.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +25,29 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ellenwoconnor.domi"
+      "package": "com.ellenwoconnor.domi",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "domicircles.com",
+              "pathPrefix": "/c/"
+            },
+            {
+              "scheme": "https",
+              "host": "domicircles.com",
+              "pathPrefix": "/i/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,7 +62,16 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.681321857586-ia8edhlh1fj49f84deap0ti7er8ad16j"
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Domi uses your photos so you can add pictures of things you're giving away.",
+          "cameraPermission": "Domi uses the camera so you can photograph things you're giving away.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-notifications"
     ],
     "extra": {
       "router": {},

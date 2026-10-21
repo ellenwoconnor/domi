@@ -29,6 +29,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - `communities`, `memberships` with access checks and tests. Create a circle with name and emoji. (Backend done: `communities.ts`, `invites.ts`.)
 - Invite link + `redeemInvite` mutation. Universal Links / App Links config.
 - First-launch "enter invite code" fallback.
+- Status 2026-10-21: app screens built (You tab with circles, circle detail/create/edit, join with code, invite share sheet, `/c/` and `/i/` link routes), `web/` Worker built and tested. Remaining: DNS to Cloudflare, Worker deploy, rebuild with associated domains, device checks.
 - Done when: on a real device, tapping a link (app installed) lands in the right circle, and entering the code works on a fresh install.
 
 ## M3. Post and browse

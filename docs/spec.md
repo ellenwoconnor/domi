@@ -185,3 +185,6 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - 2026-10-21: Wish offers accumulate and the wisher picks one (as in Corcles); several people may offer.
 - 2026-10-21: Repost reopens the same listing with a fresh 30 days; requests that were open stay open.
 - 2026-10-21: Listings expire after 30 days.
+- 2026-10-21: Tabs are Browse · Give · Activity · You; You holds the profile and my circles.
+- 2026-10-21: Opening an invite link while signed in shows a confirmation card before joining.
+- 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.

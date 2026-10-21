@@ -3,11 +3,11 @@ import { color, font, radius, space, type } from "./theme";
 
 // Form primitives shared by onboarding, profile, and sign-in.
 
-export function Field({ label, hint, ...input }: TextInputProps & { label: string; hint?: string }) {
+export function Field({ label, hint, style, ...input }: TextInputProps & { label: string; hint?: string }) {
   return (
     <View style={styles.field}>
       <Text style={type.label}>{label}</Text>
-      <TextInput placeholderTextColor={color.inkFaint} style={styles.input} {...input} />
+      <TextInput placeholderTextColor={color.inkFaint} style={[styles.input, style]} {...input} />
       {hint ? <Text style={type.meta}>{hint}</Text> : null}
     </View>
   );

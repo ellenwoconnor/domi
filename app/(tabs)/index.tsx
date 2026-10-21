@@ -1,5 +1,4 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -56,11 +55,8 @@ export default function Browse() {
 
   const header = (
     <View style={styles.header}>
-      <View style={[styles.pad, styles.topRow]}>
+      <View style={styles.pad}>
         <Logo size={24} />
-        <Pressable accessibilityRole="button" accessibilityLabel="Your profile" onPress={() => router.push("/profile")} hitSlop={12}>
-          <Ionicons name="person-circle-outline" size={28} color={color.bay} />
-        </Pressable>
       </View>
       <View style={[styles.pad, styles.titleBlock]}>
         <Text style={type.display}>{heading}</Text>
@@ -192,7 +188,6 @@ export default function Browse() {
 }
 
 const styles = StyleSheet.create({
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   screen: { flex: 1, backgroundColor: color.white },
   list: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
   header: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.xl, marginHorizontal: -space.lg },
