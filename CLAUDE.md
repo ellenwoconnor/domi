@@ -9,7 +9,7 @@ Milestones and what "done" means for each: @docs/build-plan.md
 
 - App: Expo SDK 57 (React Native; pinned to the SDK the installed Expo Go supports), TypeScript (strict), Expo Router, TanStack Query (wired to Convex via `@convex-dev/react-query`)
 - Backend: Convex (database, queries/mutations/actions, live queries, file storage, scheduler, cron jobs)
-- Auth: to be decided in the M1 spike (Convex Auth, or Clerk + Convex if native Apple/Google sign-in needs it)
+- Auth: Convex Auth (`@convex-dev/auth`, beta) with native sign-in. The app gets an ID token from Apple's sheet (`expo-apple-authentication`) or Google's (`@react-native-google-signin/google-signin`) and calls `signIn("apple"|"google", { idToken, ... })`; `convex/auth.ts` verifies it (`convex/lib/idTokens.ts`, tested) and finds or creates the account. Session tokens are stored in SecureStore. Fallback if this proves unreliable: Clerk + Convex.
 - UI: follows "Domi Circles — Brand Strategy" (Neighborhood Modern on white, Fog & Poppy). Tokens in `src/ui/theme.ts`: Bay Blue #1F4E79 primary, Poppy #F2652B for giving moments only (text on Poppy is Ink), Fog/Blush tints. Fraunces Italic for headlines and captions, Figtree for UI (`@expo-google-fonts/*`, loaded in `app/_layout.tsx`). Logo is the "o" ring mark (`src/ui/Logo.tsx`). Icons: `@expo/vector-icons` (Ionicons). No red badges, no bright blue, no eco clichés.
 - Push: Expo push service via `expo-notifications`, sent from a Convex action
 - Builds: EAS Build / Submit / Update
@@ -34,7 +34,9 @@ Keep this list accurate.
 
 - Install: `npm install`
 - Backend (dev deployment, watches `convex/`, regenerates types, runs `init`): `npm run dev:backend`
-- Start app: `npm start` (runs in Expo Go; scan the QR code)
+- Start app: `npm start` (opens in the Domi development build, not Expo Go)
+- Build the development app on Expo's servers (needed after adding native libraries): `npm run build:dev:ios`
+- One-time auth key setup per Convex deployment: `npm run setup:auth`
 - Run a function by hand: `npx convex run <module>:<fn> '{"arg": 1}'`
 - Open the Convex dashboard (data browser, logs): `npx convex dashboard`
 - Tests: `npm test`
@@ -58,7 +60,7 @@ Keep this list accurate.
 - Exact addresses are never stored on items or shown in feeds. Listings show an approximate area only.
 - Keep scope to the MVP in `docs/spec.md`. If a task seems to need an out-of-scope feature (payments, bidding, karma, calendar scheduling), stop and ask.
 - Prefer built-in Convex/Expo features over new vendors or libraries. Ask before adding a dependency that isn't in the stack above.
-- Expo changes between SDKs; check the docs for SDK 57 rather than relying on memory. The app currently runs in Expo Go, so only use libraries bundled in Expo Go. When M1 needs native sign-in, switch to a development build built on EAS (the dev Mac is on macOS 14 and can't build iOS locally); at that point consider upgrading the SDK too.
+- Expo changes between SDKs; check the docs for SDK 57 rather than relying on memory. The app runs in a development build (`expo-dev-client`) built on EAS, because native sign-in needs native code and the dev Mac (macOS 14) can't build iOS locally. Adding a library with native code means a new `npm run build:dev:ios`.
 - Use "circle" in all user-facing copy. Use `communities` in the database.
 
 ## How to work

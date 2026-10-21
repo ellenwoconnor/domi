@@ -1,12 +1,18 @@
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
 import { router } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { api } from "../../convex/_generated/api";
 import { agoLabel, events } from "../../src/features/activity/mockEvents";
+import { signOutOfProviders } from "../../src/features/auth/nativeSignIn";
 import { passedOnThisMonth } from "../../src/features/items/mockData";
 import { CircleMark } from "../../src/ui/Logo";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 export default function Activity() {
+  const me = useQuery(api.users.me);
+  const { signOut } = useAuthActions();
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <FlatList
@@ -20,6 +26,21 @@ export default function Activity() {
                 {passedOnThisMonth} things found new homes in your circles this month.
               </Text>
             </View>
+          </View>
+        }
+        // Temporary account row for the sign-in spike; moves to a profile screen in M1.
+        ListFooterComponent={
+          <View style={styles.account}>
+            <Text style={type.meta}>Signed in{me?.email ? ` as ${me.email}` : me?.name ? ` as ${me.name}` : ""}</Text>
+            <Pressable
+              onPress={async () => {
+                await signOutOfProviders();
+                await signOut();
+              }}
+              hitSlop={10}
+            >
+              <Text style={styles.signOut}>Sign out</Text>
+            </Pressable>
           </View>
         }
         contentContainerStyle={styles.list}
@@ -79,5 +100,16 @@ const styles = StyleSheet.create({
   rowTitle: { fontFamily: font.uiMedium, fontSize: 15.5, lineHeight: 21, color: color.ink },
   right: { alignItems: "flex-end", gap: 6, paddingTop: 2 },
   unread: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.bay },
+  account: {
+    marginTop: space.xl,
+    marginHorizontal: space.lg,
+    paddingTop: space.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: color.line,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  signOut: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: color.line, marginLeft: space.lg + 42 + space.md },
 });

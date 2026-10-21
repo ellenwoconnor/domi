@@ -8,7 +8,8 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ellenwoconnor.domi"
+      "bundleIdentifier": "com.ellenwoconnor.domi",
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +26,15 @@
     },
     "scheme": "domi",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-apple-authentication",
+      "expo-secure-store",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.681321857586-ia8edhlh1fj49f84deap0ti7er8ad16j"
+        }
+      ]
     ]
   }
 }
