@@ -6,6 +6,7 @@ const DEV_ZIPS = [
   { zip: "94610", city: "Oakland", state: "CA", lat: 37.812, lng: -122.243 },
   { zip: "94611", city: "Oakland", state: "CA", lat: 37.833, lng: -122.214 },
   { zip: "94705", city: "Berkeley", state: "CA", lat: 37.864, lng: -122.243 },
+  { zip: "94707", city: "Berkeley", state: "CA", lat: 37.893, lng: -122.276 },
   { zip: "94110", city: "San Francisco", state: "CA", lat: 37.749, lng: -122.415 },
 ];
 

@@ -14,6 +14,12 @@ describe("signup (M1)", () => {
     expect(circles[0]).toMatchObject({ kind: "zip", name: "Oakland · 94610", memberCount: 1 });
   });
 
+  test("94707 is a known zip on a fresh deployment", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen", { zip: "94707" });
+    expect((await ellen.as.query(api.communities.mine, {}))[0].name).toBe("Berkeley · 94707");
+  });
+
   test("location comes from the zip centroid when no pin is given, rounded", async () => {
     const t = await setup();
     const maya = await newUser(t, "Maya");
