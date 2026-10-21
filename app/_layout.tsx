@@ -39,6 +39,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.white } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="item/[id]" />
+          <Stack.Screen name="fulfill/[wishId]" options={{ presentation: "fullScreenModal" }} />
         </Stack>
         <StatusBar style="dark" />
       </QueryClientProvider>

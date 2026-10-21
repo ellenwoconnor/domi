@@ -1,75 +1,69 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ShutterRow, Viewfinder } from "../../src/features/give/Viewfinder";
+import { useWishes } from "../../src/features/wishlist/store";
+import { GiveButton } from "../../src/ui/GiveButton";
 import { color, radius, space, type } from "../../src/ui/theme";
 
 /** Mock of the camera-first posting flow (the real camera arrives in M3). */
 export default function Give() {
+  const wanted = useWishes().filter((w) => !w.mine && w.status === "open");
+
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <Text style={type.display}>What's moving on?</Text>
-      <Text style={[type.body, styles.sub]}>
-        Start with a photo. Good light, the whole thing, a little room around it.
-      </Text>
-
-      <View style={styles.viewfinder}>
-        {/* framing guide corners */}
-        <View style={[styles.corner, styles.tl]} />
-        <View style={[styles.corner, styles.tr]} />
-        <View style={[styles.corner, styles.bl]} />
-        <View style={[styles.corner, styles.br]} />
-        <Ionicons name="camera-outline" size={40} color={color.inkFaint} />
-        <Text style={[type.meta, { textAlign: "center" }]}>Camera preview</Text>
+      <View style={styles.pad}>
+        <Text style={type.display}>What's moving on?</Text>
+        <Text style={[type.body, styles.sub]}>
+          Start with a photo. Good light, the whole thing, a little room around it.
+        </Text>
       </View>
 
-      <View style={styles.controls}>
-        <Pressable style={styles.side} accessibilityLabel="Choose from your photos">
-          <Ionicons name="images-outline" size={22} color={color.bay} />
-        </Pressable>
-        <Pressable style={styles.shutter} accessibilityLabel="Take photo">
-          <View style={styles.shutterInner} />
-        </Pressable>
-        <View style={styles.sideSpacer} />
-      </View>
+      <Viewfinder style={styles.viewfinder} />
+      <ShutterRow />
+
+      {wanted.length > 0 && (
+        <View style={styles.strip}>
+          <Text style={[type.label, styles.pad]}>Your circles are looking for</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cards}>
+            {wanted.map((w) => (
+              <Pressable
+                key={w.id}
+                onPress={() => router.push({ pathname: "/fulfill/[wishId]", params: { wishId: w.id } })}
+                style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
+              >
+                <Text style={type.objectLabel} numberOfLines={2}>
+                  {w.title}
+                </Text>
+                <Text style={type.meta} numberOfLines={1}>
+                  {w.who}, {w.area}
+                </Text>
+                <View style={{ marginTop: space.sm }}>
+                  <GiveButton small />
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-const C = 26;
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.white, paddingHorizontal: space.lg, paddingTop: space.lg },
+  screen: { flex: 1, backgroundColor: color.white, paddingTop: space.lg },
+  pad: { paddingHorizontal: space.lg },
   sub: { color: color.inkSoft, marginTop: space.xs, marginBottom: space.lg },
-  viewfinder: {
-    flex: 1,
+  viewfinder: { marginHorizontal: space.lg },
+  strip: { gap: space.sm, paddingBottom: space.md },
+  cards: { gap: space.sm, paddingHorizontal: space.lg },
+  card: {
+    width: 220,
+    gap: 2,
+    padding: space.md,
     borderRadius: radius.thing,
-    backgroundColor: color.fog,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space.sm,
+    borderWidth: 1,
+    borderColor: color.line,
+    alignItems: "flex-start",
   },
-  corner: { position: "absolute", width: C, height: C, borderColor: color.bay },
-  tl: { top: space.lg, left: space.lg, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
-  tr: { top: space.lg, right: space.lg, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
-  bl: { bottom: space.lg, left: space.lg, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 8 },
-  br: { bottom: space.lg, right: space.lg, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 8 },
-  controls: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: space.xl,
-    paddingHorizontal: space.xl,
-  },
-  side: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: color.fog },
-  sideSpacer: { width: 48, height: 48 },
-  // Bay Blue ring, Poppy center: the logo, and a giving moment
-  shutter: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    borderWidth: 5,
-    borderColor: color.bay,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  shutterInner: { width: 30, height: 30, borderRadius: 15, backgroundColor: color.poppy },
 });
