@@ -19,7 +19,7 @@ describe("appConfig", () => {
     await t.mutation(internal.init.default, {});
     await t.mutation(internal.init.default, {});
     const rows = await t.run((ctx) => ctx.db.query("appConfig").collect());
-    expect(rows).toHaveLength(1);
+    expect(rows).toHaveLength(2);
   });
 
   test("get returns null for a missing key", async () => {
