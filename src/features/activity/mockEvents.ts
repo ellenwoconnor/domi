@@ -1,62 +1,75 @@
-// Mock Activity feed for the design preview. Copy follows the events table in docs/spec.md.
+// Mock Activity feed for the design preview. Events follow docs/spec.md;
+// copy follows the brand voice (warm, dependable, quietly witty).
 export type MockEvent = {
   id: string;
-  emoji: string;
+  who?: string; // the other person, shown as an avatar circle (none = from Domi)
   title: string;
   body?: string;
   hoursAgo: number;
   unread: boolean;
+  giving?: boolean; // a giving moment gets the Poppy dot
   itemId?: string;
 };
 
 export const events: MockEvent[] = [
   {
     id: "e1",
-    emoji: "🎉",
-    title: "You were picked for the jogging stroller!",
-    body: "Message Maya to arrange pickup.",
+    who: "Maya",
+    title: "Maya picked you for the jogging stroller.",
+    body: "Message her to set up pickup.",
     hoursAgo: 0.3,
     unread: true,
+    giving: true,
     itemId: "stroller",
   },
   {
     id: "e2",
-    emoji: "🙋",
-    title: "Priya requested your camping chairs",
-    body: "“Going to Big Sur next weekend, would love these!”",
+    who: "Priya",
+    title: "Priya asked for your camping chairs.",
+    body: "“Taking the kids to Tilden this weekend. These would be perfect.”",
     hoursAgo: 1,
     unread: true,
     itemId: "chairs",
   },
   {
     id: "e3",
-    emoji: "🎁",
-    title: "Sam has a high chair for you!",
-    body: "From your wishlist. Message Sam to arrange pickup.",
+    who: "Sam",
+    title: "Sam has a high chair for you.",
+    body: "It was on your wishlist. Message Sam to set up pickup.",
     hoursAgo: 5,
     unread: false,
+    giving: true,
   },
   {
     id: "e4",
-    emoji: "🍼",
-    title: "Jordan joined Baby Shower",
+    who: "Dana",
+    title: "Passed on. The winter coat is yours.",
+    body: "Want to thank Dana?",
+    hoursAgo: 22,
+    unread: false,
+    giving: true,
+    itemId: "coat",
+  },
+  {
+    id: "e5",
+    who: "Jordan",
+    title: "Jordan joined 🍼 Baby Shower.",
     body: "They used your invite link.",
     hoursAgo: 26,
     unread: false,
   },
   {
-    id: "e5",
-    emoji: "💬",
-    title: "New message about the brass desk lamp",
+    id: "e6",
+    who: "Priya",
+    title: "New message about the brass desk lamp.",
     hoursAgo: 30,
     unread: false,
     itemId: "lamp",
   },
   {
-    id: "e6",
-    emoji: "⏳",
-    title: "Your toaster listing expired",
-    body: "Repost it if it's still up for grabs.",
+    id: "e7",
+    title: "Your toaster listing ended after 30 days.",
+    body: "Still have it? Post it again in one tap.",
     hoursAgo: 72,
     unread: false,
   },

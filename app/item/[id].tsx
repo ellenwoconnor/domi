@@ -13,10 +13,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { circleById, getItem, postedLabel } from "../../src/features/items/mockData";
+import { circleById, circleLabel, getItem, postedLabel } from "../../src/features/items/mockData";
+import { CircleMark } from "../../src/ui/Logo";
 import { PhotoTile } from "../../src/ui/PhotoTile";
-import { PorchTag } from "../../src/ui/PorchTag";
-import { color, radius, space, type } from "../../src/ui/theme";
+import { color, font, radius, space, type } from "../../src/ui/theme";
 
 const NOTE_MAX = 140;
 
@@ -31,7 +31,7 @@ export default function ItemDetail() {
   if (!item) {
     return (
       <View style={[styles.missing, { paddingTop: insets.top + space.xl }]}>
-        <Text style={styles.title}>This listing is gone</Text>
+        <Text style={type.title}>This one has already found a home.</Text>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Back to browsing</Text>
         </Pressable>
@@ -40,13 +40,13 @@ export default function ItemDetail() {
   }
 
   const pending = item.status === "pending";
-  const lowerTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
+  const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
         <View>
-          <PhotoTile emoji={item.emoji} seed={item.id} emojiSize={120} rounded={false} style={styles.photo} />
+          <PhotoTile emoji={item.emoji} emojiSize={128} rounded={false} dimmed={pending} style={styles.photo} />
           <Pressable
             onPress={() => router.back()}
             accessibilityLabel="Back"
@@ -54,38 +54,44 @@ export default function ItemDetail() {
           >
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
-          <View style={styles.tagSpot}>
-            <PorchTag size="lg" label={`About ${item.distanceMi} mi away`} />
-          </View>
+          {!pending && (
+            <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
+              <View style={styles.freeDot} />
+              <Text style={styles.freeText}>Free</Text>
+            </View>
+          )}
         </View>
 
+        {/* The placard */}
         <View style={styles.body}>
-          <Text style={styles.title}>{item.title}</Text>
+          <View style={{ gap: space.xs }}>
+            <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
+            <Text style={type.caption}>{item.caption}</Text>
+          </View>
 
           <View style={styles.owner}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{item.owner.charAt(0)}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.ownerName}>{item.owner}</Text>
+              <Text style={type.label}>From {item.owner}</Text>
               <Text style={type.meta}>
-                {item.area}, posted {postedLabel(item.postedHoursAgo)}
+                {item.area}, about {item.distanceMi} mi away. Posted {postedLabel(item.postedHoursAgo)}.
               </Text>
             </View>
           </View>
 
           <Text style={type.body}>{item.description}</Text>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Posted in</Text>
+          <View style={{ gap: space.sm }}>
+            <Text style={type.label}>In your circles</Text>
             <View style={styles.circleRow}>
               {item.circleIds.map((cid) => {
                 const c = circleById(cid);
                 return c ? (
                   <View key={cid} style={styles.circleChip}>
-                    <Text style={styles.circleChipText}>
-                      {c.emoji} {c.name}
-                    </Text>
+                    {c.kind === "zip" ? <CircleMark size={13} /> : null}
+                    <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
                   </View>
                 ) : null;
               })}
@@ -95,7 +101,7 @@ export default function ItemDetail() {
           <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
-              {item.owner} shares the pickup address in a private chat with the person they pick.
+              {item.owner} shares the pickup spot in a private chat with whoever they pick. No public comments.
             </Text>
           </View>
         </View>
@@ -105,37 +111,34 @@ export default function ItemDetail() {
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {pending ? (
           <>
-            <Text style={styles.barNote}>
-              {item.owner} picked someone. You'll get a notification if it becomes available again.
+            <Text style={type.meta}>
+              {item.owner} has picked someone. If it comes back, you'll hear about it.
             </Text>
-            <View style={[styles.primary, styles.primaryDisabled]}>
-              <Text style={[styles.primaryText, { color: color.pending }]}>Pending pickup</Text>
+            <View style={[styles.primary, styles.primaryQuiet]}>
+              <Text style={[type.button, { color: color.bay }]}>Pending pickup</Text>
             </View>
           </>
         ) : requested ? (
           <>
-            <Text style={styles.barNote}>
-              {item.owner} will pick from everyone who asked. If it's you, a chat opens to arrange pickup.
-            </Text>
-            <View style={styles.requestedRow}>
-              <View style={[styles.primary, styles.primaryDone, { flex: 1 }]}>
-                <Ionicons name="checkmark" size={18} color={color.circle} />
-                <Text style={[styles.primaryText, { color: color.circle }]}>Requested</Text>
-              </View>
-              <Pressable
-                onPress={() => {
-                  setRequested(false);
-                  setNote("");
-                }}
-                style={styles.secondary}
-              >
-                <Text style={styles.secondaryText}>Withdraw</Text>
-              </Pressable>
+            <View style={styles.requestedNote}>
+              <Text style={[type.label, { marginBottom: 2 }]}>Request sent.</Text>
+              <Text style={type.meta}>
+                {item.owner} picks from everyone who asked. If it's you, a chat opens to set up pickup.
+              </Text>
             </View>
+            <Pressable
+              onPress={() => {
+                setRequested(false);
+                setNote("");
+              }}
+              style={styles.secondary}
+            >
+              <Text style={styles.secondaryText}>Withdraw request</Text>
+            </Pressable>
           </>
         ) : (
           <Pressable onPress={() => setSheetOpen(true)} style={styles.primary}>
-            <Text style={styles.primaryText}>Request</Text>
+            <Text style={type.button}>Request</Text>
           </Pressable>
         )}
       </View>
@@ -146,17 +149,17 @@ export default function ItemDetail() {
           <Pressable style={styles.scrim} onPress={() => setSheetOpen(false)} accessibilityLabel="Close" />
           <View style={[styles.sheet, { paddingBottom: insets.bottom + space.lg }]}>
             <View style={styles.grabber} />
-            <Text style={styles.sheetTitle}>
-              Ask {item.owner} for the {lowerTitle}
+            <Text style={type.title}>
+              Ask {item.owner} for the {shortTitle}
             </Text>
-            <Text style={type.meta}>Add a note if you like. Only {item.owner} sees it.</Text>
+            <Text style={type.meta}>A short note helps. Only {item.owner} sees it.</Text>
             <TextInput
               value={note}
               onChangeText={setNote}
               maxLength={NOTE_MAX}
               multiline
               autoFocus
-              placeholder="e.g. Baby due in March, can pick up any evening"
+              placeholder="Due in March, and I can pick up any evening."
               placeholderTextColor={color.inkFaint}
               style={styles.noteInput}
             />
@@ -170,7 +173,7 @@ export default function ItemDetail() {
               }}
               style={styles.primary}
             >
-              <Text style={styles.primaryText}>Send request</Text>
+              <Text style={type.button}>Send request</Text>
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -180,94 +183,100 @@ export default function ItemDetail() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.paper },
-  missing: { flex: 1, padding: space.lg, gap: space.md, backgroundColor: color.paper },
-  link: { color: color.circle, fontSize: 16, fontWeight: "600" },
-  photo: { width: "100%", height: 340 },
+  screen: { flex: 1, backgroundColor: color.white },
+  missing: { flex: 1, padding: space.lg, gap: space.md, backgroundColor: color.white },
+  link: { fontFamily: font.uiSemi, color: color.bay, fontSize: 16 },
+  photo: { width: "100%", aspectRatio: 1 },
   back: {
     position: "absolute",
     left: space.lg,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.92)",
+    backgroundColor: color.white,
     alignItems: "center",
     justifyContent: "center",
   },
-  tagSpot: { position: "absolute", bottom: -16, left: space.lg },
-  body: { padding: space.lg, paddingTop: space.xxl, gap: space.lg },
-  title: { ...type.display, fontSize: 28, lineHeight: 34, color: color.ink },
+  // A giving moment: Poppy, with Ink text for contrast
+  freeSticker: {
+    position: "absolute",
+    right: space.lg,
+    height: 34,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 13,
+    borderRadius: radius.pill,
+    backgroundColor: color.poppy,
+  },
+  freeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.white },
+  freeText: { fontFamily: font.uiBold, fontSize: 15, color: color.ink },
+  body: { paddingHorizontal: space.lg, paddingTop: space.xl, gap: space.xl },
   owner: { flexDirection: "row", alignItems: "center", gap: space.md },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: color.surface,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: color.fog,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { ...type.heading, fontSize: 17, color: color.ink },
-  ownerName: { fontSize: 16, fontWeight: "600", color: color.ink },
-  section: { gap: space.sm },
-  sectionLabel: { ...type.heading, fontSize: 15, color: color.ink },
+  avatarText: { fontFamily: font.uiBold, fontSize: 17, color: color.bay },
   circleRow: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
   circleChip: {
-    backgroundColor: color.circleSoft,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: color.fog,
     borderRadius: radius.pill,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    height: 32,
   },
-  circleChipText: { color: color.circle, fontWeight: "600", fontSize: 14 },
+  circleChipText: { fontFamily: font.uiMedium, color: color.ink, fontSize: 14 },
   privacy: {
     flexDirection: "row",
     gap: space.sm,
     alignItems: "flex-start",
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
-    padding: space.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: color.line,
+    paddingTop: space.lg,
   },
   bar: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: color.paper,
+    backgroundColor: color.white,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.line,
     paddingHorizontal: space.lg,
     paddingTop: space.md,
     gap: space.sm,
   },
-  barNote: { ...type.meta },
   primary: {
-    height: 52,
-    borderRadius: radius.md,
-    backgroundColor: color.ink,
+    height: 54,
+    borderRadius: radius.control,
+    backgroundColor: color.bay,
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
-    gap: 6,
   },
-  primaryDisabled: { backgroundColor: color.pendingSoft },
-  primaryDone: { backgroundColor: color.circleSoft },
-  primaryText: { color: color.paper, fontSize: 17, fontWeight: "600" },
-  requestedRow: { flexDirection: "row", gap: space.sm },
+  primaryQuiet: { backgroundColor: color.fog },
+  requestedNote: { backgroundColor: color.blush, borderRadius: radius.control, padding: space.md },
   secondary: {
-    height: 52,
-    paddingHorizontal: space.lg,
-    borderRadius: radius.md,
+    height: 48,
+    borderRadius: radius.control,
     borderWidth: 1,
     borderColor: color.line,
     alignItems: "center",
     justifyContent: "center",
   },
-  secondaryText: { color: color.ink, fontSize: 16, fontWeight: "600" },
+  secondaryText: { fontFamily: font.uiSemi, color: color.ink, fontSize: 16 },
   sheetWrap: { flex: 1, justifyContent: "flex-end" },
-  scrim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(23,32,51,0.35)" },
+  scrim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(24,34,46,0.35)" },
   sheet: {
-    backgroundColor: color.paper,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
+    backgroundColor: color.white,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
     paddingHorizontal: space.lg,
     paddingTop: space.sm,
     gap: space.sm,
@@ -280,13 +289,13 @@ const styles = StyleSheet.create({
     backgroundColor: color.line,
     marginBottom: space.sm,
   },
-  sheetTitle: { ...type.heading, fontSize: 21, lineHeight: 27, color: color.ink },
   noteInput: {
-    minHeight: 96,
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
+    minHeight: 100,
+    backgroundColor: color.fog,
+    borderRadius: radius.control,
     padding: space.md,
     paddingTop: space.md,
+    fontFamily: font.ui,
     fontSize: 16,
     color: color.ink,
     textAlignVertical: "top",

@@ -1,8 +1,9 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { color, radius, space } from "../../ui/theme";
-import type { Circle } from "./mockData";
+import { CircleMark } from "../../ui/Logo";
+import { color, font, radius, space } from "../../ui/theme";
+import { circleLabel, type Circle } from "./mockData";
 
-/** Horizontal circle filter. `null` means all of your circles. */
+/** Circle selector. `null` means all of your circles. Zip circles carry the mark. */
 export function CircleChips({
   circles,
   selected,
@@ -12,9 +13,9 @@ export function CircleChips({
   selected: string | null;
   onSelect: (id: string | null) => void;
 }) {
-  const options: { id: string | null; label: string }[] = [
-    { id: null, label: "All circles" },
-    ...circles.map((c) => ({ id: c.id, label: `${c.emoji} ${c.name}` })),
+  const options: { id: string | null; label: string; mark: boolean }[] = [
+    { id: null, label: "All circles", mark: false },
+    ...circles.map((c) => ({ id: c.id, label: circleLabel(c), mark: c.kind === "zip" })),
   ];
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
@@ -28,6 +29,7 @@ export function CircleChips({
             accessibilityState={{ selected: on }}
             style={[styles.chip, on && styles.chipOn]}
           >
+            {o.mark ? <CircleMark size={14} tone={on ? "white" : "bay"} /> : null}
             <Text style={[styles.label, on && styles.labelOn]}>{o.label}</Text>
           </Pressable>
         );
@@ -39,14 +41,15 @@ export function CircleChips({
 const styles = StyleSheet.create({
   row: { gap: space.sm, paddingHorizontal: space.lg },
   chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    height: 36,
     borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.line,
-    backgroundColor: color.paper,
+    backgroundColor: color.fog,
   },
-  chipOn: { backgroundColor: color.ink, borderColor: color.ink },
-  label: { fontSize: 14, fontWeight: "500", color: color.ink },
-  labelOn: { color: color.paper },
+  chipOn: { backgroundColor: color.bay },
+  label: { fontFamily: font.uiMedium, fontSize: 14, color: color.ink },
+  labelOn: { color: color.white },
 });

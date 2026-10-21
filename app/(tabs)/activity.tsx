@@ -2,7 +2,9 @@ import { router } from "expo-router";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { agoLabel, events } from "../../src/features/activity/mockEvents";
-import { color, space, type } from "../../src/ui/theme";
+import { passedOnThisMonth } from "../../src/features/items/mockData";
+import { CircleMark } from "../../src/ui/Logo";
+import { color, font, radius, space, type } from "../../src/ui/theme";
 
 export default function Activity() {
   return (
@@ -10,24 +12,36 @@ export default function Activity() {
       <FlatList
         data={events}
         keyExtractor={(e) => e.id}
-        ListHeaderComponent={<Text style={styles.title}>Activity</Text>}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={type.display}>Activity</Text>
+            <View style={styles.impact}>
+              <Text style={[type.caption, { color: color.ink }]}>
+                {passedOnThisMonth} things found new homes in your circles this month.
+              </Text>
+            </View>
+          </View>
+        }
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
         renderItem={({ item: e }) => (
           <Pressable
             onPress={() => e.itemId && router.push({ pathname: "/item/[id]", params: { id: e.itemId } })}
-            style={({ pressed }) => [styles.row, pressed && { backgroundColor: color.surface }]}
+            style={({ pressed }) => [styles.row, pressed && { backgroundColor: color.fog }]}
           >
-            <View style={[styles.icon, e.unread && styles.iconUnread]}>
-              <Text style={{ fontSize: 22 }}>{e.emoji}</Text>
+            <View>
+              <View style={styles.avatar}>
+                {e.who ? <Text style={styles.avatarText}>{e.who.charAt(0)}</Text> : <CircleMark size={18} />}
+              </View>
+              {e.giving ? <View style={styles.givingDot} /> : null}
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[styles.rowTitle, e.unread && { fontWeight: "700" }]}>{e.title}</Text>
+              <Text style={[styles.rowTitle, e.unread && { fontFamily: font.uiBold }]}>{e.title}</Text>
               {e.body ? <Text style={type.meta}>{e.body}</Text> : null}
             </View>
             <View style={styles.right}>
               <Text style={[type.meta, { color: color.inkFaint }]}>{agoLabel(e.hoursAgo)}</Text>
-              {e.unread ? <View style={styles.dot} /> : null}
+              {e.unread ? <View style={styles.unread} /> : null}
             </View>
           </Pressable>
         )}
@@ -37,29 +51,33 @@ export default function Activity() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.paper },
+  screen: { flex: 1, backgroundColor: color.white },
   list: { paddingBottom: space.xxl },
-  title: {
-    ...type.display,
-    fontSize: 32,
-    lineHeight: 38,
-    color: color.ink,
-    paddingHorizontal: space.lg,
-    paddingTop: space.sm,
-    paddingBottom: space.md,
-  },
+  header: { paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.md, gap: space.lg },
+  impact: { backgroundColor: color.blush, borderRadius: radius.thing, paddingHorizontal: space.lg, paddingVertical: space.md },
   row: { flexDirection: "row", gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md, alignItems: "flex-start" },
-  icon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: color.surface,
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: color.fog,
     alignItems: "center",
     justifyContent: "center",
   },
-  iconUnread: { backgroundColor: color.tag },
-  rowTitle: { fontSize: 15, lineHeight: 20, color: color.ink, fontWeight: "500" },
+  avatarText: { fontFamily: font.uiBold, fontSize: 16, color: color.bay },
+  givingDot: {
+    position: "absolute",
+    right: -1,
+    bottom: -1,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: color.poppy,
+    borderWidth: 2,
+    borderColor: color.white,
+  },
+  rowTitle: { fontFamily: font.uiMedium, fontSize: 15.5, lineHeight: 21, color: color.ink },
   right: { alignItems: "flex-end", gap: 6, paddingTop: 2 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.ink },
-  sep: { height: StyleSheet.hairlineWidth, backgroundColor: color.line, marginLeft: space.lg + 44 + space.md },
+  unread: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.bay },
+  sep: { height: StyleSheet.hairlineWidth, backgroundColor: color.line, marginLeft: space.lg + 42 + space.md },
 });

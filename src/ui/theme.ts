@@ -1,43 +1,47 @@
-import { Platform } from "react-native";
-
 /**
- * Domi design tokens (mockup v1).
- * Ink-blue on clean white, with one loud accent: the yellow "porch tag"
- * that marks each listing, like a free-stuff sign taped to a box on the curb.
+ * Domi design tokens, from "Domi Circles — Brand Strategy" (Oct 2026):
+ * Neighborhood Modern on clean white, in Fog & Poppy.
+ *
+ * - Poppy means generosity: free items, thank-yous, the logo dot. Never warnings.
+ * - Text on Poppy is always Ink (white on Poppy fails contrast).
+ * - Keep the blue deep and muted. No bright blue anywhere.
  */
 export const color = {
-  paper: "#FFFFFF",
-  surface: "#F1F3F6",
-  line: "#E1E5EB",
-  ink: "#172033",
-  inkSoft: "#5B6475",
-  inkFaint: "#8A93A3",
-  tag: "#FFCF33",
-  tagInk: "#3A2E00",
-  circle: "#1F7A5C",
-  circleSoft: "#E3F2EC",
-  pending: "#9A5B00",
-  pendingSoft: "#FFF1D6",
+  white: "#FFFFFF",
+  bay: "#1F4E79", // primary: wordmark, buttons, navigation, selected states
+  poppy: "#F2652B", // accent: giving moments only
+  blush: "#FDE8DE", // warm tint: highlights, celebrations, empty states
+  fog: "#EAF0F4", // cool tint: photo backgrounds, chips, search
+  ink: "#18222E", // text and icons
+  inkSoft: "#4C5866",
+  inkFaint: "#86919E",
+  line: "#DDE4EA",
 } as const;
 
-/** Soft placeholder backgrounds standing in for item photos. */
-export const tileTints = [
-  "#DCEBFF",
-  "#FFE3E0",
-  "#E2F4E6",
-  "#F1E6FF",
-  "#FFF0CC",
-  "#DFF3F5",
-] as const;
-
-const display = Platform.select({ ios: "Avenir Next", default: undefined });
+/** Font family names, registered in app/_layout.tsx. */
+export const font = {
+  // Fraunces Italic: headlines, item captions, the curator's voice
+  curator: "Fraunces_600SemiBold_Italic",
+  curatorLight: "Fraunces_400Regular_Italic",
+  // Figtree: wordmark, interface, prices, times, buttons
+  ui: "Figtree_400Regular",
+  uiMedium: "Figtree_500Medium",
+  uiSemi: "Figtree_600SemiBold",
+  uiBold: "Figtree_700Bold",
+  wordmark: "Figtree_800ExtraBold",
+} as const;
 
 export const type = {
-  display: { fontFamily: display, fontWeight: "700" as const, letterSpacing: -0.6 },
-  heading: { fontFamily: display, fontWeight: "600" as const, letterSpacing: -0.3 },
-  body: { fontSize: 15, lineHeight: 22, color: color.ink },
-  meta: { fontSize: 13, lineHeight: 18, color: color.inkSoft },
-};
+  display: { fontFamily: font.curator, fontSize: 34, lineHeight: 40, color: color.ink },
+  title: { fontFamily: font.curator, fontSize: 22, lineHeight: 28, color: color.ink },
+  objectLabel: { fontFamily: font.curator, fontSize: 17, lineHeight: 22, color: color.ink },
+  caption: { fontFamily: font.curatorLight, fontSize: 16, lineHeight: 23, color: color.inkSoft },
+  body: { fontFamily: font.ui, fontSize: 16, lineHeight: 24, color: color.ink },
+  meta: { fontFamily: font.ui, fontSize: 13.5, lineHeight: 19, color: color.inkSoft },
+  label: { fontFamily: font.uiSemi, fontSize: 14, lineHeight: 18, color: color.ink },
+  button: { fontFamily: font.uiSemi, fontSize: 17, color: color.white },
+} as const;
 
-export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
-export const radius = { sm: 8, md: 14, lg: 22, pill: 999 } as const;
+export const space = { xs: 4, sm: 8, md: 12, lg: 20, xl: 28, xxl: 40 } as const;
+// Circles mean people and community; rounded rectangles mean things.
+export const radius = { thing: 16, control: 14, sheet: 24, pill: 999 } as const;

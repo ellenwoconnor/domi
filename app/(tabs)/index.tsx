@@ -4,8 +4,9 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-na
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CircleChips } from "../../src/features/items/CircleChips";
 import { ItemCard } from "../../src/features/items/ItemCard";
-import { circleById, circles, items } from "../../src/features/items/mockData";
-import { color, radius, space, type } from "../../src/ui/theme";
+import { circleById, circles, items, passedOnThisMonth, type Item } from "../../src/features/items/mockData";
+import { CircleMark, Logo } from "../../src/ui/Logo";
+import { color, font, radius, space, type } from "../../src/ui/theme";
 
 export default function Browse() {
   const [query, setQuery] = useState("");
@@ -22,19 +23,22 @@ export default function Browse() {
   }, [query, circleId]);
 
   const circle = circleId ? circleById(circleId) : undefined;
-  const heading = circle ? `${circle.emoji} ${circle.name}` : "Free nearby";
+  const available = results.filter((i) => i.status === "available").length;
+  const heading = circle ? (circle.emoji ? `${circle.emoji} ${circle.name}` : circle.name) : "Close to home";
+  const sub = circle?.kind === "zip"
+    ? `Your home circle, ${circle.zip}`
+    : circle
+      ? "An invite-only circle"
+      : `${available} things looking for a new home`;
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.titleBlock}>
-        <Text style={styles.title}>{heading}</Text>
-        <Text style={type.meta}>
-          {circle?.kind === "zip"
-            ? "Everyone in your zip code"
-            : circle
-              ? "Invite-only circle"
-              : `Across your ${circles.length} circles`}
-        </Text>
+      <View style={styles.pad}>
+        <Logo size={24} />
+      </View>
+      <View style={[styles.pad, styles.titleBlock]}>
+        <Text style={type.display}>{heading}</Text>
+        <Text style={type.meta}>{sub}</Text>
       </View>
       <View style={styles.search}>
         <Ionicons name="search" size={18} color={color.inkFaint} />
@@ -44,7 +48,7 @@ export default function Browse() {
             setQuery(t);
             setWished(false);
           }}
-          placeholder="Search free stuff"
+          placeholder="Search your circles"
           placeholderTextColor={color.inkFaint}
           style={styles.searchInput}
           returnKeyType="search"
@@ -56,14 +60,23 @@ export default function Browse() {
     </View>
   );
 
+  const footer =
+    results.length > 0 ? (
+      <View style={styles.footer}>
+        <CircleMark size={14} />
+        <Text style={type.meta}>Your circles passed on {passedOnThisMonth} things this month.</Text>
+      </View>
+    ) : null;
+
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <FlatList
-        // pad odd counts with an empty cell so the last card stays half-width
+      <FlatList<Item | null>
+        // pad odd counts with an empty cell so the last object keeps its column
         data={results.length % 2 ? [...results, null] : results}
         keyExtractor={(i, idx) => i?.id ?? `spacer-${idx}`}
         numColumns={2}
         ListHeaderComponent={header}
+        ListFooterComponent={footer}
         columnWrapperStyle={styles.columns}
         contentContainerStyle={styles.list}
         keyboardDismissMode="on-drag"
@@ -71,13 +84,13 @@ export default function Browse() {
         renderItem={({ item }) => <View style={styles.cell}>{item ? <ItemCard item={item} /> : null}</View>}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>
-              {query ? `No one is giving away “${query.trim()}” right now` : "Nothing posted here yet"}
+            <Text style={type.title}>
+              {query ? `No “${query.trim()}” on the shelves yet.` : "This wall is bare for now."}
             </Text>
             <Text style={[type.body, { color: color.inkSoft }]}>
               {query
-                ? "Add it to your wishlist and neighbors will know you're looking."
-                : "Be the first: tap Give to post something."}
+                ? "Add it to your wishlist and your circles will know you're looking."
+                : "Be the first to give something. Tap Give to post a photo."}
             </Text>
             {query ? (
               <Pressable
@@ -85,8 +98,8 @@ export default function Browse() {
                 disabled={wished}
                 style={[styles.wishButton, wished && styles.wishDone]}
               >
-                <Ionicons name={wished ? "checkmark" : "heart-outline"} size={18} color={wished ? color.circle : color.paper} />
-                <Text style={[styles.wishText, wished && { color: color.circle }]}>
+                <Ionicons name={wished ? "checkmark" : "add"} size={18} color={wished ? color.bay : color.white} />
+                <Text style={[styles.wishText, wished && { color: color.bay }]}>
                   {wished ? "On your wishlist" : "Add to wishlist"}
                 </Text>
               </Pressable>
@@ -99,36 +112,44 @@ export default function Browse() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.paper },
+  screen: { flex: 1, backgroundColor: color.white },
   list: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
-  header: { gap: space.md, paddingTop: space.sm, paddingBottom: space.lg, marginHorizontal: -space.lg },
-  titleBlock: { paddingHorizontal: space.lg, gap: 2 },
-  title: { ...type.display, fontSize: 32, lineHeight: 38, color: color.ink },
+  header: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.xl, marginHorizontal: -space.lg },
+  pad: { paddingHorizontal: space.lg },
+  titleBlock: { gap: 2, marginTop: space.sm },
   search: {
     marginHorizontal: space.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: space.sm,
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
+    backgroundColor: color.fog,
+    borderRadius: radius.control,
     paddingHorizontal: space.md,
-    height: 44,
+    height: 46,
+    marginBottom: -space.sm,
   },
-  searchInput: { flex: 1, fontSize: 16, color: color.ink },
-  columns: { gap: space.md },
+  searchInput: { flex: 1, fontFamily: font.ui, fontSize: 16, color: color.ink },
+  columns: { gap: space.lg },
   cell: { flex: 1, paddingBottom: space.xl },
-  empty: { paddingTop: space.xl, gap: space.sm, alignItems: "flex-start" },
-  emptyTitle: { ...type.heading, fontSize: 20, lineHeight: 26, color: color.ink },
+  footer: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingTop: space.sm },
+  empty: {
+    marginTop: space.sm,
+    padding: space.lg,
+    gap: space.sm,
+    alignItems: "flex-start",
+    backgroundColor: color.blush,
+    borderRadius: radius.thing,
+  },
   wishButton: {
     marginTop: space.sm,
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: color.ink,
+    backgroundColor: color.bay,
     borderRadius: radius.pill,
     paddingHorizontal: space.lg,
-    paddingVertical: 10,
+    height: 44,
   },
-  wishDone: { backgroundColor: color.circleSoft },
-  wishText: { color: color.paper, fontWeight: "600", fontSize: 15 },
+  wishDone: { backgroundColor: color.white },
+  wishText: { fontFamily: font.uiSemi, color: color.white, fontSize: 15 },
 });

@@ -1,16 +1,16 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router/js-tabs";
-import { color } from "../../src/ui/theme";
+import { color, font } from "../../src/ui/theme";
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: color.ink,
+        tabBarActiveTintColor: color.bay,
         tabBarInactiveTintColor: color.inkFaint,
-        tabBarStyle: { borderTopColor: color.line, backgroundColor: color.paper },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        tabBarStyle: { borderTopColor: color.line, backgroundColor: color.white },
+        tabBarLabelStyle: { fontFamily: font.uiSemi, fontSize: 11 },
       }}
     >
       <Tabs.Screen
@@ -35,8 +35,9 @@ export default function TabsLayout() {
         name="activity"
         options={{
           title: "Activity",
+          // No red badges: a calm Bay Blue count
           tabBarBadge: 2,
-          tabBarBadgeStyle: { backgroundColor: color.tag, color: color.tagInk, fontWeight: "700" },
+          tabBarBadgeStyle: { backgroundColor: color.bay, color: color.white, fontFamily: font.uiBold, fontSize: 11 },
           tabBarIcon: ({ color: c, focused }) => (
             <Ionicons name={focused ? "notifications" : "notifications-outline"} size={22} color={c} />
           ),
