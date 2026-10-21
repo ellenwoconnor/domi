@@ -2,8 +2,9 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { DevSignIn, devSignInEnabled } from "../src/features/auth/DevSignIn";
 import { appleSignInParams, googleSignInParams } from "../src/features/auth/nativeSignIn";
 import { Logo } from "../src/ui/Logo";
 import { color, radius, space, type } from "../src/ui/theme";
@@ -34,43 +35,47 @@ export default function SignIn() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.top}>
-        <Logo size={40} />
-        <Text style={[type.display, styles.headline]}>Good things, close to home.</Text>
-        <Text style={[type.body, { color: color.inkSoft }]}>
-          Give and get secondhand with your neighbors. Your circles see what you post; nobody else does.
-        </Text>
-      </View>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <View style={styles.top}>
+            <Logo size={40} />
+            <Text style={[type.display, styles.headline]}>Good things, close to home.</Text>
+            <Text style={[type.body, { color: color.inkSoft }]}>
+              Give and get secondhand with your neighbors. Your circles see what you post; nobody else does.
+            </Text>
+          </View>
 
-      <View style={styles.buttons}>
-        {busy ? <ActivityIndicator color={color.bay} style={{ marginBottom: space.sm }} /> : null}
-        {appleAvailable && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={radius.control}
-            style={styles.apple}
-            onPress={() => !busy && run("apple")}
-          />
-        )}
-        <GoogleSigninButton
-          size={GoogleSigninButton.Size.Wide}
-          color={GoogleSigninButton.Color.Light}
-          onPress={() => !busy && run("google")}
-          disabled={!!busy}
-          style={styles.google}
-        />
-        {error ? <Text style={[type.meta, styles.error]}>{error}</Text> : null}
-        <Text style={[type.meta, styles.legal]}>
-          By continuing, you agree to Domi's Terms and Privacy Policy.
-        </Text>
-      </View>
+          <View style={styles.buttons}>
+            {devSignInEnabled ? <DevSignIn /> : null}
+            {busy ? <ActivityIndicator color={color.bay} style={{ marginBottom: space.sm }} /> : null}
+            {appleAvailable && (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={radius.control}
+                style={styles.apple}
+                onPress={() => !busy && run("apple")}
+              />
+            )}
+            <GoogleSigninButton
+              size={GoogleSigninButton.Size.Wide}
+              color={GoogleSigninButton.Color.Light}
+              onPress={() => !busy && run("google")}
+              disabled={!!busy}
+              style={styles.google}
+            />
+            {error ? <Text style={[type.meta, styles.error]}>{error}</Text> : null}
+            <Text style={[type.meta, styles.legal]}>By continuing, you agree to Domi's Terms and Privacy Policy.</Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.white, paddingHorizontal: space.lg, justifyContent: "space-between" },
+  screen: { flex: 1, backgroundColor: color.white },
+  scroll: { flexGrow: 1, paddingHorizontal: space.lg, justifyContent: "space-between" },
   top: { paddingTop: space.xxl, gap: space.md },
   headline: { fontSize: 40, lineHeight: 46, marginTop: space.xl },
   buttons: { gap: space.md, paddingBottom: space.lg },
