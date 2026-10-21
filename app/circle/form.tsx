@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { EmojiPicker } from "../../src/features/circles/EmojiPicker";
 import { errorMessage } from "../../src/lib/errors";
 import { ErrorNote, Field, PrimaryButton } from "../../src/ui/Form";
+import { FormScroll } from "../../src/ui/FormScroll";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
 import { color, space } from "../../src/ui/theme";
 
@@ -17,7 +18,7 @@ import { color, space } from "../../src/ui/theme";
 export default function CircleForm() {
   const { id } = useLocalSearchParams<{ id?: Id<"communities"> }>();
   const editing = !!id;
-  const existing = useQuery({ ...convexQuery(api.communities.get, id ? { communityId: id } : "skip") });
+  const existing = useQuery(convexQuery(api.communities.get, id ? { communityId: id } : "skip"));
   const create = useMutation(api.communities.create);
   const update = useMutation(api.communities.update);
 
@@ -37,6 +38,7 @@ export default function CircleForm() {
   }, [existing.data?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
+    Keyboard.dismiss();
     setError(null);
     setBusy(true);
     try {
@@ -56,48 +58,47 @@ export default function CircleForm() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <ScreenHeader title={editing ? "Edit circle" : "Start a circle"} close />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          <Field
-            label="Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="Spruce St, Baby Shower, Building B…"
-            maxLength={40}
-          />
-          <EmojiPicker value={emoji} onChange={setEmoji} />
-          <Field
-            label="Description (optional)"
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Who it's for, in a sentence."
-            maxLength={280}
-            multiline
-            style={styles.multiline}
-          />
-          <ErrorNote message={error} />
-        </ScrollView>
-        <View style={styles.bar}>
-          <PrimaryButton
-            title={editing ? "Save" : "Start circle"}
-            onPress={save}
-            busy={busy}
-            disabled={!name.trim() || !emoji}
-          />
-        </View>
-      </KeyboardAvoidingView>
+      <FormScroll>
+        <Field
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          placeholder="Spruce St, Baby Shower, Building B…"
+          maxLength={40}
+          returnKeyType="done"
+          submitBehavior="blurAndSubmit"
+        />
+        <EmojiPicker
+          value={emoji}
+          onChange={(e) => {
+            Keyboard.dismiss();
+            setEmoji(e);
+          }}
+        />
+        <Field
+          label="Description (optional)"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Who it's for, in a sentence."
+          maxLength={280}
+          multiline
+          returnKeyType="done"
+          submitBehavior="blurAndSubmit"
+          style={styles.multiline}
+        />
+        <ErrorNote message={error} />
+        <PrimaryButton
+          title={editing ? "Save" : "Start circle"}
+          onPress={save}
+          busy={busy}
+          disabled={!name.trim() || !emoji}
+        />
+      </FormScroll>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  body: { padding: space.lg, gap: space.xl },
   multiline: { height: 96, paddingTop: space.md, textAlignVertical: "top" },
-  bar: {
-    paddingHorizontal: space.lg,
-    paddingVertical: space.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: color.line,
-  },
 });
