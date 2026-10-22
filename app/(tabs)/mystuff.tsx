@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { StuffRow } from "../../convex/mystuff";
 import { Avatar } from "../../src/ui/Avatar";
+import { Segmented } from "../../src/ui/Segmented";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 type Side = "giving" | "getting";
@@ -47,9 +48,15 @@ export default function MyStuff() {
         </Pressable>
       </View>
 
-      <View style={styles.tabs} accessibilityRole="tablist">
-        <SideTab label="Giving" active={current === "giving"} dot={(needs.data?.giving ?? 0) > 0} onPress={() => setSide("giving")} />
-        <SideTab label="Getting" active={current === "getting"} dot={(needs.data?.getting ?? 0) > 0} onPress={() => setSide("getting")} />
+      <View style={styles.tabs}>
+        <Segmented<Side>
+          options={[
+            { value: "giving", label: "Giving", dot: (needs.data?.giving ?? 0) > 0 },
+            { value: "getting", label: "Getting", dot: (needs.data?.getting ?? 0) > 0 },
+          ]}
+          value={current}
+          onChange={setSide}
+        />
       </View>
 
       <FlatList
@@ -60,21 +67,6 @@ export default function MyStuff() {
         ListEmptyComponent={loaded ? <Empty side={current} /> : null}
       />
     </SafeAreaView>
-  );
-}
-
-function SideTab({ label, active, dot, onPress }: { label: string; active: boolean; dot: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-      accessibilityLabel={dot ? `${label}, something needs you` : label}
-      style={[styles.tab, active && styles.tabActive]}
-    >
-      <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
-      {dot ? <View style={styles.dot} /> : null}
-    </Pressable>
   );
 }
 
@@ -128,27 +120,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingTop: space.md,
   },
-  tabs: {
-    flexDirection: "row",
-    gap: 24,
-    marginHorizontal: space.lg,
-    marginTop: space.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: color.line,
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingTop: space.sm,
-    paddingBottom: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-    marginBottom: -StyleSheet.hairlineWidth,
-  },
-  tabActive: { borderBottomColor: color.ink },
-  tabText: { fontFamily: font.uiMedium, fontSize: 16, color: color.inkSoft },
-  tabTextActive: { fontFamily: font.uiBold, color: color.ink },
+  tabs: { marginTop: space.lg, marginBottom: space.xs },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.bay },
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl },
   row: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: space.md },

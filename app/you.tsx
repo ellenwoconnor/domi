@@ -1,25 +1,65 @@
+import { useAuthActions } from "@convex-dev/auth/react";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
+import Constants from "expo-constants";
 import { router } from "expo-router";
-import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { type ReactNode, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
+import { signOutOfProviders } from "../src/features/auth/nativeSignIn";
 import { CircleBadge } from "../src/features/circles/CircleBadge";
 import { openLegal } from "../src/features/legal";
+import { errorMessage } from "../src/lib/errors";
 import { Avatar } from "../src/ui/Avatar";
+import { ErrorNote } from "../src/ui/Form";
 import { ScreenHeader } from "../src/ui/ScreenHeader";
 import { color, font, space, type } from "../src/ui/theme";
 
 const neighbors = (n: number) => `${n} ${n === 1 ? "neighbor" : "neighbors"}`;
 
-/** You: who you are, your circles, and settings. Opened from the My stuff avatar. */
+/** You: who you are, your circles, and settings (incl. sign out and delete). Opened from the My stuff avatar. */
 export default function You() {
   const { data: me } = useQuery(convexQuery(api.profiles.me, {}));
   const { data: circles } = useQuery(convexQuery(api.communities.mine, {}));
   const p = me?.profile;
   const home = circles?.find((c) => c.kind === "zip");
   const custom = circles?.filter((c) => c.kind === "custom") ?? [];
+  const { signOut } = useAuthActions();
+  const deleteAccount = useMutation(api.profiles.deleteAccount);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function doSignOut() {
+    await signOutOfProviders();
+    await signOut();
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      "Delete your account?",
+      "This permanently deletes your profile, listings, wishes, requests and messages. Anyone you were arranging a pickup with will be told. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete account",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteAccount({});
+              await signOutOfProviders();
+              await signOut().catch(() => {}); // the session is already gone on the server
+            } catch (e) {
+              setError(errorMessage(e));
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
@@ -66,8 +106,11 @@ export default function You() {
 
         <View style={styles.settings}>
           <SettingsRow label="Terms and privacy" onPress={() => openLegal("terms")} />
-          <SettingsRow label="Account and sign out" onPress={() => router.push("/account")} last />
+          <SettingsRow label="Sign out" onPress={doSignOut} />
+          <SettingsRow label={deleting ? "Deleting…" : "Delete account"} onPress={confirmDelete} last />
         </View>
+        <ErrorNote message={error} />
+        <Text style={styles.version}>Domi {Constants.expoConfig?.version ?? ""}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,5 +164,6 @@ const styles = StyleSheet.create({
   linkText: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
   settings: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line },
   settingsRow: { minHeight: 52, justifyContent: "center" },
+  version: { fontFamily: font.ui, fontSize: 13, color: color.inkFaint, textAlign: "center" },
   rule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.line },
 });

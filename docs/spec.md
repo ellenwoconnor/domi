@@ -32,7 +32,7 @@ Paid listings, bidding, price cuts, payments, escrow, karma/points, calendar sch
 
 ## Navigation and My stuff
 
-Tabs: **Browse · Give · My stuff**. The avatar at the top of My stuff opens **You**: name and zip (Edit → Edit profile), Your circles (Start a circle, Join with a code), Terms and privacy, Account and sign out.
+Tabs: **Browse · Give · My stuff**. The avatar at the top of My stuff opens **You**: name and zip (Edit → Edit profile), Your circles (Start a circle, Join with a code), Terms and privacy, Sign out, Delete account. Browse (Free / Wishes) and My stuff (Giving / Getting) use the same segmented control.
 
 My stuff has two sides, **Giving** and **Getting**. Each thing is one row: photo, title, and one plain status line. A row that needs you has a Bay status line and a small dot, and sorts first; the side and the tab show a dot (never a count or red badge) when anything needs you. It opens on the side that needs you. Endings (picked up, went to someone else) stay for 3 days at the bottom, then drop off. Served by `mystuff.giving`, `mystuff.getting`, `mystuff.needsYou`.
 
