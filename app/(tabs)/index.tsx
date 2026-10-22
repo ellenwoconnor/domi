@@ -10,6 +10,7 @@ import { useWishes, type Wish } from "../../src/features/wishlist/store";
 import { MyWishRow, WishRow } from "../../src/features/wishlist/WishRow";
 import { CircleMark, Logo } from "../../src/ui/Logo";
 import { Segmented } from "../../src/ui/Segmented";
+import { YouButton } from "../../src/ui/YouButton";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 type Mode = "free" | "wishes";
@@ -55,8 +56,9 @@ export default function Browse() {
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.pad}>
+      <View style={[styles.pad, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
         <Logo size={24} />
+        <YouButton />
       </View>
       <View style={[styles.pad, styles.titleBlock]}>
         <Text style={type.display}>{heading}</Text>

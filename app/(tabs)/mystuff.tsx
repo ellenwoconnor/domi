@@ -6,7 +6,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { StuffRow } from "../../convex/mystuff";
-import { Avatar } from "../../src/ui/Avatar";
+import { YouButton } from "../../src/ui/YouButton";
 import { Segmented } from "../../src/ui/Segmented";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -18,7 +18,6 @@ type Side = "giving" | "getting";
  * competes for attention. The avatar opens You (profile, circles, settings).
  */
 export default function MyStuff() {
-  const { data: me } = useQuery(convexQuery(api.profiles.me, {}));
   const giving = useQuery(convexQuery(api.mystuff.giving, {}));
   const getting = useQuery(convexQuery(api.mystuff.getting, {}));
   const needs = useQuery(convexQuery(api.mystuff.needsYou, {}));
@@ -32,20 +31,12 @@ export default function MyStuff() {
   const current = side ?? "giving";
   const rows = (current === "giving" ? giving.data : getting.data) ?? [];
   const loaded = current === "giving" ? giving.isSuccess : getting.isSuccess;
-  const name = me?.profile?.displayName ?? "";
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <View style={styles.head}>
         <Text style={type.display}>My stuff</Text>
-        <Pressable
-          onPress={() => router.push("/you")}
-          accessibilityRole="button"
-          accessibilityLabel="You: profile, circles and settings"
-          hitSlop={8}
-        >
-          <Avatar name={name} size={44} />
-        </Pressable>
+        <YouButton />
       </View>
 
       <View style={styles.tabs}>
