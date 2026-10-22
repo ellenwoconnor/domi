@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
   blockedUserIds,
+  displayName,
   fail,
   getProfile,
   requireCircleOwner,
@@ -46,8 +47,19 @@ export const get = query({
     const { userId } = await requireProfile(ctx);
     const m = await requireMember(ctx, communityId, userId);
     const c = (await ctx.db.get(communityId))!;
+    // The current owner (ownership passes on if the founder leaves).
+    const owner =
+      c.kind === "custom"
+        ? (
+            await ctx.db
+              .query("memberships")
+              .withIndex("by_community_joinedAt", (q) => q.eq("communityId", communityId))
+              .collect()
+          ).find((x) => x.role === "owner")
+        : undefined;
     return {
       id: c._id,
+      startedBy: owner ? (owner.userId === userId ? "you" : await displayName(ctx, owner.userId)) : null,
       name: c.name,
       emoji: c.emoji,
       description: c.description ?? null,

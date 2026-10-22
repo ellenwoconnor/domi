@@ -13,7 +13,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Area | MVP |
 | --- | --- |
 | Accounts | Sign up with Apple or Google. Accept the terms of service. Provide display name, zip code, and optional coarse location (zip centroid if skipped). Placed in the default circle for the zip, plus any custom circles from invite links. In-app account deletion. |
-| Circles | Create a custom circle with a name, an emoji, and an optional description. Any member can invite by sharing their own link. The creator is the circle's owner (admin): can remove members and delete the circle. Members can leave a custom circle. Mute a circle. No invites into zip circles. |
+| Circles | Create a custom circle with a name, an emoji, and an optional description. Any member can invite by sharing their own link. The creator is the circle's owner (admin): can remove members and delete the circle. Members can leave a custom circle. No invites into zip circles. |
 | Listings | Camera-first posting: title, description, one or more photos. Post to several circles. Edit or remove. See requests with notes, pick a recipient, un-pick, mark picked up. Repost an expired listing. |
 | Share outside Domi | The owner can share a link to a listing (e.g. in a Buy Nothing group). The link opens a read-only page; someone who installs Domi from it can request that listing even if they are not in its circles. |
 | Browse | Items and wishes in all my circles or one circle. Item detail. Keyword search. |
@@ -22,13 +22,38 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Messaging | A thread opens when a recipient is picked; either side can message. |
 | Profile | View and edit profile, including zip, with a confirmation that lists what will be cancelled in the old zip circle. |
 | Lifecycle | Available → Pending → Gone, or Expired after 30 days, or Removed. |
-| Notifications | Push and an Activity tab, both fed by `events`. Per-circle mute; at most one circle digest per day. |
+| Notifications | Push, fed by `events`. In the app, the My stuff tab shows what needs you (see "My stuff"). At most one circle digest per day. |
 | Growth | Invite links that land people in the right circle, with a web landing page for people without the app. Listing share links (above). |
 | Safety | Report and block. Block hides each person's items, wishes and messages from the other. Manual review in the Convex dashboard. Cap of 5 open requests per user. `bannedAt` on profiles to suspend. |
 
 ## Out of scope for MVP
 
 Paid listings, bidding, price cuts, payments, escrow, karma/points, calendar scheduling UI, private wishes, profile photo upload (field exists, unused), phone OTP, email or Facebook login (a dev-only password sign-in exists for testing and must never be enabled in production), AI features, migrating data or users from Corcles.
+
+## Navigation and My stuff
+
+Tabs: **Browse · Give · My stuff**. The avatar at the top of My stuff opens **You**: name and zip (Edit → Edit profile), Your circles (Start a circle, Join with a code), Terms and privacy, Account and sign out.
+
+My stuff has two sides, **Giving** and **Getting**. Each thing is one row: photo, title, and one plain status line. A row that needs you has a Bay status line and a small dot, and sorts first; the side and the tab show a dot (never a count or red badge) when anything needs you. It opens on the side that needs you. Endings (picked up, went to someone else) stay for 3 days at the bottom, then drop off. Served by `mystuff.giving`, `mystuff.getting`, `mystuff.needsYou`.
+
+| Side | Situation | Status line | Needs you |
+| --- | --- | --- | --- |
+| Giving | available, people asked | "3 people asked. Choose one." | yes |
+| Giving | available, no requests | "No requests yet" | |
+| Giving | private offer, waiting | "Offered for Maya's wish. Waiting for them to choose." | |
+| Giving | pending, unread message | "New message from Maya" | yes |
+| Giving | pending | "Going to Maya" | |
+| Giving | expired | "Expired. Tap to post again." | |
+| Giving | gone (3 days) | "Picked up by Maya" | ended |
+| Getting | chosen, haven't replied | "Ellen chose you. Reply to plan pickup." | yes |
+| Getting | chosen, unread message | "New message from Ellen" | yes |
+| Getting | chosen, talking | "Pickup with Ellen" | |
+| Getting | asked, waiting | "You asked. Ellen hasn't chosen yet." / "…on hold for someone else." / "…the listing has expired." | |
+| Getting | my wish, offers in | "2 neighbors offered one" | yes |
+| Getting | my wish, no offers | "No offers yet" | |
+| Getting | ended (3 days) | "Picked up. Enjoy!" / "Went to someone else" / "No longer available" | ended |
+
+The circle page: emoji, name, description, "8 neighbors · started by Maya", one Invite button, the neighbor list (the owner marked "Started it"; the owner can tap someone to remove them), and quiet Leave (and Delete for the owner) links.
 
 ## Data model (Convex)
 
@@ -185,6 +210,7 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - 2026-10-21: Wish offers accumulate and the wisher picks one (as in Corcles); several people may offer.
 - 2026-10-21: Repost reopens the same listing with a fresh 30 days; requests that were open stay open.
 - 2026-10-21: Listings expire after 30 days.
-- 2026-10-21: Tabs are Browse · Give · Activity · You; You holds the profile and my circles.
+- 2026-10-21: Tabs are Browse · Give · My stuff (replaces Browse · Give · Activity · You, after two rounds of mock usability tests). You (profile, circles, settings) opens from the My stuff avatar. There is no separate Activity feed in the app; push still reads `events`. Browse keeps its current design.
+- 2026-10-21: Muting a circle is out of the MVP screens (the backend field stays). The circle page has no "new invite link" button.
 - 2026-10-21: Opening an invite link while signed in shows a confirmation card before joining.
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.

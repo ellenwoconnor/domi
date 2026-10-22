@@ -1,8 +1,15 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs } from "expo-router/js-tabs";
+import { View } from "react-native";
+import { api } from "../../convex/_generated/api";
 import { color, font } from "../../src/ui/theme";
 
 export default function TabsLayout() {
+  const needs = useQuery(convexQuery(api.mystuff.needsYou, {}));
+  const needsYou = (needs.data?.total ?? 0) > 0;
+
   return (
     <Tabs
       screenOptions={{
@@ -32,23 +39,30 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="activity"
+        name="mystuff"
         options={{
-          title: "Activity",
-          // No red badges: a calm Bay Blue count
-          tabBarBadge: 2,
-          tabBarBadgeStyle: { backgroundColor: color.bay, color: color.white, fontFamily: font.uiBold, fontSize: 11 },
+          title: "My stuff",
+          tabBarAccessibilityLabel: needsYou ? "My stuff, something needs you" : "My stuff",
           tabBarIcon: ({ color: c, focused }) => (
-            <Ionicons name={focused ? "notifications" : "notifications-outline"} size={22} color={c} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="you"
-        options={{
-          title: "You",
-          tabBarIcon: ({ color: c, focused }) => (
-            <Ionicons name={focused ? "person-circle" : "person-circle-outline"} size={24} color={c} />
+            <View>
+              <Ionicons name={focused ? "cube" : "cube-outline"} size={23} color={c} />
+              {/* No red badges and no counts: a small Bay dot when something needs you. */}
+              {needsYou ? (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -1,
+                    right: -4,
+                    width: 9,
+                    height: 9,
+                    borderRadius: 5,
+                    backgroundColor: color.bay,
+                    borderWidth: 1.5,
+                    borderColor: color.white,
+                  }}
+                />
+              ) : null}
+            </View>
           ),
         }}
       />

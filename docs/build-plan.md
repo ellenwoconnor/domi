@@ -29,6 +29,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - `communities`, `memberships` with access checks and tests. Create a circle with name and emoji. (Backend done: `communities.ts`, `invites.ts`.)
 - Invite link + `redeemInvite` mutation. Universal Links / App Links config.
 - First-launch "enter invite code" fallback.
+- Status 2026-10-21 (later): navigation is now Browse · Give · My stuff, with You opened from the My stuff avatar; circle page simplified (round-5 design).
 - Status 2026-10-21: app screens built (You tab with circles, circle detail/create/edit, join with code, invite share sheet, `/c/` and `/i/` link routes), `web/` Worker built and tested. Remaining: DNS to Cloudflare, Worker deploy, rebuild with associated domains, device checks.
 - Done when: on a real device, tapping a link (app installed) lands in the right circle, and entering the code works on a fresh install.
 
@@ -42,11 +43,11 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - Owner view lists everyone who asked; recipient picker sets status to pending; Mark picked up sets gone.
 - Done when: two devices chat in realtime; a third account cannot read the thread (test proves it); block stops new messages.
 
-## M5. Events, push, and Activity
+## M5. Events and push
 - `events`, `pushTokens`. The mutations that change state write events per the table in `docs/spec.md`. (Events and `activity.ts` done; `sendPush` not yet.)
-- Writing an event schedules a `sendPush` action (`ctx.scheduler.runAfter(0, ...)`). Activity tab reads events.
+- Writing an event schedules a `sendPush` action (`ctx.scheduler.runAfter(0, ...)`). The in-app "what needs you" view is My stuff (built 2026-10-21, `mystuff.ts`), not an Activity feed.
 - Ask push permission after the first meaningful action, not at launch.
-- Done when: on physical devices, each transition sends the right push to the right person with role-specific copy, and the Activity tab matches.
+- Done when: on physical devices, each transition sends the right push to the right person with role-specific copy, and My stuff shows the same thing.
 
 ## M6. Expiry, caps, and launch readiness
 - Convex cron jobs (`convex/crons.ts`) for listing expiry and daily digest; open-request cap per user, per-circle mute. (Expiry, photo purge, cap and mute done; digest not yet.)

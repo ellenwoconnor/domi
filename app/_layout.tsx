@@ -61,7 +61,9 @@ function AppStack() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="item/[id]" />
         <Stack.Screen name="fulfill/[wishId]" options={{ presentation: "fullScreenModal" }} />
+        <Stack.Screen name="you" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="account" />
         <Stack.Screen name="circle/[id]" />
         <Stack.Screen name="circle/form" options={{ presentation: "modal" }} />
         <Stack.Screen name="join" options={{ presentation: "modal" }} />

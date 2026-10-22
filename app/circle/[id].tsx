@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useConvex, useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -11,6 +11,7 @@ import { CircleBadge } from "../../src/features/circles/CircleBadge";
 import { shareInvite } from "../../src/features/circles/invite";
 import { errorMessage } from "../../src/lib/errors";
 import { ErrorNote, PrimaryButton, TextButton } from "../../src/ui/Form";
+import { Avatar } from "../../src/ui/Avatar";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -32,13 +33,12 @@ export default function CircleDetail() {
   const convex = useConvex();
   const circleQ = useQuery(convexQuery(api.communities.get, { communityId: id }));
   const membersQ = useQuery(convexQuery(api.communities.members, { communityId: id }));
-  const setMuted = useMutation(api.communities.setMuted);
   const leave = useMutation(api.communities.leave);
   const removeMember = useMutation(api.communities.removeMember);
   const deleteCircle = useMutation(api.communities.deleteCircle);
-  const regenerate = useMutation(api.invites.regenerate);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const c = circleQ.data;
   if (circleQ.error) {
@@ -55,6 +55,9 @@ export default function CircleDetail() {
 
   const isOwner = c.role === "owner";
   const custom = c.kind === "custom";
+  const canRemove = isOwner && custom;
+  const members = membersQ.data ?? [];
+  const visible = showAll ? members : members.slice(0, 8);
 
   async function run(fn: () => Promise<unknown>) {
     setError(null);
@@ -69,18 +72,6 @@ export default function CircleDetail() {
   }
 
   const invite = () => run(() => shareInvite({ id: c.id, name: c.name, emoji: c.emoji }));
-
-  const newLink = () =>
-    run(async () => {
-      const ok = await confirm(
-        "Get a new invite link?",
-        "Your current link will stop working. People who already joined stay in the circle.",
-        "New link",
-      );
-      if (!ok) return;
-      await regenerate({ communityId: c.id });
-      await shareInvite({ id: c.id, name: c.name, emoji: c.emoji });
-    });
 
   const doLeave = () =>
     run(async () => {
@@ -139,62 +130,45 @@ export default function CircleDetail() {
           <Text style={[type.display, { textAlign: "center" }]}>{c.name}</Text>
           {c.description ? <Text style={[type.caption, { textAlign: "center" }]}>{c.description}</Text> : null}
           <Text style={type.meta}>
-            {custom ? "Invite-only" : "Your home circle"} · {plural(c.memberCount, "member")}
+            {plural(c.memberCount, "neighbor")}
+            {c.startedBy ? ` · started by ${c.startedBy}` : ""}
           </Text>
         </View>
 
         {custom ? (
-          <View style={{ gap: space.xs }}>
-            <PrimaryButton title="Invite people" onPress={invite} busy={busy} />
-            <TextButton title="Get a new invite link" onPress={newLink} />
-          </View>
+          <PrimaryButton title="Invite a neighbor" onPress={invite} busy={busy} />
         ) : (
           <Text style={[type.meta, styles.note]}>
-            Everyone in your zip code is here. To move to a different home circle, change your zip in your profile.
+            Everyone in your zip code is here. To change your home circle, edit the zip in your profile.
           </Text>
         )}
 
         <ErrorNote message={error} />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={type.label}>Mute this circle</Text>
-            <Text style={type.meta}>No notifications about new listings here.</Text>
-          </View>
-          <Switch
-            value={c.muted}
-            onValueChange={(muted) => run(() => setMuted({ communityId: c.id, muted }))}
-            trackColor={{ true: color.bay, false: color.line }}
-          />
-        </View>
-
-        <View style={{ gap: space.sm }}>
-          <Text style={type.label}>Members</Text>
-          {(membersQ.data ?? []).map((m) => (
+        <View>
+          <Text style={styles.h2}>Neighbors</Text>
+          {visible.map((m) => (
             <Pressable
               key={m.userId}
-              disabled={!isOwner || !custom || m.isMe}
+              disabled={!canRemove || m.isMe}
               onPress={() => doRemove(m)}
               style={styles.member}
-              accessibilityHint={isOwner && custom && !m.isMe ? "Remove from circle" : undefined}
+              accessibilityHint={canRemove && !m.isMe ? "Remove from circle" : undefined}
             >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{m.displayName.charAt(0).toUpperCase()}</Text>
-              </View>
-              <Text style={[type.body, { flex: 1 }]}>
-                {m.displayName}
-                {m.isMe ? " (you)" : ""}
-              </Text>
-              {m.role === "owner" ? <Text style={styles.tag}>Owner</Text> : null}
+              <Avatar name={m.displayName} />
+              <Text style={[type.body, { flex: 1 }]}>{m.isMe ? "You" : m.displayName}</Text>
+              {m.role === "owner" ? <Text style={type.meta}>Started it</Text> : null}
             </Pressable>
           ))}
-          {isOwner && custom ? <Text style={type.meta}>Tap a member to remove them.</Text> : null}
+          {members.length > visible.length ? (
+            <TextButton title={`See all ${members.length}`} onPress={() => setShowAll(true)} />
+          ) : null}
         </View>
 
         {custom ? (
           <View style={styles.danger}>
-            <TextButton title="Leave circle" onPress={doLeave} tone="ink" />
-            {isOwner ? <TextButton title="Delete circle" onPress={doDelete} tone="ink" /> : null}
+            <Quiet label="Leave this circle" onPress={doLeave} />
+            {isOwner ? <Quiet label="Delete this circle" onPress={doDelete} /> : null}
           </View>
         ) : null}
       </ScrollView>
@@ -208,31 +182,17 @@ const styles = StyleSheet.create({
   hero: { alignItems: "center", gap: space.sm },
   edit: { fontFamily: font.uiSemi, fontSize: 16, color: color.bay },
   note: { backgroundColor: color.fog, padding: space.md, borderRadius: radius.control },
-  row: { flexDirection: "row", alignItems: "center", gap: space.md },
-  member: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.xs },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: color.fog,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontFamily: font.uiBold, fontSize: 15, color: color.bay },
-  tag: {
-    fontFamily: font.uiSemi,
-    fontSize: 12,
-    color: color.bay,
-    backgroundColor: color.fog,
-    paddingHorizontal: space.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-    overflow: "hidden",
-  },
-  danger: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: color.line,
-    paddingTop: space.md,
-    alignItems: "flex-start",
-  },
+  h2: { fontFamily: font.uiBold, fontSize: 17, color: color.ink, marginBottom: 6 },
+  member: { flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 52 },
+  quiet: { minHeight: 44, justifyContent: "center" },
+  quietText: { fontFamily: font.ui, fontSize: 15, color: color.inkSoft },
+  danger: { alignItems: "flex-start" },
 });
+
+function Quiet({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" hitSlop={8} style={styles.quiet}>
+      <Text style={styles.quietText}>{label}</Text>
+    </Pressable>
+  );
+}

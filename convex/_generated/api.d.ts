@@ -29,6 +29,7 @@ import type * as lib_photos from "../lib/photos.js";
 import type * as lib_redeem from "../lib/redeem.js";
 import type * as lib_validate from "../lib/validate.js";
 import type * as maintenance from "../maintenance.js";
+import type * as mystuff from "../mystuff.js";
 import type * as profiles from "../profiles.js";
 import type * as requests from "../requests.js";
 import type * as safety from "../safety.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   "lib/redeem": typeof lib_redeem;
   "lib/validate": typeof lib_validate;
   maintenance: typeof maintenance;
+  mystuff: typeof mystuff;
   profiles: typeof profiles;
   requests: typeof requests;
   safety: typeof safety;
