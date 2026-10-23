@@ -12,6 +12,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useAuthState } from "../src/features/auth/useAuthState";
+import { useRedeemSavedCodes } from "../src/features/auth/useRedeemSavedCodes";
 import { secureStorage } from "../src/lib/authStorage";
 import { convex, queryClient } from "../src/lib/convex";
 import { color } from "../src/ui/theme";
@@ -48,6 +49,7 @@ export default function RootLayout() {
 function AppStack() {
   const state = useAuthState();
   const loading = state === "loading";
+  useRedeemSavedCodes(state);
 
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync();

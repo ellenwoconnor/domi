@@ -44,6 +44,7 @@ test("invite page shows the circle, the code, and a link preview", async () => {
   assert.match(html, /7K2M-QX9P/);
   assert.match(html, /domi:\/\/c\/7K2MQX9P/);
   assert.match(html, /12 members/);
+  assert.match(html, /Sam invited you to join <b>Baby Shower<\/b>, a circle on Domi\. Domi is an app for sharing things with the people near you\./);
   assert.equal((await get("/c/NOPENOPE")).status, 404);
 });
 
@@ -57,6 +58,7 @@ test("shared listing page shows the photo, or 'found a home' once it's gone", as
   const html = await (await get("/i/AAAABBBB")).text();
   assert.match(html, /og:image" content="https:\/\/x\/p.jpg"/);
   assert.match(html, /Free: Crib/);
+  assert.match(html, /<b>Ellen<\/b> is giving this away on Domi/);
   assert.match(await (await get("/i/CCCCDDDD")).text(), /already found a home/);
 });
 

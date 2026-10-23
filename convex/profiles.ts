@@ -100,6 +100,30 @@ export const completeSignup = mutation({
   },
 });
 
+/**
+ * Redeems invite and share codes the app saved while someone who already has
+ * an account was signed out (they tapped a link, then signed in). New accounts
+ * redeem theirs in completeSignup instead. Same result shape as completeSignup.
+ */
+export const redeemSavedCodes = mutation({
+  args: {
+    inviteCodes: v.array(v.string()),
+    shareCodes: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireProfile(ctx);
+    const invites: { code: string; result: RedeemResult }[] = [];
+    for (const code of args.inviteCodes.slice(0, 10)) {
+      invites.push({ code, result: await redeemInviteCode(ctx, userId, code) });
+    }
+    const shares: { code: string; result: RedeemResult }[] = [];
+    for (const code of args.shareCodes.slice(0, 10)) {
+      shares.push({ code, result: await redeemShareCode(ctx, userId, code) });
+    }
+    return { invites, shares };
+  },
+});
+
 export const updateProfile = mutation({
   args: { displayName: v.string() },
   handler: async (ctx, args) => {

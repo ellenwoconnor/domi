@@ -35,6 +35,43 @@ describe("circles and invites (M2)", () => {
     expect(members.map((m) => m.displayName)).toEqual(["Ellen", "Sam", "Maya"]);
   });
 
+  test("a returning user who signs in after tapping a link gets the saved codes redeemed", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const maya = await newUser(t, "Maya", { zip: "94705" }); // already has an account
+    const shower = await circle(ellen);
+    const code = await ellen.as.mutation(api.invites.getOrCreate, { communityId: shower });
+    const itemId = await post(t, ellen, [ellen.zipCircle], "Lamp");
+    const shareCode = await ellen.as.mutation(api.shares.getOrCreate, { itemId });
+
+    const result = await maya.as.mutation(api.profiles.redeemSavedCodes, {
+      inviteCodes: [code.toLowerCase(), "NOPENOPE"],
+      shareCodes: [shareCode],
+    });
+    expect(result.invites.map((i) => i.result)).toEqual([
+      { ok: true, communityId: shower },
+      { ok: false, reason: "invalid" },
+    ]);
+    expect(result.shares[0].result).toEqual({ ok: true, itemId });
+    expect(await maya.as.query(api.communities.get, { communityId: shower })).toMatchObject({ role: "member" });
+    expect((await maya.as.query(api.items.get, { itemId })).title).toBe("Lamp");
+
+    // Redeeming again is harmless.
+    const again = await maya.as.mutation(api.profiles.redeemSavedCodes, { inviteCodes: [code], shareCodes: [] });
+    expect(again.invites[0].result).toEqual({ ok: true, communityId: shower });
+  });
+
+  test("redeeming saved codes needs a profile", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const shower = await circle(ellen);
+    const code = await ellen.as.mutation(api.invites.getOrCreate, { communityId: shower });
+    const userId = await t.run((ctx) => ctx.db.insert("users", { name: "Nobody" }));
+    const noProfile = t.withIdentity({ subject: `${userId}|session-x` });
+    await expect(noProfile.mutation(api.profiles.redeemSavedCodes, { inviteCodes: [code], shareCodes: [] })).rejects.toThrow();
+    await expect(t.mutation(api.profiles.redeemSavedCodes, { inviteCodes: [code], shareCodes: [] })).rejects.toThrow();
+  });
+
   test("regenerating revokes the old link", async () => {
     const t = await setup();
     const ellen = await newUser(t, "Ellen");

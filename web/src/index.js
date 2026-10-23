@@ -104,9 +104,9 @@ function invitePage(p, code) {
     title,
     desc,
     body: `
+      <p class="intro">${esc(p.invitedBy)} invited you to join <b>${esc(p.name)}</b>, a circle on Domi. Domi is an app for sharing things with the people near you.</p>
       <div class="card">
         <div class="disc">${esc(p.emoji)}</div>
-        <p class="meta">${esc(p.invitedBy)} invited you to</p>
         <h1>${esc(p.name)}</h1>
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
@@ -123,6 +123,7 @@ function sharePage(p, code) {
     desc,
     image: p.photoUrl,
     body: `
+      <p class="intro"><b>${esc(p.ownerName)}</b> is giving this away on Domi, an app for sharing things with the people near you.</p>
       <div class="listing">
         ${p.photoUrl ? `<img class="photo" src="${esc(p.photoUrl)}" alt="${esc(p.title)}">` : ""}
         <span class="free">Free${p.status === "pending" ? " · pending pickup" : ""}</span>
@@ -167,6 +168,7 @@ main{max-width:440px;margin:0 auto;padding:24px 20px 48px;display:flex;flex-dire
 .logo i:after{content:"";width:4px;height:4px;border-radius:50%;background:var(--poppy)}
 h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;line-height:40px;margin:0}
 .caption{font-family:Fraunces,serif;font-style:italic;color:var(--soft);margin:0}
+.intro{font-size:17px;margin:0}.intro b{font-weight:600}
 .meta{font-size:13.5px;color:var(--soft);margin:0}.body{margin:0}
 .card{background:var(--blush);border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .disc{width:88px;height:88px;border-radius:50%;background:var(--fog);display:flex;align-items:center;justify-content:center;font-size:44px}
