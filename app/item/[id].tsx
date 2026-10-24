@@ -22,9 +22,9 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { circleLabel, distanceLabel, postedLabel } from "../../src/features/items/format";
 import { OwnerBar, OwnerStatus, RemoveListingLink } from "../../src/features/items/OwnerListing";
+import { PhotoPager } from "../../src/features/items/PhotoPager";
 import { errorMessage } from "../../src/lib/errors";
 import { CircleMark } from "../../src/ui/Logo";
-import { PhotoTile } from "../../src/ui/PhotoTile";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 const NOTE_MAX = 140;
@@ -61,6 +61,7 @@ export default function ItemDetail() {
   }
 
   const pending = item.status === "pending";
+  const live = pending || item.status === "available";
   const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
   const owner = item.owner.displayName;
   const away = distanceLabel(me, item);
@@ -94,7 +95,7 @@ export default function ItemDetail() {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
         <View>
-          <PhotoTile uri={item.photoUrls[0]} rounded={false} dimmed={pending} style={styles.photo} />
+          <PhotoPager urls={item.photoUrls} dimmed={pending} />
           <Pressable
             onPress={() => router.back()}
             accessibilityLabel="Back"
@@ -102,7 +103,7 @@ export default function ItemDetail() {
           >
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
-          {!pending && (
+          {item.status === "available" && (
             <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
               <View style={styles.freeDot} />
               <Text style={styles.freeText}>Free</Text>
@@ -159,6 +160,8 @@ export default function ItemDetail() {
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {item.isOwner ? (
           <OwnerBar item={item} />
+        ) : !live ? (
+          <Text style={type.meta}>This one is no longer available.</Text>
         ) : asked ? (
           <>
             <View style={styles.requestedNote}>
@@ -226,7 +229,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
   missing: { flex: 1, padding: space.lg, gap: space.md, backgroundColor: color.white },
   link: { fontFamily: font.uiSemi, color: color.bay, fontSize: 16 },
-  photo: { width: "100%", aspectRatio: 1 },
   back: {
     position: "absolute",
     left: space.lg,

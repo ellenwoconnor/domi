@@ -78,6 +78,6 @@ Keep this list accurate.
 
 ## Design mockup
 
-The Browse (Free / Wishes), item detail, Give and wish fulfillment screens currently run on mock data (`src/features/items/mockData.ts`, `src/features/wishlist/store.ts`). Replace the mocks with Convex queries in the milestone that builds each feature (M3 items, M4 requests); keep the visual design. My stuff, You, and the circle screens are live.
+Browse (Free), item detail, Give and the listing screens (`app/listing/`: new, posted, edit) are live on Convex as of M3. Wishes and wish fulfillment still run on mock data (`src/features/items/mockData.ts`, `src/features/wishlist/store.ts`) until M4; keep the visual design when replacing them. My stuff, You, and the circle screens are live.
 
 Wishlist UX (mockup decisions): wishes live on Browse as a second view ("Free" / "Wishes"), share the search and circle filter, and show "My wishes" at the top. "I have this" is a quiet Blush pill with the Poppy dot; solid Poppy is saved for "Send to <name>". The Give tab shows a "Your circles are looking for" strip. Fulfillment flow: photo, details, send (a private offer). Decided 2026-10-21: offers accumulate and the wisher picks one, which opens the chat; the wish stays visible to others until it's fulfilled (see "Wish offers" in `docs/spec.md`).

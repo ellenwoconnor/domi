@@ -14,7 +14,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | --- | --- |
 | Accounts | Sign up with Apple or Google. Accept the terms of service. Provide display name, zip code, and optional coarse location (zip centroid if skipped). Placed in the default circle for the zip, plus any custom circles from invite links. In-app account deletion. |
 | Circles | Create a custom circle with a name, an emoji, and an optional description. Any member can invite by sharing their own link. The creator is the circle's owner (admin): can remove members and delete the circle. Members can leave a custom circle. No invites into zip circles. |
-| Listings | Camera-first posting: title, description, one or more photos. Post to several circles. Edit or remove. See requests with notes, pick a recipient, un-pick, mark picked up. Repost an expired listing. |
+| Listings | Camera-first posting: title, optional description, one to three photos. Post to several circles. Edit or remove. See requests with notes, pick a recipient, un-pick, mark picked up. Repost an expired listing. |
 | Share outside Domi | The owner can share a link to a listing (e.g. in a Buy Nothing group). The link opens a read-only page; someone who installs Domi from it can request that listing even if they are not in its circles. |
 | Browse | Items and wishes in all my circles or one circle. Item detail. Keyword search. |
 | Wishes | Post a wish to circles I'm in. Neighbors offer items for it (private listings). Offers accumulate; the wisher picks one. |
@@ -213,4 +213,9 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - 2026-10-21: Tabs are Browse · Give · My stuff (replaces Browse · Give · Activity · You, after two rounds of mock usability tests). You (profile, circles, settings) opens from the My stuff avatar. There is no separate Activity feed in the app; push still reads `events`. Browse keeps its current design.
 - 2026-10-21: Muting a circle is out of the MVP screens (the backend field stays). The circle page has no "new invite link" button.
 - 2026-10-21: Opening an invite link while signed in shows a confirmation card before joining.
+- 2026-10-24 (M3 design review): Posting is optimized for one photo; up to 3 per listing. Give opens the camera in one tap (library one tap away).
+- 2026-10-24: The new listing is written as a "placard" (edited in place, looking the way neighbors will see it). Description is optional.
+- 2026-10-24: New listings default to the home (zip) circle; "Change" picks others.
+- 2026-10-24: After posting, a Blush "Your lamp is out there" screen that says requests show up in My stuff. Owners see their own listings on Browse, marked "Yours".
+- 2026-10-24: The owner's listing has Edit and Share outside Domi in the action bar, Remove below, and copy saying they'll pick one person. Item photos swipe, with dots.
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.
