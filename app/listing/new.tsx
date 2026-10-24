@@ -55,7 +55,7 @@ export default function NewListing() {
         communityIds: v.circleIds,
       });
       draft.clear();
-      router.replace({ pathname: "/item/[id]", params: { id: itemId } });
+      router.replace({ pathname: "/listing/posted", params: { id: itemId } });
     } catch (e) {
       Alert.alert("Couldn't post it", errorMessage(e, "Check your connection and try again."));
     }

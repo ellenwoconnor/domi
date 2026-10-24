@@ -63,9 +63,15 @@ export default function MyStuff() {
 
 function StuffRowView({ row }: { row: StuffRow }) {
   const wish = row.kind === "wish";
-  // Rows open the item, thread or wish once those screens are wired (M3/M4).
+  // Item rows open the listing; threads and wishes open once M4 wires them.
+  const itemId = row.kind === "item" ? row.itemId : null;
   return (
-    <View style={[styles.row, row.ended && { opacity: 0.6 }]}>
+    <Pressable
+      disabled={!itemId}
+      onPress={() => itemId && router.push({ pathname: "/item/[id]", params: { id: itemId } })}
+      accessibilityRole={itemId ? "button" : undefined}
+      style={({ pressed }) => [styles.row, row.ended && { opacity: 0.6 }, pressed && { opacity: 0.7 }]}
+    >
       {row.photoUrl ? (
         <Image source={{ uri: row.photoUrl }} style={[styles.thumb, wish && styles.round]} />
       ) : (
@@ -83,7 +89,7 @@ function StuffRowView({ row }: { row: StuffRow }) {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
