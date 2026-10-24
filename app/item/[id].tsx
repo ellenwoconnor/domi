@@ -21,7 +21,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { circleLabel, distanceLabel, postedLabel } from "../../src/features/items/format";
-import { OwnerBar, OwnerStatus, RemoveListingLink } from "../../src/features/items/OwnerListing";
+import {
+  GiveSheet,
+  OwnerBar,
+  OwnerMeta,
+  OwnerPhotoActions,
+  OwnerSection,
+  PastChats,
+  RemoveListingLink,
+  type AskRow,
+} from "../../src/features/items/OwnerListing";
 import { PhotoPager } from "../../src/features/items/PhotoPager";
 import { errorMessage } from "../../src/lib/errors";
 import { CircleMark } from "../../src/ui/Logo";
@@ -39,6 +48,8 @@ export default function ItemDetail() {
   const [busy, setBusy] = useState(false);
   const createRequest = useMutation(api.requests.create);
   const withdrawRequest = useMutation(api.requests.withdraw);
+  const [chosen, setChosen] = useState<AskRow | null>(null);
+  const [giving, setGiving] = useState<AskRow | null>(null);
   const item = itemQ.data;
 
   if (itemQ.isPending) {
@@ -65,6 +76,8 @@ export default function ItemDetail() {
   const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
   const owner = item.owner.displayName;
   const away = distanceLabel(me, item);
+  const yours = !item.isOwner && item.myRequest?.status === "selected" && (pending || item.status === "gone");
+  const ownerBarHidden = item.isOwner && item.status === "available" && !chosen;
   const asked = item.myRequest && (item.myRequest.status === "open" || item.myRequest.status === "selected") ? item.myRequest : null;
 
   const send = async () => {
@@ -78,6 +91,23 @@ export default function ItemDetail() {
     } finally {
       setBusy(false);
     }
+  };
+  const cantTakeIt = () => {
+    if (!item.myRequest) return;
+    const requestId = item.myRequest.id;
+    Alert.alert("Can't take it?", `${owner} will be told and can give the ${shortTitle} to someone else.`, [
+      { text: "Not now", style: "cancel" },
+      {
+        text: "I can't take it",
+        onPress: async () => {
+          try {
+            await withdrawRequest({ requestId });
+          } catch (e) {
+            Alert.alert("Couldn't withdraw", errorMessage(e));
+          }
+        },
+      },
+    ]);
   };
   const withdraw = async () => {
     if (!asked) return;
@@ -103,7 +133,8 @@ export default function ItemDetail() {
           >
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
-          {item.status === "available" && (
+          {item.isOwner ? <OwnerPhotoActions item={item} top={insets.top + space.sm} /> : null}
+          {item.status === "available" && !item.isOwner && (
             <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
               <View style={styles.freeDot} />
               <Text style={styles.freeText}>Free</Text>
@@ -115,7 +146,14 @@ export default function ItemDetail() {
         <View style={styles.body}>
           <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
 
-          {item.isOwner ? <OwnerStatus item={item} /> : null}
+          {item.isOwner ? (
+            <>
+              <View style={{ marginTop: -space.lg }}>
+                <OwnerMeta item={item} />
+              </View>
+              <OwnerSection item={item} chosen={chosen} onChoose={setChosen} />
+            </>
+          ) : null}
 
           {item.isOwner ? null : <View style={styles.owner}>
             <View style={styles.avatar}>
@@ -128,6 +166,22 @@ export default function ItemDetail() {
               </Text>
             </View>
           </View>}
+
+          {yours ? (
+            <View style={styles.yours}>
+              <CircleMark size={40} />
+              <Text style={[type.display, { fontSize: 28, lineHeight: 34, textAlign: "center" }]}>
+                {item.status === "gone" ? `Enjoy the ${shortTitle}!` : `The ${shortTitle} is yours!`}
+              </Text>
+              <Text style={[type.body, { textAlign: "center", color: color.inkSoft }]}>
+                {item.status === "gone"
+                  ? `Picked up from ${owner}. Your chat stays open if you want to say thanks.`
+                  : `Plan pickup with ${owner} in your private chat. ${owner} will share where.`}
+              </Text>
+            </View>
+          ) : null}
+
+          {!item.isOwner ? <PastChats item={item} /> : null}
 
           {item.description ? <Text style={type.body}>{item.description}</Text> : null}
 
@@ -143,37 +197,48 @@ export default function ItemDetail() {
             </View>
           </View>
 
-          <View style={styles.privacy}>
+          {item.isOwner ? null : <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
               {item.isOwner
                 ? "You'll share the pickup spot in a private chat with the person you pick. No public comments."
                 : `${owner} shares the pickup spot in a private chat with whoever they pick. No public comments.`}
             </Text>
-          </View>
+          </View>}
 
           {item.isOwner ? <RemoveListingLink item={item} /> : null}
         </View>
       </ScrollView>
 
       {/* Action bar */}
-      <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+      {ownerBarHidden ? null : <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {item.isOwner ? (
-          <OwnerBar item={item} />
+          <OwnerBar item={item} chosen={chosen} onGive={() => setGiving(chosen)} />
+        ) : yours && item.chat ? (
+          <>
+            <Pressable
+              onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.chat!.id } })}
+              style={styles.primary}
+              accessibilityRole="button"
+            >
+              <Text style={type.button}>Message {owner}</Text>
+            </Pressable>
+            {pending ? (
+              <Pressable onPress={cantTakeIt} disabled={busy} hitSlop={8} style={{ alignSelf: "center", padding: space.sm }}>
+                <Text style={styles.quiet}>I can't take it</Text>
+              </Pressable>
+            ) : null}
+          </>
         ) : !live ? (
           <Text style={type.meta}>This one is no longer available.</Text>
         ) : asked ? (
           <>
             <View style={styles.requestedNote}>
-              <Text style={[type.label, { marginBottom: 2 }]}>
-                {asked.status === "selected" ? `${owner} chose you.` : "Request sent."}
-              </Text>
+              <Text style={[type.label, { marginBottom: 2 }]}>Request sent.</Text>
               <Text style={type.meta}>
-                {asked.status === "selected"
-                  ? "A private chat is open to plan pickup."
-                  : pending
-                    ? `${owner} picked someone else for now. You're in line if it falls through.`
-                    : `${owner} picks from everyone who asked. If it's you, a chat opens to set up pickup.`}
+                {pending
+                  ? `It's on hold for someone else for now. You're in line if it falls through.`
+                  : `${owner} picks one person from everyone who asked. If it's you, a chat opens to set up pickup.`}
               </Text>
             </View>
             <Pressable onPress={withdraw} disabled={busy} style={styles.secondary}>
@@ -190,7 +255,9 @@ export default function ItemDetail() {
             </Pressable>
           </>
         )}
-      </View>
+      </View>}
+
+      {item.isOwner ? <GiveSheet item={item} chosen={giving} onClose={(given) => { setGiving(null); if (given) setChosen(null); }} /> : null}
 
       {/* Request sheet */}
       <Modal visible={sheetOpen} transparent animationType="slide" onRequestClose={() => setSheetOpen(false)}>
@@ -302,6 +369,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  yours: { backgroundColor: color.blush, borderRadius: radius.sheet, padding: space.xl, alignItems: "center", gap: space.md },
+  quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },
   requestedNote: { backgroundColor: color.blush, borderRadius: radius.control, padding: space.md },
   secondary: {
     height: 48,
