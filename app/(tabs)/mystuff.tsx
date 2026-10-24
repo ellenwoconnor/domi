@@ -63,13 +63,19 @@ export default function MyStuff() {
 
 function StuffRowView({ row }: { row: StuffRow }) {
   const wish = row.kind === "wish";
-  // Item rows open the listing; threads and wishes open once M4 wires them.
+  // Rows with a pickup chat open the chat; other item rows open the listing.
+  // Wish rows open once wishes are live (M4b).
   const itemId = row.kind === "item" ? row.itemId : null;
+  const open = () => {
+    if (row.conversationId) router.push({ pathname: "/chat/[id]", params: { id: row.conversationId } });
+    else if (itemId) router.push({ pathname: "/item/[id]", params: { id: itemId } });
+  };
+  const tappable = !!row.conversationId || !!itemId;
   return (
     <Pressable
-      disabled={!itemId}
-      onPress={() => itemId && router.push({ pathname: "/item/[id]", params: { id: itemId } })}
-      accessibilityRole={itemId ? "button" : undefined}
+      disabled={!tappable}
+      onPress={open}
+      accessibilityRole={tappable ? "button" : undefined}
       style={({ pressed }) => [styles.row, row.ended && { opacity: 0.6 }, pressed && { opacity: 0.7 }]}
     >
       {row.photoUrl ? (
