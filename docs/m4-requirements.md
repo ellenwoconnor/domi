@@ -82,25 +82,35 @@ Still mock: Browse › Wishes, Add wish sheet, the Give tab's "Your circles are 
 - No push in M4. Each message already writes an `events` row; batching message pushes is an M5 question.
 - Zip change UI is already live, so the "can land in M4" note in M1 is done.
 
-## M4b. Wishes on real data (next, not part of M4)
+## M4b. Wishes on real data
 
 Done when: post, browse, offer, the wisher picks, chat, picked up → wish fulfilled, all on Convex; block and report on wish rows; mock wish data deleted.
 
-### W1. Wishes on real data
-- Browse › Wishes: `wishlist.browse` (respecting the circle filter) and `wishlist.mine` for "My wishes". Search filters the loaded wishes on the device (the backend has no wish search; fine at one circle's scale).
-- Add wish sheet: your real circles, all selected by default → `wishlist.create`.
-- Wish rows: "I have this" (Blush pill) opens the fulfill flow; it becomes "You offered" once `myOfferId` is set.
-- Give tab strip: open wishes from your circles that aren't yours and you haven't offered on.
-- Fulfill flow (photo, details, send) → upload photos, `wishlist.offer`. **Sent screen copy changes** to match "offers accumulate": "Offer sent. Maya will see it with any other offers and pick one. If it's yours, a chat opens." No "Open chat" button.
+Design: canvas "Domi M4b mocks" (2026-10-24). Board layout "Wishes B" picked 2026-10-24.
 
-### W2. The wish screen (wisher, new `app/wish/[id].tsx`)
-- Wish title and note, circles, then **Offers**: photo(s), title, description, "From Sam".
-- Each offer: **Take this one** (Poppy) → `wishlist.pickOffer` → open chat.
-- Once one is picked: it sits on top with "Message Sam"; the others wait, with "You can pick another if this falls through." The wisher can back out ("I can't take it" → `requests.withdraw`).
-- Quiet **Remove wish** link; confirm says offerers will be told.
+### W1. Wishes on real data
+- Browse › Wishes is a bulletin board like Offers, not a list: two columns of cards that grow with their words (`wishlist.browse`, respecting the circle filter). Your own wishes are on the board too, in Fog, labelled "Your wish", with the offer count. Others are Blush with "I have this". Search filters the loaded wishes on the device.
+- Long text never runs: titles cut at 3 lines, notes at 5. The wish screen shows everything.
+- Offers and Wishes both have the add button in the same place, at the right of the tab row: **Give something** (opens Give) and **Add a wish**.
+- Add wish sheet: your real circles, all selected by default → `wishlist.create`.
+- A pending wish (the wisher picked an offer) shows "Pending pickup" to everyone else and has no "I have this", the same as a pending listing. If the pick falls through it opens up again.
+- Card states: "I have this"; "You offered" (opens your offer); "Pending pickup".
+- Give tab strip: open, non-pending wishes from your circles that aren't yours and you haven't offered on. Cards open the wish.
+- Offering ("I have this") uses the listing editor: same placard, but "Goes to Sam" replaces the circles and the button is Poppy **Send to Sam** → upload photos, `wishlist.offer`.
+- After sending: a Blush giving moment, "You answered Sam's wish." Your item pinned over the wish. No "Open chat" button; Sam picks from the offers.
+
+### W2. The wish screen (`app/wish/[id].tsx`)
+- Neighbors: Blush header "Sam is looking for", the title, the full note, who and which circles, a "…" for report/block, and **I have this** at the bottom (or "See your offer", or a pending note).
+- The wisher: the wish, then the offers ("2 neighbors have one for you"). Choose one (radio), then one Poppy button **Take Jun's helmet** → confirm sheet ("A private chat opens with Jun to plan pickup. Rosa's offer waits in case it falls through.") → `wishlist.pickOffer` → chat. Decided 2026-10-24: choose-then-take, as in M4 R1, instead of a button on every offer.
+- Once picked: a Blush "The helmet is yours!" with **Message Jun**; other offers wait below ("If it falls through with Jun, you can pick another"). **I can't take it** → `requests.withdraw`.
+- Quiet **Remove wish**; the confirm names who offered and says they'll be told.
+- Long-press an offer: report the offer or block the person.
 - My stuff › Getting wish rows open this screen.
 
 ### W3. Offers from the offerer's side
-- My stuff › Giving offer rows open the offer on item detail in an owner view that says "Offered for Maya's wish. Maya picks from the offers." No Share or Edit circles; Remove (withdraw offer) stays.
-- Once picked: same as M4 R2 (Message, Un-pick, Mark picked up). Picked up fulfills the wish and removes the other offers; un-pick puts the offer back so the wisher can pick again (spec "Wish offers" step 4).
+- An offer is just your listing (decided 2026-10-24: no separate offer page). Where a public listing says who asked, an offer says **Waiting for Sam** with Sam's wish in their words. No circles, no Share; Edit and Remove stay.
+- Once picked: same as M4 R2 (Going to Sam, chat, Un-pick, Mark picked up). Picked up fulfills the wish and removes the other offers; un-pick puts the offer back so the wisher can pick again (spec "Wish offers" step 4).
+- If the wisher took someone else's offer: "Sam's wish came true. Sam went with another offer this time. Thanks for offering." The row stays in My stuff › Giving for a few days.
 
+### Not yet (follow-ups)
+- "Post them to your circles" on a closed offer (turn it into a public listing with the same photos). Needs a small backend change.

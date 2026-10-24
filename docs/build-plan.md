@@ -47,7 +47,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - Full requirements and decisions (2026-10-24): `docs/m4-requirements.md`. Closed chats stay readable; report and block screens are part of M4.
 
 ## M4b. Wishes on real data
-- Replace the mock wishes (Browse › Wishes, Add wish, the Give strip, the fulfill flow) with `wishlist.ts`; add the wisher's offers screen. (Backend done.) Split from M4 on 2026-10-24.
+- Replace the mock wishes (Browse › Wishes, Add wish, the Give strip, the fulfill flow) with `wishlist.ts`; add the wisher's offers screen. (Backend done.) Split from M4 on 2026-10-24. (Screens built 2026-10-24 on branch `m4b-wishes`; device check pending.)
 - Done when: post, browse, offer, the wisher picks, chat, picked up → wish fulfilled, all on Convex; mock wish data deleted. Details: `docs/m4-requirements.md`, "M4b".
 
 ## M5. Events and push

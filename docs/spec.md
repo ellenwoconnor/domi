@@ -109,7 +109,7 @@ Location: store only rounded coordinates (3 decimal places), never a street addr
 
 1. A member who can see a wish offers an item: a private listing linked to the wish, status 'available'. The wisher gets an event.
 2. Offers accumulate. Only the offerer and the wisher see an offer.
-3. The wisher picks one offer (`wishlist.pickOffer`): a 'selected' request is created for the wisher, the offer becomes 'pending', and a conversation opens. Only one offer per wish can be pending at a time.
+3. The wisher picks one offer (`wishlist.pickOffer`): a 'selected' request is created for the wisher, the offer becomes 'pending', and a conversation opens. Only one offer per wish can be pending at a time. While an offer is pending, the wish shows as pending pickup to everyone else and takes no new offers in the app (`wishCard.pending`); offers already made wait.
 4. If the pick falls through (wisher withdraws, offerer un-picks), the offer goes back to 'available' and the wisher can pick again.
 5. When the picked offer is marked picked up, the wish becomes 'fulfilled' and the other offers are removed, with an event to each offerer.
 6. If the wisher removes the wish, open offers are removed and offerers are notified.
@@ -208,6 +208,7 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - 2026-10-21: Invite and share codes are 8-character Crockford base32.
 - 2026-10-21: Owners can share a listing outside Domi; redeeming the link lets a newcomer request that listing (supports posting in a Buy Nothing group). Supersedes "read-only item share pages" being out of scope.
 - 2026-10-21: Wish offers accumulate and the wisher picks one (as in Corcles); several people may offer.
+- 2026-10-24 (M4b design review): A wish with a picked offer shows as pending to others, like a pending listing. The wisher chooses an offer, then confirms (same pattern as picking a requester). An offer is shown to its giver as an ordinary listing, not a separate page. Browse › Wishes is a board of cards like Offers, with your own wishes on it.
 - 2026-10-21: Repost reopens the same listing with a fresh 30 days; requests that were open stay open.
 - 2026-10-21: Listings expire after 30 days.
 - 2026-10-21: Tabs are Browse · Give · My stuff (replaces Browse · Give · Activity · You, after two rounds of mock usability tests). You (profile, circles, settings) opens from the My stuff avatar. There is no separate Activity feed in the app; push still reads `events`. Browse keeps its current design.
