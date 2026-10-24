@@ -58,7 +58,7 @@ describe("My stuff", () => {
 
     const conversationId = await ellen.as.mutation(api.items.selectRecipient, { requestId: mayaReq });
     expect(lines(await maya.as.query(api.mystuff.getting, {}))).toEqual([
-      ["Crib", "Ellen chose you. Reply to plan pickup.", true, false],
+      ["Crib", "It's yours! Reply to plan pickup.", true, false],
     ]);
     expect(lines(await sam.as.query(api.mystuff.getting, {}))).toEqual([
       ["Crib", "You asked. It's on hold for someone else.", false, false],
@@ -110,7 +110,7 @@ describe("My stuff", () => {
     // Once picked, the wish row gives way to the pickup row.
     await maya.as.mutation(api.wishlist.pickOffer, { itemId: offerId });
     expect(lines(await maya.as.query(api.mystuff.getting, {}))).toEqual([
-      ["Strider bike", "Sam chose you. Reply to plan pickup.", true, false],
+      ["Strider bike", "It's yours! Reply to plan pickup.", true, false],
     ]);
   });
 

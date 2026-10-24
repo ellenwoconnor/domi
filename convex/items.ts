@@ -170,7 +170,7 @@ export const selectRecipient = mutation({
       requestId: request._id,
       conversationId,
       title: item.title,
-      body: `You were picked for the ${item.title}! Message ${owner} to arrange pickup.`,
+      body: `The ${item.title} is yours! Message ${owner} to plan pickup.`,
     });
     for (const r of await openRequests(ctx, item._id)) {
       await writeEvent(ctx, {

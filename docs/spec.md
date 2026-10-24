@@ -45,7 +45,7 @@ My stuff has two sides, **Giving** and **Getting**. Each thing is one row: photo
 | Giving | pending | "Going to Maya" | |
 | Giving | expired | "Expired. Tap to post again." | |
 | Giving | gone (3 days) | "Picked up by Maya" | ended |
-| Getting | chosen, haven't replied | "Ellen chose you. Reply to plan pickup." | yes |
+| Getting | chosen, haven't replied | "It's yours! Reply to plan pickup." | yes |
 | Getting | chosen, unread message | "New message from Ellen" | yes |
 | Getting | chosen, talking | "Pickup with Ellen" | |
 | Getting | asked, waiting | "You asked. Ellen hasn't chosen yet." / "…on hold for someone else." / "…the listing has expired." | |
@@ -88,7 +88,7 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
   - 'cancelled' = the owner un-picked this recipient. 'closed' = the item ended (gone or removed) without them.
   - Cap: 5 open requests per user on items that are available or pending. Wisher requests created by picking an offer start as 'selected' and don't count.
   - Owners cannot request their own items.
-- `conversations` (itemId, requestId, ownerId, recipientId, closedAt?, lastMessageAt?): created when a request becomes 'selected'; closed when the selection ends. A new pick opens a new conversation.
+- `conversations` (itemId, requestId, ownerId, recipientId, closedAt?, lastMessageAt?): created when a request becomes 'selected'; closed when the selection falls through (un-pick, withdraw, removal, block). It stays open after the item is picked up. A new pick opens a new conversation. Closed conversations stay readable to both people, except while one has blocked the other.
 - `messages` (conversationId, senderId, body, readAt?): inserts refused when the conversation is closed.
 - `events` (recipientId, type, actorId?, itemId?, requestId?, conversationId?, wishlistItemId?, communityId?, title, body, readAt?, pushedAt?)
 - `pushTokens` (userId, token, platform)
@@ -151,7 +151,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | Transition | Trigger | Event to | Copy example |
 | --- | --- | --- | --- |
 | request created | requester taps Request | owner | "Maya requested your crib" |
-| available → pending | owner picks recipient | recipient | "You were picked for the crib! Message Ellen to arrange pickup." |
+| available → pending | owner picks recipient | recipient | "The crib is yours! Message Ellen to plan pickup." |
 | available → pending | owner picks recipient | other open requesters | "The crib is pending with someone else. You're still in line." |
 | pending → available | owner un-picks | former recipient | "Ellen un-picked you for the crib" |
 | pending → available | recipient withdraws, or leaves/zip change withdraws them | owner | "Maya can't take the crib anymore" |
@@ -218,4 +218,5 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - 2026-10-24: New listings default to the home (zip) circle; "Change" picks others.
 - 2026-10-24: After posting, a Blush "Your lamp is out there" screen that says requests show up in My stuff. Owners see their own listings on Browse, marked "Yours".
 - 2026-10-24: The owner's listing has Edit and Share outside Domi in the action bar, Remove below, and copy saying they'll pick one person. Item photos swipe, with dots.
+- 2026-10-24 (M4 design review): Copy for the person picked is neutral ("The crib is yours!"), not "Ellen chose you", so not being picked stings less and random selection can come later. Chats stay open after pickup. Ended chats stay readable.
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.

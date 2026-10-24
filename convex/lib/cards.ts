@@ -1,6 +1,6 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { displayName, getMembership } from "./access";
+import { displayName, getMembership, isBlockedEitherWay } from "./access";
 
 // What the app gets for an item. Photo URLs are only ever produced here, after
 // the caller has checked access (see "Access rules" in docs/spec.md).
@@ -32,6 +32,43 @@ export async function activeRequestCount(ctx: Ctx, itemId: Id<"items">) {
     .withIndex("by_item_status", (q) => q.eq("itemId", itemId).eq("status", "selected"))
     .collect();
   return open.length + selected.length;
+}
+
+/**
+ * The viewer's pickup chats about this item: the owner's with each person they
+ * picked, or a requester's own. `chat` is the open one; `pastChats` are the
+ * ended ones, newest first. Chats with someone blocked either way are left out.
+ */
+async function chatsFor(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users">) {
+  const convs = await ctx.db
+    .query("conversations")
+    .withIndex("by_item", (q) => q.eq("itemId", item._id))
+    .collect();
+  let chat: { id: Id<"conversations">; other: { userId: Id<"users">; displayName: string } } | null = null;
+  const pastChats = [];
+  for (const c of convs) {
+    if (c.ownerId !== viewerId && c.recipientId !== viewerId) continue;
+    const otherId = c.ownerId === viewerId ? c.recipientId : c.ownerId;
+    if (await isBlockedEitherWay(ctx, viewerId, otherId)) continue;
+    const other = { userId: otherId, displayName: await displayName(ctx, otherId) };
+    if (c.closedAt === undefined) {
+      chat = { id: c._id, other };
+      continue;
+    }
+    const last = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversationId", c._id))
+      .order("desc")
+      .first();
+    pastChats.push({
+      id: c._id,
+      other,
+      endedAt: c.closedAt,
+      lastMessage: last ? { body: last.body, mine: last.senderId === viewerId } : null,
+    });
+  }
+  pastChats.sort((a, b) => b.endedAt - a.endedAt);
+  return { chat, pastChats };
 }
 
 export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users">) {
@@ -71,5 +108,6 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
     requestCount: await activeRequestCount(ctx, item._id),
     myRequest: mine ? { id: mine._id, status: mine.status, note: mine.note ?? null } : null,
     circles,
+    ...(await chatsFor(ctx, item, viewerId)),
   };
 }

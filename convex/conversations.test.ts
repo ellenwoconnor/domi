@@ -77,3 +77,66 @@ describe("threads and messaging (M4)", () => {
     expect(reports).toMatchObject([{ targetType: "item", targetId: itemId, status: "open" }]);
   });
 });
+
+describe("chats on the listing (M4)", () => {
+  test("owner and recipient get the open chat on the item; others don't", async () => {
+    const { t, ellen, maya, itemId, conversationId } = await pickedPair();
+    const sam = await newUser(t, "Sam");
+    await sam.as.mutation(api.requests.create, { itemId });
+    expect((await ellen.as.query(api.items.get, { itemId })).chat).toMatchObject({
+      id: conversationId,
+      other: { displayName: "Maya" },
+    });
+    expect((await maya.as.query(api.items.get, { itemId })).chat).toMatchObject({
+      id: conversationId,
+      other: { displayName: "Ellen" },
+    });
+    const forSam = await sam.as.query(api.items.get, { itemId });
+    expect(forSam.chat).toBeNull();
+    expect(forSam.pastChats).toEqual([]);
+  });
+
+  test("the chat stays open after pickup, so they can still message", async () => {
+    const { ellen, maya, itemId, conversationId } = await pickedPair();
+    await ellen.as.mutation(api.items.markPickedUp, { itemId });
+    await maya.as.mutation(api.conversations.send, { conversationId, body: "Got it home, thank you!" });
+    expect((await ellen.as.query(api.conversations.get, { conversationId })).closed).toBe(false);
+    expect((await maya.as.query(api.items.get, { itemId })).chat?.id).toBe(conversationId);
+    const [row] = await maya.as.query(api.mystuff.getting, {});
+    expect(row).toMatchObject({ status: "Picked up. Enjoy!", conversationId });
+  });
+
+  test("an un-picked chat becomes a past chat, readable but closed", async () => {
+    const { t, ellen, maya, itemId, conversationId } = await pickedPair();
+    await maya.as.mutation(api.conversations.send, { conversationId, body: "Saturday?" });
+    await ellen.as.mutation(api.items.unpick, { itemId });
+    const owner = await ellen.as.query(api.items.get, { itemId });
+    expect(owner.chat).toBeNull();
+    expect(owner.pastChats).toMatchObject([
+      { id: conversationId, other: { displayName: "Maya" }, lastMessage: { body: "Saturday?", mine: false } },
+    ]);
+    expect((await maya.as.query(api.items.get, { itemId })).pastChats).toHaveLength(1);
+    expect((await maya.as.query(api.conversations.messages, { conversationId })).map((m) => m.body)).toEqual([
+      "Saturday?",
+    ]);
+    // A new pick opens a new chat; the old one stays in the past.
+    const sam = await newUser(t, "Sam");
+    const samReq = await sam.as.mutation(api.requests.create, { itemId });
+    const second = await ellen.as.mutation(api.items.selectRecipient, { requestId: samReq });
+    const again = await ellen.as.query(api.items.get, { itemId });
+    expect(again.chat?.id).toBe(second);
+    expect(again.pastChats.map((c) => c.id)).toEqual([conversationId]);
+  });
+
+  test("a block hides the chat from both people until unblocked", async () => {
+    const { ellen, maya, conversationId } = await pickedPair();
+    await maya.as.mutation(api.conversations.send, { conversationId, body: "Hi" });
+    await ellen.as.mutation(api.safety.block, { userId: maya.userId });
+    for (const who of [ellen, maya]) {
+      await expect(who.as.query(api.conversations.messages, { conversationId })).rejects.toThrow("not found");
+      await expect(who.as.query(api.conversations.get, { conversationId })).rejects.toThrow("not found");
+    }
+    await ellen.as.mutation(api.safety.unblock, { userId: maya.userId });
+    expect(await maya.as.query(api.conversations.get, { conversationId })).toMatchObject({ closed: true });
+  });
+});

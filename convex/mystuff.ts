@@ -143,6 +143,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         if (item.wishlistItemId) offerItemsWithMyPick.add(item.wishlistItemId);
         if (item.status === "gone") {
           if (now - item.updatedAt > RECENT_MS) continue;
+          conv = await openConversation(ctx, r._id); // the chat stays open after pickup
           line = "Picked up. Enjoy!";
           ended = true;
         } else {
@@ -152,7 +153,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
             line = `New message from ${owner}`;
             needsYou = true;
           } else if (!chat.iSpoke) {
-            line = `${owner} chose you. Reply to plan pickup.`;
+            line = "It's yours! Reply to plan pickup.";
             needsYou = true;
           } else line = `Pickup with ${owner}`;
         }

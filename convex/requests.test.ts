@@ -46,7 +46,7 @@ describe("requests and the item lifecycle (M4)", () => {
     expect((await doc(t, rMaya))?.status).toBe("selected");
     expect((await doc(t, rSam))?.status).toBe("open");
     expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe(
-      "You were picked for the Crib! Message Ellen to arrange pickup.",
+      "The Crib is yours! Message Ellen to plan pickup.",
     );
     expect((await eventsFor(t, sam.userId)).at(-1)?.type).toBe("pending_elsewhere");
 

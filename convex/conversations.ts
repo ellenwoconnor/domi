@@ -9,9 +9,12 @@ import { cleanText, LIMITS } from "./lib/validate";
 // Pickup threads. Only the two participants can read or write, and only
 // while the conversation is open. Realtime comes from Convex live queries.
 
+/** Only the two participants, and not once either has blocked the other (block hides messages both ways). */
 async function requireParticipant(ctx: QueryCtx, conversationId: Id<"conversations">, userId: Id<"users">) {
   const c = await ctx.db.get(conversationId);
   if (!c || (c.ownerId !== userId && c.recipientId !== userId)) fail("Conversation not found");
+  const otherId = c.ownerId === userId ? c.recipientId : c.ownerId;
+  if (await isBlockedEitherWay(ctx, userId, otherId)) fail("Conversation not found");
   return c;
 }
 
@@ -31,6 +34,7 @@ async function summary(ctx: QueryCtx, c: Doc<"conversations">, userId: Id<"users
   ).filter((m) => m.senderId !== userId && m.readAt === undefined).length;
   return {
     id: c._id,
+    requestId: c.requestId,
     role: c.ownerId === userId ? ("owner" as const) : ("recipient" as const),
     other: { userId: otherId, displayName: await displayName(ctx, otherId) },
     item: item
