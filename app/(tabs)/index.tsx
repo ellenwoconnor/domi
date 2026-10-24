@@ -34,7 +34,8 @@ export default function Browse() {
   // Free: the circle feed, or server-side keyword search once typing settles.
   const searchText = useDebounced(query.trim(), 250);
   const circleArg = circleId ? { communityId: circleId } : {};
-  const browse = useQuery(convexQuery(api.items.browse, searchText ? "skip" : circleArg));
+  // The feed stays loaded while searching so the count under the title doesn't jump.
+  const browse = useQuery(convexQuery(api.items.browse, circleArg));
   const found = useQuery(convexQuery(api.items.search, searchText ? { text: searchText, ...circleArg } : "skip"));
   const free = searchText ? found : browse;
   const freeResults = free.data ?? [];
@@ -48,6 +49,8 @@ export default function Browse() {
     (w) => q === "" || w.title.toLowerCase().includes(q) || (w.description ?? "").toLowerCase().includes(q),
   );
   const wanted = (wishesQ.data ?? []).filter((w) => !w.isMine && !w.pending).length;
+  // Other people's things you could still ask for (not yours, not on hold).
+  const offered = (browse.data ?? []).filter((i) => !i.isOwner && i.status === "available").length;
 
   const circle = circleId ? circles.find((c) => c.id === circleId) : undefined;
   const heading = circle ? circleLabel(circle) : "Close to home";
@@ -57,8 +60,12 @@ export default function Browse() {
       : circle
         ? "An invite-only circle"
         : mode === "free"
-          ? freeLoaded
-            ? `${freeResults.filter((i) => i.status === "available").length} things looking for a new home`
+          ? browse.isSuccess
+            ? offered === 0
+              ? "Nothing up for grabs right now"
+              : offered === 1
+                ? "1 thing looking for a new home"
+                : `${offered} things looking for a new home`
             : " "
           : wishesQ.isSuccess
             ? wanted === 1
