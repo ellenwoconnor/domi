@@ -70,7 +70,6 @@ export default function NewListing() {
       busyLabel="Posting…"
       onClose={close}
       onSubmit={post}
-      onChangeCircles={() => {}}
     />
   );
 }

@@ -21,6 +21,7 @@ import { Avatar } from "../../ui/Avatar";
 import { CircleMark } from "../../ui/Logo";
 import { PhotoTile } from "../../ui/PhotoTile";
 import { color, font, radius, space, type } from "../../ui/theme";
+import { CirclePickerSheet } from "./CirclePickerSheet";
 import { circleLabel, type CircleView } from "./format";
 
 const TITLE_MAX = 80;
@@ -49,7 +50,6 @@ export function ListingEditor({
   busyLabel,
   onClose,
   onSubmit,
-  onChangeCircles,
 }: {
   initial: ListingValues;
   circles: CircleView[];
@@ -58,8 +58,6 @@ export function ListingEditor({
   busyLabel: string;
   onClose: (dirty: boolean) => void;
   onSubmit: (values: ListingValues) => Promise<void>;
-  /** Opens the circle picker; it calls back with the new selection. */
-  onChangeCircles: (current: CircleView["id"][], done: (next: CircleView["id"][]) => void) => void;
 }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -69,6 +67,7 @@ export function ListingEditor({
   const [circleIds, setCircleIds] = useState(initial.circleIds);
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const dirty =
     title !== initial.title ||
@@ -210,7 +209,7 @@ export function ListingEditor({
                 </View>
               ))}
               <Pressable
-                onPress={() => onChangeCircles(circleIds, setCircleIds)}
+                onPress={() => setPicking(true)}
                 style={styles.changeChip}
                 accessibilityRole="button"
                 accessibilityLabel="Change circles"
@@ -240,6 +239,16 @@ export function ListingEditor({
           )}
         </Pressable>
       </View>
+
+      <CirclePickerSheet
+        visible={picking}
+        circles={circles}
+        selected={circleIds}
+        onClose={(next) => {
+          setPicking(false);
+          if (next) setCircleIds(next);
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
