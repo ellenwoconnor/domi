@@ -105,6 +105,7 @@ export default function You() {
         </View>
 
         <View style={styles.settings}>
+          <SettingsRow label="Blocked people" onPress={() => router.push("/blocked")} />
           <SettingsRow label="Terms and privacy" onPress={() => openLegal("terms")} />
           <SettingsRow label="Sign out" onPress={doSignOut} />
           <SettingsRow label={deleting ? "Deleting…" : "Delete account"} onPress={confirmDelete} last />

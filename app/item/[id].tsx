@@ -32,7 +32,10 @@ import {
   type AskRow,
 } from "../../src/features/items/OwnerListing";
 import { PhotoPager } from "../../src/features/items/PhotoPager";
+import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockSheet";
+import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { errorMessage } from "../../src/lib/errors";
+import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
 import { CircleMark } from "../../src/ui/Logo";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -50,6 +53,9 @@ export default function ItemDetail() {
   const withdrawRequest = useMutation(api.requests.withdraw);
   const [chosen, setChosen] = useState<AskRow | null>(null);
   const [giving, setGiving] = useState<AskRow | null>(null);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const [report, setReport] = useState<ReportTarget | null>(null);
+  const [block, setBlock] = useState<BlockTarget | null>(null);
   const item = itemQ.data;
 
   if (itemQ.isPending) {
@@ -206,7 +212,13 @@ export default function ItemDetail() {
             </Text>
           </View>}
 
-          {item.isOwner ? <RemoveListingLink item={item} /> : null}
+          {item.isOwner ? (
+            <RemoveListingLink item={item} />
+          ) : (
+            <Pressable onPress={() => setSafetyOpen(true)} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "flex-start" }}>
+              <Text style={styles.quiet}>Report or block</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
 
@@ -258,6 +270,35 @@ export default function ItemDetail() {
       </View>}
 
       {item.isOwner ? <GiveSheet item={item} chosen={giving} onClose={(given) => { setGiving(null); if (given) setChosen(null); }} /> : null}
+
+      {item.isOwner ? null : (
+        <Sheet visible={safetyOpen} onClose={() => setSafetyOpen(false)}>
+          <View>
+            <SheetAction
+              icon={<Ionicons name="flag-outline" size={22} color={color.inkSoft} />}
+              label="Report this listing"
+              onPress={() => {
+                setSafetyOpen(false);
+                setReport({ type: "item", id: item.id, label: "this listing" });
+              }}
+            />
+            <SheetAction
+              icon={<Ionicons name="ban-outline" size={22} color={color.inkSoft} />}
+              label={`Block ${owner}`}
+              last
+              onPress={() => {
+                setSafetyOpen(false);
+                setBlock({ userId: item.owner.userId, displayName: owner });
+              }}
+            />
+          </View>
+          <Pressable onPress={() => setSafetyOpen(false)} style={sheetStyles.secondary} accessibilityRole="button">
+            <Text style={sheetStyles.secondaryText}>Cancel</Text>
+          </Pressable>
+        </Sheet>
+      )}
+      <ReportSheet target={report} onClose={() => setReport(null)} />
+      <BlockSheet target={block} onClose={() => setBlock(null)} onBlocked={() => router.back()} />
 
       {/* Request sheet */}
       <Modal visible={sheetOpen} transparent animationType="slide" onRequestClose={() => setSheetOpen(false)}>
