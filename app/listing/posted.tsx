@@ -51,9 +51,10 @@ export default function Posted() {
         accessibilityRole="button"
         style={styles.track}
       >
-        <View style={styles.trackDot} />
+        <Ionicons name="cube-outline" size={22} color={color.bay} />
         <Text style={[type.body, { flex: 1 }]}>
-          When neighbors ask, My stuff gets a dot. You'll choose who gets it there.
+          Requests show up in the <Text style={{ fontFamily: font.uiSemi }}>My stuff</Text> tab. You'll pick who gets it
+          there.
         </Text>
         <Ionicons name="chevron-forward" size={18} color={color.inkSoft} />
       </Pressable>
@@ -110,7 +111,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.thing,
     padding: space.md,
   },
-  trackDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: color.bay },
   actions: { marginTop: "auto", alignSelf: "stretch", gap: space.sm },
   primary: { height: 54, borderRadius: radius.control, backgroundColor: color.bay, alignItems: "center", justifyContent: "center" },
   secondary: {
