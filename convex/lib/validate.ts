@@ -13,7 +13,7 @@ export const LIMITS = {
   requestNote: 140,
   message: 2000,
   reportReason: 1000,
-  photosPerItem: 6,
+  photosPerItem: 3,
   openRequestsPerUser: 5,
 } as const;
 

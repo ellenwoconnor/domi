@@ -48,6 +48,10 @@ describe("post and browse (M3)", () => {
     await expect(
       a.as.mutation(api.items.create, { title: "X", description: "Y", photos: [], communityIds: [a.zipCircle] }),
     ).rejects.toThrow("photo");
+    const four = [await photo(t), await photo(t), await photo(t), await photo(t)];
+    await expect(
+      a.as.mutation(api.items.create, { title: "X", description: "Y", photos: four, communityIds: [a.zipCircle] }),
+    ).rejects.toThrow("Up to 3 photos");
   });
 
   test("only the owner can edit or remove; circles can't be dropped once requested", async () => {

@@ -1,14 +1,41 @@
 import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { draft } from "../../src/features/give/draft";
+import { MAX_PHOTOS, pickPhotos, takePhoto } from "../../src/features/give/photos";
 import { ShutterRow, Viewfinder } from "../../src/features/give/Viewfinder";
 import { useWishes } from "../../src/features/wishlist/store";
 import { GiveButton } from "../../src/ui/GiveButton";
 import { color, radius, space, type } from "../../src/ui/theme";
 
-/** Mock of the camera-first posting flow (the real camera arrives in M3). */
+/**
+ * Give: camera first. One tap takes the photo and goes straight to the new
+ * listing, where up to two more can be added. The library is one tap away.
+ */
 export default function Give() {
   const wanted = useWishes().filter((w) => !w.mine && w.status === "open");
+  const [busy, setBusy] = useState(false);
+
+  const start = async (get: () => Promise<string[]>) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const photos = await get();
+      if (photos.length === 0) return;
+      draft.set(photos);
+      router.push("/listing/new");
+    } catch {
+      Alert.alert("Couldn't use that photo", "Try again, or pick a different one.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const camera = () => start(async () => {
+    const p = await takePhoto();
+    return p ? [p] : [];
+  });
+  const library = () => start(() => pickPhotos(MAX_PHOTOS));
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
@@ -19,8 +46,8 @@ export default function Give() {
         </Text>
       </View>
 
-      <Viewfinder style={styles.viewfinder} />
-      <ShutterRow />
+      <Viewfinder style={styles.viewfinder} onPress={camera} busy={busy} />
+      <ShutterRow onShutter={camera} onLibrary={library} busy={busy} />
 
       {wanted.length > 0 && (
         <View style={styles.strip}>

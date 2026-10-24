@@ -62,6 +62,7 @@ function AppStack() {
       <Stack.Protected guard={state === "onboarded"}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="item/[id]" />
+        <Stack.Screen name="listing/new" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="fulfill/[wishId]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="you" />
         <Stack.Screen name="profile" />

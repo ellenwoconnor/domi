@@ -1,29 +1,60 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { color, radius, space, type } from "../../ui/theme";
 
-/** Mock camera: Fog viewfinder with framing-guide corners. */
-export function Viewfinder({ style }: { style?: StyleProp<ViewStyle> }) {
+/**
+ * The framing area on Give: Fog with framing-guide corners. Tapping it opens
+ * the camera, same as the shutter (the system camera does the live preview).
+ */
+export function Viewfinder({
+  style,
+  onPress,
+  busy = false,
+}: {
+  style?: StyleProp<ViewStyle>;
+  onPress?: () => void;
+  busy?: boolean;
+}) {
   return (
-    <View style={[styles.viewfinder, style]}>
+    <Pressable
+      onPress={onPress}
+      disabled={busy}
+      accessibilityRole="button"
+      accessibilityLabel="Take a photo"
+      style={({ pressed }) => [styles.viewfinder, pressed && { opacity: 0.85 }, style]}
+    >
       <View style={[styles.corner, styles.tl]} />
       <View style={[styles.corner, styles.tr]} />
       <View style={[styles.corner, styles.bl]} />
       <View style={[styles.corner, styles.br]} />
-      <Ionicons name="camera-outline" size={40} color={color.inkFaint} />
-      <Text style={[type.meta, { textAlign: "center" }]}>Camera preview</Text>
-    </View>
+      {busy ? (
+        <ActivityIndicator color={color.bay} />
+      ) : (
+        <>
+          <Ionicons name="camera-outline" size={40} color={color.bay} />
+          <Text style={[type.meta, { textAlign: "center" }]}>Tap to take a photo</Text>
+        </>
+      )}
+    </Pressable>
   );
 }
 
 /** Bay Blue ring, Poppy center: the logo, and a giving moment. */
-export function ShutterRow({ onShutter }: { onShutter?: () => void }) {
+export function ShutterRow({
+  onShutter,
+  onLibrary,
+  busy = false,
+}: {
+  onShutter?: () => void;
+  onLibrary?: () => void;
+  busy?: boolean;
+}) {
   return (
     <View style={styles.controls}>
-      <Pressable style={styles.side} accessibilityLabel="Choose from your photos" onPress={onShutter}>
+      <Pressable style={styles.side} accessibilityRole="button" accessibilityLabel="Choose from your photos" onPress={onLibrary} disabled={busy}>
         <Ionicons name="images-outline" size={22} color={color.bay} />
       </Pressable>
-      <Pressable style={styles.shutter} accessibilityLabel="Take photo" onPress={onShutter}>
+      <Pressable style={styles.shutter} accessibilityRole="button" accessibilityLabel="Take photo" onPress={onShutter} disabled={busy}>
         <View style={styles.shutterInner} />
       </Pressable>
       <View style={styles.sideSpacer} />
