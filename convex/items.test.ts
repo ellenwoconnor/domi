@@ -35,6 +35,9 @@ describe("post and browse (M3)", () => {
     const feed = await a.as.query(api.items.browse, {});
     expect(feed.map((i) => i.id)).toEqual([lamp, crib]); // newest first
     expect(feed.every((i) => i.isOwner)).toBe(true);
+    expect(feed[0].ownerPhotos).toHaveLength(1); // owner can edit photos by storage id
+    const b = await newUser(t, "Ben");
+    expect((await b.as.query(api.items.get, { itemId: lamp })).ownerPhotos).toBeNull();
     expect((await a.as.query(api.items.browse, { communityId: shower })).map((i) => i.id)).toEqual([crib]);
     expect((await a.as.query(api.items.search, { text: "lamp", communityId: shower })).map((i) => i.id)).toEqual([]);
     expect((await a.as.query(api.items.search, { text: "lamp", communityId: a.zipCircle })).map((i) => i.id)).toEqual([lamp]);

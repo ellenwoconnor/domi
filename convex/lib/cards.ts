@@ -13,6 +13,15 @@ export async function photoUrls(ctx: Ctx, item: Doc<"items">): Promise<string[]>
   return urls.filter((u): u is string => u !== null);
 }
 
+async function ownerPhotos(ctx: Ctx, item: Doc<"items">) {
+  const out: { storageId: Id<"_storage">; url: string }[] = [];
+  for (const storageId of item.photos) {
+    const url = await ctx.storage.getUrl(storageId);
+    if (url) out.push({ storageId, url });
+  }
+  return out;
+}
+
 export async function activeRequestCount(ctx: Ctx, itemId: Id<"items">) {
   const open = await ctx.db
     .query("requests")
@@ -51,6 +60,8 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
     visibility: item.visibility,
     wishlistItemId: item.wishlistItemId ?? null,
     photoUrls: await photoUrls(ctx, item),
+    // The owner edits photos by storage id; nobody else gets the ids.
+    ownerPhotos: isOwner && item.photosPurgedAt === undefined ? await ownerPhotos(ctx, item) : null,
     approxLat: item.approxLat,
     approxLng: item.approxLng,
     createdAt: item._creationTime,

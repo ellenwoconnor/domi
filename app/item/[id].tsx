@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { circleLabel, distanceLabel, postedLabel } from "../../src/features/items/format";
+import { OwnerBar, OwnerStatus, RemoveListingLink } from "../../src/features/items/OwnerListing";
 import { errorMessage } from "../../src/lib/errors";
 import { CircleMark } from "../../src/ui/Logo";
 import { PhotoTile } from "../../src/ui/PhotoTile";
@@ -113,22 +114,24 @@ export default function ItemDetail() {
         <View style={styles.body}>
           <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
 
-          <View style={styles.owner}>
+          {item.isOwner ? <OwnerStatus item={item} /> : null}
+
+          {item.isOwner ? null : <View style={styles.owner}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{owner.charAt(0)}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={type.label}>{item.isOwner ? "From you" : `From ${owner}`}</Text>
+              <Text style={type.label}>From {owner}</Text>
               <Text style={type.meta}>
-                {away && !item.isOwner ? `About ${away} away. ` : ""}Posted {postedLabel(item.createdAt)}.
+                {away ? `About ${away} away. ` : ""}Posted {postedLabel(item.createdAt)}.
               </Text>
             </View>
-          </View>
+          </View>}
 
           {item.description ? <Text style={type.body}>{item.description}</Text> : null}
 
           <View style={{ gap: space.sm }}>
-            <Text style={type.label}>In your circles</Text>
+            <Text style={type.label}>{item.isOwner ? "Posted in" : "In your circles"}</Text>
             <View style={styles.circleRow}>
               {item.circles.map((c) => (
                 <View key={c.id} style={styles.circleChip}>
@@ -142,16 +145,20 @@ export default function ItemDetail() {
           <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
-              {item.isOwner ? "You share" : `${owner} shares`} the pickup spot in a private chat with whoever they pick. No public comments.
+              {item.isOwner
+                ? "You'll share the pickup spot in a private chat with the person you pick. No public comments."
+                : `${owner} shares the pickup spot in a private chat with whoever they pick. No public comments.`}
             </Text>
           </View>
+
+          {item.isOwner ? <RemoveListingLink item={item} /> : null}
         </View>
       </ScrollView>
 
       {/* Action bar */}
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {item.isOwner ? (
-          <Text style={type.meta}>This is your listing.</Text>
+          <OwnerBar item={item} />
         ) : asked ? (
           <>
             <View style={styles.requestedNote}>
