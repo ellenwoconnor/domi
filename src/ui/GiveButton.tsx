@@ -5,16 +5,26 @@ import { color, font, radius, space } from "./theme";
  * "I have this": a quiet Blush pill with the Poppy dot. Many of these can sit
  * on one screen, so they stay calm; solid Poppy is saved for the send moment.
  */
-export function GiveButton({ onPress, small = false }: { onPress?: () => void; small?: boolean }) {
+export function GiveButton({
+  onPress,
+  small = false,
+  onBlush = false,
+}: {
+  onPress?: () => void;
+  small?: boolean;
+  /** On a Blush card the pill turns white so it still reads as a button. */
+  onBlush?: boolean;
+}) {
   const inner = (
     <>
       <View style={styles.dot} />
       <Text style={[styles.text, small && { fontSize: 14 }]}>I have this</Text>
     </>
   );
-  if (!onPress) return <View style={[styles.pill, small && styles.small]}>{inner}</View>;
+  const tint = onBlush ? { backgroundColor: color.white } : null;
+  if (!onPress) return <View style={[styles.pill, small && styles.small, tint]}>{inner}</View>;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.pill, small && styles.small, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.pill, small && styles.small, tint, pressed && { opacity: 0.8 }]}>
       {inner}
     </Pressable>
   );

@@ -191,17 +191,20 @@ export default function ItemDetail() {
 
           {item.description ? <Text style={type.body}>{item.description}</Text> : null}
 
-          <View style={{ gap: space.sm }}>
-            <Text style={type.label}>{item.isOwner ? "Posted in" : "In your circles"}</Text>
-            <View style={styles.circleRow}>
-              {item.circles.map((c) => (
-                <View key={c.id} style={styles.circleChip}>
-                  {c.emoji ? null : <CircleMark size={13} />}
-                  <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
-                </View>
-              ))}
+          {/* Offers for a wish go to one person, not to circles. */}
+          {item.circles.length > 0 ? (
+            <View style={{ gap: space.sm }}>
+              <Text style={type.label}>{item.isOwner ? "Posted in" : "In your circles"}</Text>
+              <View style={styles.circleRow}>
+                {item.circles.map((c) => (
+                  <View key={c.id} style={styles.circleChip}>
+                    {c.emoji ? null : <CircleMark size={13} />}
+                    <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
+          ) : null}
 
           {item.isOwner ? null : <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />

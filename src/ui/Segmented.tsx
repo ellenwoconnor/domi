@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { color, font, space } from "./theme";
 
@@ -10,10 +11,13 @@ export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  trailing,
 }: {
   options: { value: T; label: string; dot?: boolean }[];
   value: T;
   onChange: (v: T) => void;
+  /** Something at the right end of the tab row, e.g. Browse's add button. */
+  trailing?: ReactNode;
 }) {
   return (
     <View style={styles.track} accessibilityRole="tablist">
@@ -34,6 +38,7 @@ export function Segmented<T extends string>({
           </Pressable>
         );
       })}
+      {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
     </View>
   );
 }
@@ -60,4 +65,5 @@ const styles = StyleSheet.create({
   label: { fontFamily: font.uiMedium, fontSize: 16, color: color.inkSoft },
   labelOn: { fontFamily: font.uiBold, color: color.ink },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.bay },
+  trailing: { marginLeft: "auto", alignSelf: "center", paddingBottom: 4 },
 });

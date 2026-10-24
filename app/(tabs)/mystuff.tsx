@@ -60,14 +60,15 @@ export default function MyStuff() {
 
 function StuffRowView({ row }: { row: StuffRow }) {
   const wish = row.kind === "wish";
-  // Rows with a pickup chat open the chat; other item rows open the listing.
-  // Wish rows open once wishes are live (M4b).
+  // Rows with a pickup chat open the chat; other item rows open the listing;
+  // your wishes open the wish, where its offers are.
   const itemId = row.kind === "item" ? row.itemId : null;
   const open = () => {
     if (row.conversationId) router.push({ pathname: "/chat/[id]", params: { id: row.conversationId } });
     else if (itemId) router.push({ pathname: "/item/[id]", params: { id: itemId } });
+    else if (row.wishId) router.push({ pathname: "/wish/[id]", params: { id: row.wishId } });
   };
-  const tappable = !!row.conversationId || !!itemId;
+  const tappable = !!row.conversationId || !!itemId || !!row.wishId;
   return (
     <Pressable
       disabled={!tappable}

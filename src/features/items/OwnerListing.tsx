@@ -70,6 +70,14 @@ export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }
 
 export function OwnerMeta({ item }: { item: ItemView }) {
   const live = item.status === "available" || item.status === "pending";
+  if (item.wish) {
+    const who = item.wish.wisher.displayName;
+    return (
+      <Text style={type.meta}>
+        {item.status === "available" ? `Sent to ${who} ${postedLabel(item.createdAt)}` : `For ${who}'s wish`}
+      </Text>
+    );
+  }
   return (
     <Text style={type.meta}>
       Posted {postedLabel(item.createdAt)}
@@ -105,8 +113,16 @@ export function OwnerSection({
   }, [asksQ.data, stillThere, onChoose]);
 
   let body: ReactNode = null;
-  if (item.status === "available" && item.visibility === "private") {
-    body = <Card head="Offered for a wish" text="They'll pick from the offers. If it's yours, a chat opens." />;
+  if (item.wish && item.status === "available") {
+    body = <WaitingForWisher wish={item.wish} />;
+  } else if (item.wish && item.status === "removed") {
+    const who = item.wish.wisher.displayName;
+    body =
+      item.wish.status === "fulfilled" ? (
+        <Card head={`${who}'s wish came true`} text={`${who} went with another offer this time. Thanks for offering.`} />
+      ) : (
+        <Card head={`${who} removed the wish`} text="Thanks for offering." />
+      );
   } else if (item.status === "available" && asks.length === 0) {
     body = (
       <View style={{ gap: 2 }}>
@@ -305,6 +321,28 @@ function UnpickLink({ item, name }: { item: ItemView; name: string }) {
   );
 }
 
+/** Your offer, before the wisher picks: whose wish it answers, in their words. */
+function WaitingForWisher({ wish }: { wish: NonNullable<ItemView["wish"]> }) {
+  const who = wish.wisher.displayName;
+  return (
+    <View>
+      <Text style={type.title}>Waiting for {who}</Text>
+      <Text style={[type.meta, { fontSize: 15, marginTop: 2, marginBottom: space.sm }]}>
+        Only {who} sees this. They'll pick from the offers on their wish.
+      </Text>
+      <View style={[styles.askRow, styles.wishRow]}>
+        <Avatar name={who} size={44} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.askName}>
+            {who} <Text style={type.meta}>· wished for {lowerFirst(wish.title)}</Text>
+          </Text>
+          {wish.description ? <Text style={styles.askNote}>“{wish.description}”</Text> : null}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function Card({ head, text, warm = false }: { head: string; text: string; warm?: boolean }) {
   return (
     <View style={[styles.card, warm && { backgroundColor: color.blush }]}>
@@ -321,7 +359,11 @@ export function RemoveListingLink({ item }: { item: ItemView }) {
   const confirm = () =>
     Alert.alert(
       "Remove this listing?",
-      item.requestCount > 0 ? "Everyone who asked will be told it's no longer available." : "Neighbors won't see it anymore.",
+      item.wish
+        ? `${item.wish.wisher.displayName} won't see your offer anymore.`
+        : item.requestCount > 0
+          ? "Everyone who asked will be told it's no longer available."
+          : "Neighbors won't see it anymore.",
       [
         { text: "Keep it", style: "cancel" },
         {
@@ -489,6 +531,7 @@ const styles = StyleSheet.create({
   },
   askRow: { flexDirection: "row", alignItems: "flex-start", gap: space.md, paddingVertical: space.md },
   line: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.line },
+  wishRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line },
   askName: { fontFamily: font.uiSemi, fontSize: 16, color: color.ink },
   askNote: { fontFamily: font.ui, fontSize: 14.5, lineHeight: 20, color: color.inkSoft, marginTop: 2 },
   chatLink: {

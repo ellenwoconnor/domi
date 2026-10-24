@@ -1,8 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CircleChips } from "../../src/features/items/CircleChips";
 import { ItemCard } from "../../src/features/items/ItemCard";
@@ -11,8 +12,8 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { circleLabel, type ItemView } from "../../src/features/items/format";
 import { useDebounced } from "../../src/lib/useDebounced";
 import { AddWishSheet } from "../../src/features/wishlist/AddWishSheet";
-import { useWishes, type Wish } from "../../src/features/wishlist/store";
-import { MyWishRow, WishRow } from "../../src/features/wishlist/WishRow";
+import { masonry, WishCard, type WishView } from "../../src/features/wishlist/WishCard";
+import { WishSafetySheet, type WishSafetyTarget } from "../../src/features/wishlist/WishSafetySheet";
 import { Segmented } from "../../src/ui/Segmented";
 import { TabHeader } from "../../src/ui/TabHeader";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -25,7 +26,7 @@ export default function Browse() {
   const [circleId, setCircleId] = useState<Id<"communities"> | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [addTitle, setAddTitle] = useState("");
-  const allWishes = useWishes();
+  const [safety, setSafety] = useState<WishSafetyTarget | null>(null);
 
   const me = useQuery(convexQuery(api.profiles.me, {})).data?.profile;
   const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
@@ -39,12 +40,14 @@ export default function Browse() {
   const freeResults = free.data ?? [];
   const freeLoaded = free.isSuccess;
 
-  // Wishes are still mock data until M4; the circle filter applies once they're live.
+  // Wishes: everything in your circles (yours included), filtered on the device
+  // as you type. One circle's wishes are few enough to search locally.
+  const wishesQ = useQuery(convexQuery(api.wishlist.browse, circleArg));
   const q = query.trim().toLowerCase();
-  const matches = (...fields: (string | undefined)[]) =>
-    q === "" || fields.some((f) => f?.toLowerCase().includes(q));
-  const myWishes = allWishes.filter((w) => w.mine);
-  const wishResults = allWishes.filter((w) => !w.mine && w.status === "open" && matches(w.title, w.note));
+  const wishResults = (wishesQ.data ?? []).filter(
+    (w) => q === "" || w.title.toLowerCase().includes(q) || (w.description ?? "").toLowerCase().includes(q),
+  );
+  const wanted = (wishesQ.data ?? []).filter((w) => !w.isMine && !w.pending).length;
 
   const circle = circleId ? circles.find((c) => c.id === circleId) : undefined;
   const heading = circle ? circleLabel(circle) : "Close to home";
@@ -57,7 +60,11 @@ export default function Browse() {
           ? freeLoaded
             ? `${freeResults.filter((i) => i.status === "available").length} things looking for a new home`
             : " "
-          : `${wishResults.length} neighbors are looking for something`;
+          : wishesQ.isSuccess
+            ? wanted === 1
+              ? "1 neighbor is looking for something"
+              : `${wanted} neighbors are looking for something`
+            : " ";
 
   const openAdd = (title = "") => {
     setAddTitle(title);
@@ -74,6 +81,16 @@ export default function Browse() {
         ]}
         value={mode}
         onChange={setMode}
+        trailing={
+          <Pressable
+            onPress={() => (mode === "free" ? router.navigate("/post") : openAdd())}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.8 }]}
+          >
+            <Ionicons name="add" size={18} color={color.white} />
+            <Text style={styles.addButtonText}>{mode === "free" ? "Give something" : "Add a wish"}</Text>
+          </Pressable>
+        }
       />
       <View style={styles.search}>
         <Ionicons name="search" size={18} color={color.inkFaint} />
@@ -129,46 +146,30 @@ export default function Browse() {
           }
         />
       ) : (
-        <FlatList<Wish>
+        <ScrollView
           key="wishes"
-          data={wishResults}
-          keyExtractor={(w) => w.id}
-          ListHeaderComponent={
-            <>
-              {header}
-              <View style={styles.mineHeader}>
-                <Text style={type.label}>My wishes</Text>
-                <Pressable onPress={() => openAdd()} hitSlop={10} style={styles.addLink}>
-                  <Ionicons name="add" size={18} color={color.bay} />
-                  <Text style={styles.addText}>Add</Text>
-                </Pressable>
-              </View>
-              <View style={{ gap: space.sm }}>
-                {myWishes.length ? (
-                  myWishes.map((w) => <MyWishRow key={w.id} wish={w} />)
-                ) : (
-                  <Text style={type.meta}>Nothing yet. Add what you're hoping to find.</Text>
-                )}
-              </View>
-              <Text style={[type.label, styles.othersLabel]}>Your circles are looking for</Text>
-            </>
-          }
-          ItemSeparatorComponent={() => <View style={styles.sep} />}
           contentContainerStyle={styles.list}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <WishRow wish={item} />}
-          ListEmptyComponent={
-            <View style={[styles.empty, { marginTop: space.md }]}>
+        >
+          {header}
+          {wishResults.length > 0 ? (
+            <WishBoard wishes={wishResults} onLongPress={(w) => setSafety({ wishId: w.id, userId: w.user.userId, displayName: w.user.displayName })} />
+          ) : wishesQ.isSuccess ? (
+            <View style={styles.empty}>
               <Text style={type.title}>
-                {query ? `No one is wishing for “${query.trim()}”.` : "No open wishes here right now."}
+                {query ? `No one is wishing for “${query.trim()}”.` : "No wishes here yet."}
               </Text>
               <Text style={[type.body, { color: color.inkSoft }]}>
-                When neighbors add wishes, they show up here.
+                {query ? "Add it as your own wish and your circles will know you're looking." : "Looking for something? Add a wish and your circles will see it."}
               </Text>
+              <Pressable onPress={() => openAdd(query.trim())} style={styles.pillButton}>
+                <Ionicons name="add" size={18} color={color.white} />
+                <Text style={styles.pillText}>Add a wish</Text>
+              </Pressable>
             </View>
-          }
-        />
+          ) : null}
+        </ScrollView>
       )}
 
       <AddWishSheet
@@ -182,7 +183,24 @@ export default function Browse() {
           }
         }}
       />
+      <WishSafetySheet target={safety} onClose={() => setSafety(null)} />
     </SafeAreaView>
+  );
+}
+
+/** The wishes board: two columns of cards that grow with their words. */
+function WishBoard({ wishes, onLongPress }: { wishes: WishView[]; onLongPress: (w: WishView) => void }) {
+  const [left, right] = masonry(wishes);
+  return (
+    <View style={styles.board}>
+      {[left, right].map((col, i) => (
+        <View key={i} style={styles.boardCol}>
+          {col.map((w) => (
+            <WishCard key={w.id} wish={w} onLongPress={onLongPress} />
+          ))}
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -225,9 +243,17 @@ const styles = StyleSheet.create({
     height: 44,
   },
   pillText: { fontFamily: font.uiSemi, color: color.white, fontSize: 15 },
-  mineHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: space.sm },
-  addLink: { flexDirection: "row", alignItems: "center", gap: 2 },
-  addText: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
-  othersLabel: { marginTop: space.xl },
-  sep: { height: StyleSheet.hairlineWidth, backgroundColor: color.line },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    height: 34,
+    paddingLeft: 8,
+    paddingRight: 12,
+    borderRadius: radius.pill,
+    backgroundColor: color.bay,
+  },
+  addButtonText: { fontFamily: font.uiSemi, fontSize: 14, color: color.white },
+  board: { flexDirection: "row", gap: space.md, alignItems: "flex-start" },
+  boardCol: { flex: 1, minWidth: 0, gap: space.md },
 });

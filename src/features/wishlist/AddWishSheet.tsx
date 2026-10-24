@@ -1,13 +1,21 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { errorMessage } from "../../lib/errors";
 import { CircleMark } from "../../ui/Logo";
 import { color, font, radius, space, type } from "../../ui/theme";
-import { circleLabel, circles } from "../items/mockData";
-import { addWish } from "./store";
+import { circleLabel } from "../items/format";
 
-const NOTE_MAX = 140;
+// Matches LIMITS.wishTitle and LIMITS.wishDescription in convex/lib/validate.ts.
+const TITLE_MAX = 80;
+const NOTE_MAX = 500;
 
+/** "What are you looking for?": a wish, shown in your circles (all picked by default). */
 export function AddWishSheet({
   visible,
   initialTitle = "",
@@ -18,9 +26,12 @@ export function AddWishSheet({
   onClose: (added: boolean) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
+  const create = useMutation(api.wishlist.create);
   const [title, setTitle] = useState(initialTitle);
   const [note, setNote] = useState("");
-  const [picked, setPicked] = useState<string[]>(circles.map((c) => c.id));
+  const [picked, setPicked] = useState<Id<"communities">[]>([]);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -28,11 +39,25 @@ export function AddWishSheet({
       setNote("");
       setPicked(circles.map((c) => c.id));
     }
-  }, [visible, initialTitle]);
+    // Reset only when the sheet opens; circles load once and rarely change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, initialTitle, circles.length]);
 
-  const canAdd = title.trim().length > 0 && picked.length > 0;
-  const toggle = (id: string) =>
-    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const canAdd = title.trim().length > 0 && picked.length > 0 && !busy;
+  const toggle = (id: Id<"communities">) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
+  const add = async () => {
+    if (!canAdd) return;
+    setBusy(true);
+    try {
+      await create({ title: title.trim(), description: note.trim() || undefined, communityIds: picked });
+      onClose(true);
+    } catch (e) {
+      Alert.alert("Couldn't add your wish", errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => onClose(false)}>
@@ -45,8 +70,10 @@ export function AddWishSheet({
             value={title}
             onChangeText={setTitle}
             autoFocus
+            maxLength={TITLE_MAX}
             placeholder="Kids' bike helmet"
             placeholderTextColor={color.inkFaint}
+            accessibilityLabel="What you're looking for"
             style={styles.input}
           />
           <TextInput
@@ -56,6 +83,7 @@ export function AddWishSheet({
             multiline
             placeholder="A note for neighbors (optional)"
             placeholderTextColor={color.inkFaint}
+            accessibilityLabel="A note for neighbors"
             style={[styles.input, styles.note]}
           />
           <Text style={[type.label, { marginTop: space.sm }]}>Show it in</Text>
@@ -76,15 +104,8 @@ export function AddWishSheet({
               );
             })}
           </View>
-          <Pressable
-            disabled={!canAdd}
-            onPress={() => {
-              addWish({ title: title.trim(), note: note.trim(), circleIds: picked });
-              onClose(true);
-            }}
-            style={[styles.primary, !canAdd && { opacity: 0.4 }]}
-          >
-            <Text style={type.button}>Add to wishlist</Text>
+          <Pressable disabled={!canAdd} onPress={add} style={[styles.primary, !canAdd && { opacity: 0.4 }]} accessibilityRole="button">
+            {busy ? <ActivityIndicator color={color.white} /> : <Text style={type.button}>Add to my wishes</Text>}
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -103,14 +124,7 @@ const styles = StyleSheet.create({
     paddingTop: space.sm,
     gap: space.sm,
   },
-  grabber: {
-    alignSelf: "center",
-    width: 36,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: color.line,
-    marginBottom: space.sm,
-  },
+  grabber: { alignSelf: "center", width: 36, height: 5, borderRadius: 3, backgroundColor: color.line, marginBottom: space.sm },
   input: {
     backgroundColor: color.fog,
     borderRadius: radius.control,
@@ -120,24 +134,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: color.ink,
   },
-  note: { height: 84, paddingTop: space.md, textAlignVertical: "top" },
+  note: { height: 96, paddingTop: space.md, textAlignVertical: "top" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space.sm, marginBottom: space.md },
   chip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    height: 34,
+    height: 36,
     paddingHorizontal: 12,
     borderRadius: radius.pill,
     backgroundColor: color.fog,
   },
   chipOn: { backgroundColor: color.bay },
   chipText: { fontFamily: font.uiMedium, fontSize: 14, color: color.ink },
-  primary: {
-    height: 54,
-    borderRadius: radius.control,
-    backgroundColor: color.bay,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  primary: { height: 54, borderRadius: radius.control, backgroundColor: color.bay, alignItems: "center", justifyContent: "center" },
 });

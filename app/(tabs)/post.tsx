@@ -5,7 +5,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { draft } from "../../src/features/give/draft";
 import { MAX_PHOTOS, pickPhotos, takePhoto } from "../../src/features/give/photos";
 import { ShutterRow, Viewfinder } from "../../src/features/give/Viewfinder";
-import { useWishes } from "../../src/features/wishlist/store";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../convex/_generated/api";
+import { circleLabel } from "../../src/features/items/format";
 import { GiveButton } from "../../src/ui/GiveButton";
 import { TabHeader } from "../../src/ui/TabHeader";
 import { color, radius, space, type } from "../../src/ui/theme";
@@ -15,7 +18,10 @@ import { color, radius, space, type } from "../../src/ui/theme";
  * listing, where up to two more can be added. The library is one tap away.
  */
 export default function Give() {
-  const wanted = useWishes().filter((w) => !w.mine && w.status === "open");
+  // Wishes from your circles that you could still help with.
+  const wanted = (useQuery(convexQuery(api.wishlist.browse, {})).data ?? []).filter(
+    (w) => !w.isMine && !w.pending && !w.myOfferId,
+  );
   const [busy, setBusy] = useState(false);
 
   const start = async (get: () => Promise<string[]>) => {
@@ -54,14 +60,15 @@ export default function Give() {
             {wanted.map((w) => (
               <Pressable
                 key={w.id}
-                onPress={() => router.push({ pathname: "/fulfill/[wishId]", params: { wishId: w.id } })}
+                onPress={() => router.push({ pathname: "/wish/[id]", params: { id: w.id } })}
                 style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
               >
                 <Text style={type.objectLabel} numberOfLines={2}>
                   {w.title}
                 </Text>
                 <Text style={type.meta} numberOfLines={1}>
-                  {w.who}, {w.area}
+                  {w.user.displayName}
+                  {w.circles[0] ? `, ${circleLabel(w.circles[0])}` : ""}
                 </Text>
                 <View style={{ marginTop: space.sm }}>
                   <GiveButton small />

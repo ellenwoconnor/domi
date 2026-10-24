@@ -37,10 +37,14 @@ export type ListingValues = {
   circleIds: CircleView["id"][];
 };
 
+/** An offer for a wish goes to one person instead of to circles. */
+export type SendTo = { name: string };
+
 /**
  * Write the placard: the listing edited in place, looking the way neighbors
  * will see it (big photo, italic title, who it's from, the circles).
- * Used for a new listing and for editing one.
+ * Used for a new listing, for editing one, and for an offer on a wish
+ * (`sendTo`: "Goes to Sam" replaces the circles, and the button is Poppy).
  */
 export function ListingEditor({
   initial,
@@ -50,7 +54,9 @@ export function ListingEditor({
   busyLabel,
   onClose,
   onSubmit,
+  sendTo,
 }: {
+  sendTo?: SendTo;
   initial: ListingValues;
   circles: CircleView[];
   ownerName: string;
@@ -77,7 +83,7 @@ export function ListingEditor({
     photos.length !== initial.photos.length ||
     circleIds.join() !== initial.circleIds.join();
   const chosen = circles.filter((c) => circleIds.includes(c.id));
-  const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : chosen.length === 0 ? "Pick a circle" : null;
+  const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick a circle" : null;
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
     setPage(Math.round(e.nativeEvent.contentOffset.x / width));
@@ -208,6 +214,17 @@ export function ListingEditor({
             style={styles.description}
           />
 
+          {sendTo ? (
+            <View style={[styles.owner, styles.sendTo]}>
+              <View style={styles.sendAvatar}>
+                <Text style={styles.sendInitial}>{sendTo.name.charAt(0).toUpperCase()}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={type.label}>Goes to {sendTo.name}</Text>
+                <Text style={type.meta}>For their wish. Only {sendTo.name} sees it, and picks from any offers.</Text>
+              </View>
+            </View>
+          ) : (
           <View style={{ gap: space.sm }}>
             <Text style={type.label}>In your circles</Text>
             <View style={styles.circleRow}>
@@ -227,25 +244,28 @@ export function ListingEditor({
               </Pressable>
             </View>
           </View>
+          )}
         </View>
       </ScrollView>
 
       {/* The bar rides on top of the keyboard so Post stays reachable while typing. */}
       <View style={[styles.bar, keyboard > 0 ? { bottom: keyboard, paddingBottom: space.md } : { paddingBottom: insets.bottom + space.md }]}>
-        <Text style={[type.meta, { textAlign: "center" }]}>{missing ?? "This is how neighbors will see it."}</Text>
+        <Text style={[type.meta, { textAlign: "center" }]}>
+          {missing ?? (sendTo ? `This is how ${sendTo.name} will see it.` : "This is how neighbors will see it.")}
+        </Text>
         <Pressable
           onPress={submit}
           disabled={!!missing || busy}
           accessibilityRole="button"
-          style={[styles.primary, (!!missing || busy) && { opacity: 0.5 }]}
+          style={[styles.primary, sendTo && styles.poppy, (!!missing || busy) && { opacity: 0.5 }]}
         >
           {busy ? (
             <View style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}>
-              <ActivityIndicator color={color.white} />
-              <Text style={type.button}>{busyLabel}</Text>
+              <ActivityIndicator color={sendTo ? color.ink : color.white} />
+              <Text style={[type.button, sendTo && styles.poppyText]}>{busyLabel}</Text>
             </View>
           ) : (
-            <Text style={type.button}>{submitLabel}</Text>
+            <Text style={[type.button, sendTo && styles.poppyText]}>{submitLabel}</Text>
           )}
         </Pressable>
       </View>
@@ -390,4 +410,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // A giving moment: Poppy with Ink text.
+  poppy: { backgroundColor: color.poppy },
+  poppyText: { color: color.ink, fontFamily: font.uiBold },
+  sendTo: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line, paddingTop: space.lg },
+  sendAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: color.blush,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sendInitial: { fontFamily: font.uiBold, fontSize: 16, color: color.bay },
 });
