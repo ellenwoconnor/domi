@@ -1,14 +1,19 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useMemo, useState } from "react";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CircleChips } from "../../src/features/items/CircleChips";
 import { ItemCard } from "../../src/features/items/ItemCard";
-import { circleById, circles, items, passedOnThisMonth, type Item } from "../../src/features/items/mockData";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
+import { circleLabel, type ItemView } from "../../src/features/items/format";
+import { useDebounced } from "../../src/lib/useDebounced";
 import { AddWishSheet } from "../../src/features/wishlist/AddWishSheet";
 import { useWishes, type Wish } from "../../src/features/wishlist/store";
 import { MyWishRow, WishRow } from "../../src/features/wishlist/WishRow";
-import { CircleMark, Logo } from "../../src/ui/Logo";
+import { Logo } from "../../src/ui/Logo";
 import { Segmented } from "../../src/ui/Segmented";
 import { YouButton } from "../../src/ui/YouButton";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -18,35 +23,41 @@ type Mode = "free" | "wishes";
 export default function Browse() {
   const [mode, setMode] = useState<Mode>("free");
   const [query, setQuery] = useState("");
-  const [circleId, setCircleId] = useState<string | null>(null);
+  const [circleId, setCircleId] = useState<Id<"communities"> | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [addTitle, setAddTitle] = useState("");
   const allWishes = useWishes();
 
+  const me = useQuery(convexQuery(api.profiles.me, {})).data?.profile;
+  const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
+
+  // Free: the circle feed, or server-side keyword search once typing settles.
+  const searchText = useDebounced(query.trim(), 250);
+  const circleArg = circleId ? { communityId: circleId } : {};
+  const browse = useQuery(convexQuery(api.items.browse, searchText ? "skip" : circleArg));
+  const found = useQuery(convexQuery(api.items.search, searchText ? { text: searchText, ...circleArg } : "skip"));
+  const free = searchText ? found : browse;
+  const freeResults = free.data ?? [];
+  const freeLoaded = free.isSuccess;
+
+  // Wishes are still mock data until M4; the circle filter applies once they're live.
   const q = query.trim().toLowerCase();
-  const inCircle = (ids: string[]) => circleId === null || ids.includes(circleId);
   const matches = (...fields: (string | undefined)[]) =>
     q === "" || fields.some((f) => f?.toLowerCase().includes(q));
-
-  const freeResults = useMemo(
-    () => items.filter((i) => inCircle(i.circleIds) && matches(i.title, i.description)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [q, circleId],
-  );
   const myWishes = allWishes.filter((w) => w.mine);
-  const wishResults = allWishes.filter(
-    (w) => !w.mine && w.status === "open" && inCircle(w.circleIds) && matches(w.title, w.note),
-  );
+  const wishResults = allWishes.filter((w) => !w.mine && w.status === "open" && matches(w.title, w.note));
 
-  const circle = circleId ? circleById(circleId) : undefined;
-  const heading = circle ? (circle.emoji ? `${circle.emoji} ${circle.name}` : circle.name) : "Close to home";
+  const circle = circleId ? circles.find((c) => c.id === circleId) : undefined;
+  const heading = circle ? circleLabel(circle) : "Close to home";
   const sub =
     circle?.kind === "zip"
-      ? `Your home circle, ${circle.zip}`
+      ? "Your home circle"
       : circle
         ? "An invite-only circle"
         : mode === "free"
-          ? `${freeResults.filter((i) => i.status === "available").length} things looking for a new home`
+          ? freeLoaded
+            ? `${freeResults.filter((i) => i.status === "available").length} things looking for a new home`
+            : " "
           : `${wishResults.length} neighbors are looking for something`;
 
   const openAdd = (title = "") => {
@@ -92,27 +103,20 @@ export default function Browse() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       {mode === "free" ? (
-        <FlatList<Item | null>
+        <FlatList<ItemView | null>
           key="free"
           // pad odd counts with an empty cell so the last object keeps its column
           data={freeResults.length % 2 ? [...freeResults, null] : freeResults}
           keyExtractor={(i, idx) => i?.id ?? `spacer-${idx}`}
           numColumns={2}
           ListHeaderComponent={header}
-          ListFooterComponent={
-            freeResults.length > 0 ? (
-              <View style={styles.footer}>
-                <CircleMark size={14} />
-                <Text style={type.meta}>Your circles passed on {passedOnThisMonth} things this month.</Text>
-              </View>
-            ) : null
-          }
           columnWrapperStyle={styles.columns}
           contentContainerStyle={styles.list}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => <View style={styles.cell}>{item ? <ItemCard item={item} /> : null}</View>}
+          renderItem={({ item }) => <View style={styles.cell}>{item ? <ItemCard item={item} me={me} /> : null}</View>}
           ListEmptyComponent={
+            !freeLoaded ? null : (
             <View style={styles.empty}>
               <Text style={type.title}>
                 {query ? `No “${query.trim()}” on the shelves yet.` : "This wall is bare for now."}
@@ -129,6 +133,7 @@ export default function Browse() {
                 </Pressable>
               ) : null}
             </View>
+            )
           }
         />
       ) : (
@@ -209,7 +214,6 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontFamily: font.ui, fontSize: 16, color: color.ink },
   columns: { gap: space.lg },
   cell: { flex: 1, paddingBottom: space.xl },
-  footer: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingTop: space.sm },
   empty: {
     marginTop: space.sm,
     padding: space.lg,

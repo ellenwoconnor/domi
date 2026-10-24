@@ -1,18 +1,22 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { color, radius } from "./theme";
 
 /**
- * Stand-in for an item photo: the object on a Fog backdrop with room around it.
- * Real photos replace this when posting lands (M3).
+ * An item photo on a Fog backdrop. With no photo (still uploading, or purged
+ * after the listing ended) it shows a quiet camera mark; `emoji` is only for
+ * the remaining mock screens (wishes).
  */
 export function PhotoTile({
+  uri,
   emoji,
   emojiSize = 54,
   style,
   rounded = true,
   dimmed = false,
 }: {
-  emoji: string;
+  uri?: string | null;
+  emoji?: string;
   emojiSize?: number;
   style?: StyleProp<ViewStyle>;
   rounded?: boolean;
@@ -20,7 +24,13 @@ export function PhotoTile({
 }) {
   return (
     <View style={[styles.tile, rounded && { borderRadius: radius.thing }, style]}>
-      <Text style={{ fontSize: emojiSize, opacity: dimmed ? 0.45 : 1 }}>{emoji}</Text>
+      {uri ? (
+        <Image source={{ uri }} style={[StyleSheet.absoluteFill, dimmed && { opacity: 0.55 }]} resizeMode="cover" />
+      ) : emoji ? (
+        <Text style={{ fontSize: emojiSize, opacity: dimmed ? 0.45 : 1 }}>{emoji}</Text>
+      ) : (
+        <Ionicons name="image-outline" size={28} color={color.inkFaint} />
+      )}
     </View>
   );
 }

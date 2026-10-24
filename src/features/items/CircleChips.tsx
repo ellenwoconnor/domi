@@ -1,19 +1,21 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { CircleMark } from "../../ui/Logo";
 import { color, font, radius, space } from "../../ui/theme";
-import { circleLabel, type Circle } from "./mockData";
+import { circleLabel } from "./format";
+
+type Circle = { id: string; name: string; emoji?: string | null; kind: "zip" | "custom" };
 
 /** Circle selector. `null` means all of your circles. Zip circles carry the mark. */
-export function CircleChips({
+export function CircleChips<C extends Circle>({
   circles,
   selected,
   onSelect,
 }: {
-  circles: Circle[];
-  selected: string | null;
-  onSelect: (id: string | null) => void;
+  circles: C[];
+  selected: C["id"] | null;
+  onSelect: (id: C["id"] | null) => void;
 }) {
-  const options: { id: string | null; label: string; mark: boolean }[] = [
+  const options: { id: C["id"] | null; label: string; mark: boolean }[] = [
     { id: null, label: "All circles", mark: false },
     ...circles.map((c) => ({ id: c.id, label: circleLabel(c), mark: c.kind === "zip" })),
   ];

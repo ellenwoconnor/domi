@@ -1,7 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,7 +18,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { circleById, circleLabel, getItem, postedLabel } from "../../src/features/items/mockData";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
+import { circleLabel, distanceLabel, postedLabel } from "../../src/features/items/format";
+import { errorMessage } from "../../src/lib/errors";
 import { CircleMark } from "../../src/ui/Logo";
 import { PhotoTile } from "../../src/ui/PhotoTile";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -22,13 +30,25 @@ const NOTE_MAX = 140;
 
 export default function ItemDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const item = getItem(id);
+  const itemQ = useQuery(convexQuery(api.items.get, { itemId: id as Id<"items"> }));
+  const me = useQuery(convexQuery(api.profiles.me, {})).data?.profile;
   const insets = useSafeAreaInsets();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [note, setNote] = useState("");
-  const [requested, setRequested] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const createRequest = useMutation(api.requests.create);
+  const withdrawRequest = useMutation(api.requests.withdraw);
+  const item = itemQ.data;
 
-  if (!item) {
+  if (itemQ.isPending) {
+    return (
+      <View style={[styles.missing, { paddingTop: insets.top + space.xl, alignItems: "center" }]}>
+        <ActivityIndicator color={color.bay} />
+      </View>
+    );
+  }
+
+  if (!item || (item.status !== "available" && item.status !== "pending" && !item.isOwner && !item.myRequest)) {
     return (
       <View style={[styles.missing, { paddingTop: insets.top + space.xl }]}>
         <Text style={type.title}>This one has already found a home.</Text>
@@ -41,12 +61,39 @@ export default function ItemDetail() {
 
   const pending = item.status === "pending";
   const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
+  const owner = item.owner.displayName;
+  const away = distanceLabel(me, item);
+  const asked = item.myRequest && (item.myRequest.status === "open" || item.myRequest.status === "selected") ? item.myRequest : null;
+
+  const send = async () => {
+    setBusy(true);
+    try {
+      await createRequest({ itemId: item.id, note: note.trim() || undefined });
+      setSheetOpen(false);
+      setNote("");
+    } catch (e) {
+      Alert.alert("Couldn't send your request", errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const withdraw = async () => {
+    if (!asked) return;
+    setBusy(true);
+    try {
+      await withdrawRequest({ requestId: asked.id });
+    } catch (e) {
+      Alert.alert("Couldn't withdraw", errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
         <View>
-          <PhotoTile emoji={item.emoji} emojiSize={128} rounded={false} dimmed={pending} style={styles.photo} />
+          <PhotoTile uri={item.photoUrls[0]} rounded={false} dimmed={pending} style={styles.photo} />
           <Pressable
             onPress={() => router.back()}
             accessibilityLabel="Back"
@@ -64,44 +111,38 @@ export default function ItemDetail() {
 
         {/* The placard */}
         <View style={styles.body}>
-          <View style={{ gap: space.xs }}>
-            <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
-            <Text style={type.caption}>{item.caption}</Text>
-          </View>
+          <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
 
           <View style={styles.owner}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.owner.charAt(0)}</Text>
+              <Text style={styles.avatarText}>{owner.charAt(0)}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={type.label}>From {item.owner}</Text>
+              <Text style={type.label}>{item.isOwner ? "From you" : `From ${owner}`}</Text>
               <Text style={type.meta}>
-                {item.area}, about {item.distanceMi} mi away. Posted {postedLabel(item.postedHoursAgo)}.
+                {away && !item.isOwner ? `About ${away} away. ` : ""}Posted {postedLabel(item.createdAt)}.
               </Text>
             </View>
           </View>
 
-          <Text style={type.body}>{item.description}</Text>
+          {item.description ? <Text style={type.body}>{item.description}</Text> : null}
 
           <View style={{ gap: space.sm }}>
             <Text style={type.label}>In your circles</Text>
             <View style={styles.circleRow}>
-              {item.circleIds.map((cid) => {
-                const c = circleById(cid);
-                return c ? (
-                  <View key={cid} style={styles.circleChip}>
-                    {c.kind === "zip" ? <CircleMark size={13} /> : null}
-                    <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
-                  </View>
-                ) : null;
-              })}
+              {item.circles.map((c) => (
+                <View key={c.id} style={styles.circleChip}>
+                  {c.emoji ? null : <CircleMark size={13} />}
+                  <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
+                </View>
+              ))}
             </View>
           </View>
 
           <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
-              {item.owner} shares the pickup spot in a private chat with whoever they pick. No public comments.
+              {item.isOwner ? "You share" : `${owner} shares`} the pickup spot in a private chat with whoever they pick. No public comments.
             </Text>
           </View>
         </View>
@@ -109,37 +150,35 @@ export default function ItemDetail() {
 
       {/* Action bar */}
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
-        {pending ? (
-          <>
-            <Text style={type.meta}>
-              {item.owner} has picked someone. If it comes back, you'll hear about it.
-            </Text>
-            <View style={[styles.primary, styles.primaryQuiet]}>
-              <Text style={[type.button, { color: color.bay }]}>Pending pickup</Text>
-            </View>
-          </>
-        ) : requested ? (
+        {item.isOwner ? (
+          <Text style={type.meta}>This is your listing.</Text>
+        ) : asked ? (
           <>
             <View style={styles.requestedNote}>
-              <Text style={[type.label, { marginBottom: 2 }]}>Request sent.</Text>
+              <Text style={[type.label, { marginBottom: 2 }]}>
+                {asked.status === "selected" ? `${owner} chose you.` : "Request sent."}
+              </Text>
               <Text style={type.meta}>
-                {item.owner} picks from everyone who asked. If it's you, a chat opens to set up pickup.
+                {asked.status === "selected"
+                  ? "A private chat is open to plan pickup."
+                  : pending
+                    ? `${owner} picked someone else for now. You're in line if it falls through.`
+                    : `${owner} picks from everyone who asked. If it's you, a chat opens to set up pickup.`}
               </Text>
             </View>
-            <Pressable
-              onPress={() => {
-                setRequested(false);
-                setNote("");
-              }}
-              style={styles.secondary}
-            >
+            <Pressable onPress={withdraw} disabled={busy} style={styles.secondary}>
               <Text style={styles.secondaryText}>Withdraw request</Text>
             </Pressable>
           </>
         ) : (
-          <Pressable onPress={() => setSheetOpen(true)} style={styles.primary}>
-            <Text style={type.button}>Request</Text>
-          </Pressable>
+          <>
+            {pending ? (
+              <Text style={type.meta}>{owner} has picked someone. You can still ask and wait in line.</Text>
+            ) : null}
+            <Pressable onPress={() => setSheetOpen(true)} style={styles.primary}>
+              <Text style={type.button}>{pending ? "Get in line" : "Request"}</Text>
+            </Pressable>
+          </>
         )}
       </View>
 
@@ -150,9 +189,9 @@ export default function ItemDetail() {
           <View style={[styles.sheet, { paddingBottom: insets.bottom + space.lg }]}>
             <View style={styles.grabber} />
             <Text style={type.title}>
-              Ask {item.owner} for the {shortTitle}
+              Ask {owner} for the {shortTitle}
             </Text>
-            <Text style={type.meta}>A short note helps. Only {item.owner} sees it.</Text>
+            <Text style={type.meta}>A short note helps. Only {owner} sees it.</Text>
             <TextInput
               value={note}
               onChangeText={setNote}
@@ -166,14 +205,8 @@ export default function ItemDetail() {
             <Text style={[type.meta, styles.counter]}>
               {note.length}/{NOTE_MAX}
             </Text>
-            <Pressable
-              onPress={() => {
-                setSheetOpen(false);
-                setRequested(true);
-              }}
-              style={styles.primary}
-            >
-              <Text style={type.button}>Send request</Text>
+            <Pressable onPress={send} disabled={busy} style={[styles.primary, busy && { opacity: 0.6 }]}>
+              <Text style={type.button}>{busy ? "Sending…" : "Send request"}</Text>
             </Pressable>
           </View>
         </KeyboardAvoidingView>
@@ -260,7 +293,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryQuiet: { backgroundColor: color.fog },
   requestedNote: { backgroundColor: color.blush, borderRadius: radius.control, padding: space.md },
   secondary: {
     height: 48,

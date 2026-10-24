@@ -25,6 +25,21 @@ describe("post and browse (M3)", () => {
     expect((await b.as.query(api.items.search, { text: "crib" })).map((i) => i.id)).toEqual([itemId]);
   });
 
+  test("owners see their own listings on Browse, marked as theirs; search can stay in one circle", async () => {
+    const t = await setup();
+    const a = await newUser(t, "Ana");
+    const shower = await circle(a);
+    const crib = await post(t, a, [shower], "White oak crib");
+    const lamp = await post(t, a, [a.zipCircle], "Brass floor lamp");
+
+    const feed = await a.as.query(api.items.browse, {});
+    expect(feed.map((i) => i.id)).toEqual([lamp, crib]); // newest first
+    expect(feed.every((i) => i.isOwner)).toBe(true);
+    expect((await a.as.query(api.items.browse, { communityId: shower })).map((i) => i.id)).toEqual([crib]);
+    expect((await a.as.query(api.items.search, { text: "lamp", communityId: shower })).map((i) => i.id)).toEqual([]);
+    expect((await a.as.query(api.items.search, { text: "lamp", communityId: a.zipCircle })).map((i) => i.id)).toEqual([lamp]);
+  });
+
   test("can only post to circles you're in, with at least one photo", async () => {
     const t = await setup();
     const a = await newUser(t, "Ana");
