@@ -64,20 +64,28 @@ export async function pickPhotos(limit: number): Promise<string[]> {
 
 /** Uploads one local photo to a Convex upload URL; returns its storage id. */
 export async function uploadPhoto(uploadUrl: string, uri: string): Promise<string> {
-  let body: Blob;
+  let raw: Blob;
   try {
-    body = await (await fetch(uri)).blob();
+    raw = await (await fetch(uri)).blob();
   } catch (e) {
     throw new Error(`Photo upload: couldn't read the photo file (${e instanceof Error ? e.message : String(e)})`);
   }
-  if (body.size === 0) throw new Error("Photo upload: the photo file is empty");
+  if (raw.size === 0) throw new Error("Photo upload: the photo file is empty");
+  // React Native sends a Blob's own type as the Content-Type, overriding the
+  // header below. A blob read back from a local file can carry an empty or odd
+  // type, which Convex rejects ("bad header for content type"), so re-wrap it
+  // as a JPEG (we always save JPEGs in compress()).
+  const body = raw.type === "image/jpeg" ? raw : new Blob([raw], { type: "image/jpeg" });
   let res: Response;
   try {
     res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body });
   } catch (e) {
     throw new Error(`Photo upload: network error (${e instanceof Error ? e.message : String(e)})`);
   }
-  if (!res.ok) throw new Error(`Photo upload: server said ${res.status} ${await res.text().catch(() => "")}`.trim());
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Photo upload: server said ${res.status} ${detail} (file type was "${raw.type}")`.trim());
+  }
   const { storageId } = (await res.json()) as { storageId: string };
   return storageId;
 }
