@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { FunctionReturnType } from "convex/server";
 import { useMutation } from "convex/react";
 import { router } from "expo-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import { errorMessage } from "../../lib/errors";
@@ -97,6 +97,12 @@ export function OwnerSection({
   const [block, setBlock] = useState<BlockTarget | null>(null);
 
   const going = item.chat?.other.displayName;
+
+  // If the person you chose withdraws (or the listing changes), clear the choice.
+  const stillThere = !chosen || (item.status === "available" && asks.some((a) => a.id === chosen.id && a.status === "open"));
+  useEffect(() => {
+    if (asksQ.data && !stillThere) onChoose(null);
+  }, [asksQ.data, stillThere, onChoose]);
 
   let body: ReactNode = null;
   if (item.status === "available" && item.visibility === "private") {
