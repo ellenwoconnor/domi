@@ -64,8 +64,28 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
     .collect();
   const rows: StuffRow[] = [];
   for (const item of items) {
-    if (item.status === "removed") continue;
     if (item.status === "gone" && now - item.updatedAt > RECENT_MS) continue;
+    if (item.status === "removed") {
+      // An offer closed because the wish came true with someone else's offer:
+      // say so gently for a few days. Other removals just disappear.
+      const wish = item.wishlistItemId ? await ctx.db.get(item.wishlistItemId) : null;
+      if (!wish || wish.status !== "fulfilled" || now - item.updatedAt > RECENT_MS) continue;
+      rows.push({
+        key: `item:${item._id}`,
+        kind: "item",
+        title: item.title,
+        subtitle: "an offer",
+        photoUrl: (await photoUrls(ctx, item))[0] ?? null,
+        status: `${await displayName(ctx, wish.userId)}'s wish came true. Thanks for offering.`,
+        needsYou: false,
+        ended: true,
+        itemId: item._id,
+        wishId: null,
+        conversationId: null,
+        at: item.updatedAt,
+      });
+      continue;
+    }
 
     const open = await ctx.db
       .query("requests")

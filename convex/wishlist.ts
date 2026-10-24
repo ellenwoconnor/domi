@@ -52,6 +52,8 @@ async function wishCard(ctx: QueryCtx, wish: Doc<"wishlistItems">, viewerId: Id<
     isMine,
     offerCount: isMine ? offers.length : null, // only the wisher sees how many offers there are
     myOfferId: myOffer?._id ?? null,
+    // The wisher picked an offer and pickup is being arranged. Others see "Pending pickup".
+    pending: offers.some((o) => o.status === "pending"),
     circles,
   };
 }

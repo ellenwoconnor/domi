@@ -39,7 +39,14 @@ describe("wishes and offers", () => {
     await expect(sam.as.query(api.wishlist.offers, { wishId })).rejects.toThrow("not found");
     expect(await maya.as.query(api.items.browse, {})).toEqual([]);
     expect((await maya.as.query(api.wishlist.mine, {}))[0].offerCount).toBe(2);
-    expect((await sam.as.query(api.wishlist.browse, {}))[0]).toMatchObject({ offerCount: null, myOfferId: samOffer });
+    expect((await sam.as.query(api.wishlist.browse, {}))[0]).toMatchObject({ offerCount: null, myOfferId: samOffer, pending: false });
+
+    // The offerer's listing says which wish it answers; the wisher sees it too.
+    expect((await sam.as.query(api.items.get, { itemId: samOffer })).wish).toMatchObject({
+      title: "Stroller",
+      wisher: { displayName: "Maya" },
+    });
+    expect((await maya.as.query(api.items.get, { itemId: samOffer })).wish?.id).toBe(wishId);
 
     // Pick one: pending + thread; can't pick a second at the same time.
     const conv = await maya.as.mutation(api.wishlist.pickOffer, { itemId: samOffer });
@@ -48,12 +55,20 @@ describe("wishes and offers", () => {
       "Maya chose your City stroller! Message Maya to arrange pickup.",
     );
     await expect(maya.as.mutation(api.wishlist.pickOffer, { itemId: joOffer })).rejects.toThrow("already picked");
+    // While pickup is arranged, everyone sees the wish as pending.
+    expect((await jo.as.query(api.wishlist.browse, {}))[0].pending).toBe(true);
+    expect((await maya.as.query(api.wishlist.get, { wishId })).pending).toBe(true);
     await sam.as.mutation(api.conversations.send, { conversationId: conv, body: "Tomorrow?" });
 
     await sam.as.mutation(api.items.markPickedUp, { itemId: samOffer });
     expect((await doc(t, wishId))?.status).toBe("fulfilled");
     expect((await doc(t, joOffer))?.status).toBe("removed");
     expect((await eventsFor(t, jo.userId)).at(-1)?.body).toBe("Maya's wish was fulfilled. Thanks for offering!");
+    expect((await jo.as.query(api.mystuff.giving, {}))[0]).toMatchObject({
+      title: "Jogging stroller",
+      status: "Maya's wish came true. Thanks for offering.",
+      ended: true,
+    });
     expect(await sam.as.query(api.wishlist.browse, {})).toEqual([]);
   });
 

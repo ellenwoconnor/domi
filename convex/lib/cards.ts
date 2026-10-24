@@ -89,6 +89,9 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
         .query("requests")
         .withIndex("by_item_requester", (q) => q.eq("itemId", item._id).eq("requesterId", viewerId))
         .first();
+  // An offer for a wish: only its owner and the wisher can see it (checked by
+  // the caller), so both may see which wish it answers.
+  const wish = item.visibility === "private" && item.wishlistItemId ? await ctx.db.get(item.wishlistItemId) : null;
   return {
     id: item._id,
     title: item.title,
@@ -108,6 +111,15 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
     requestCount: await activeRequestCount(ctx, item._id),
     myRequest: mine ? { id: mine._id, status: mine.status, note: mine.note ?? null } : null,
     circles,
+    wish: wish
+      ? {
+          id: wish._id,
+          title: wish.title,
+          description: wish.description ?? null,
+          status: wish.status,
+          wisher: { userId: wish.userId, displayName: await displayName(ctx, wish.userId) },
+        }
+      : null,
     ...(await chatsFor(ctx, item, viewerId)),
   };
 }
