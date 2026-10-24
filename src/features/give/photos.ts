@@ -64,9 +64,20 @@ export async function pickPhotos(limit: number): Promise<string[]> {
 
 /** Uploads one local photo to a Convex upload URL; returns its storage id. */
 export async function uploadPhoto(uploadUrl: string, uri: string): Promise<string> {
-  const body = await (await fetch(uri)).blob();
-  const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body });
-  if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+  let body: Blob;
+  try {
+    body = await (await fetch(uri)).blob();
+  } catch (e) {
+    throw new Error(`Photo upload: couldn't read the photo file (${e instanceof Error ? e.message : String(e)})`);
+  }
+  if (body.size === 0) throw new Error("Photo upload: the photo file is empty");
+  let res: Response;
+  try {
+    res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": "image/jpeg" }, body });
+  } catch (e) {
+    throw new Error(`Photo upload: network error (${e instanceof Error ? e.message : String(e)})`);
+  }
+  if (!res.ok) throw new Error(`Photo upload: server said ${res.status} ${await res.text().catch(() => "")}`.trim());
   const { storageId } = (await res.json()) as { storageId: string };
   return storageId;
 }

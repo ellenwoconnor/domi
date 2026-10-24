@@ -1,9 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -68,6 +68,8 @@ export function ListingEditor({
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [picking, setPicking] = useState(false);
+  const keyboard = useKeyboardHeight();
+  const descriptionRef = useRef<TextInput>(null);
 
   const dirty =
     title !== initial.title ||
@@ -113,8 +115,12 @@ export function ListingEditor({
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 150 }}>
+    <View style={styles.screen}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        contentContainerStyle={{ paddingBottom: 150 + keyboard }}
+      >
         <View style={styles.photoArea}>
           {photos.length > 0 ? (
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll}>
@@ -176,6 +182,8 @@ export function ListingEditor({
             maxLength={TITLE_MAX}
             autoFocus={initial.title === ""}
             returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => descriptionRef.current?.focus()}
             accessibilityLabel="Title"
             style={styles.title}
           />
@@ -189,6 +197,7 @@ export function ListingEditor({
           </View>
 
           <TextInput
+            ref={descriptionRef}
             value={description}
             onChangeText={setDescription}
             placeholder="Condition, size, anything a neighbor should know. (Optional)"
@@ -221,7 +230,8 @@ export function ListingEditor({
         </View>
       </ScrollView>
 
-      <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+      {/* The bar rides on top of the keyboard so Post stays reachable while typing. */}
+      <View style={[styles.bar, keyboard > 0 ? { bottom: keyboard, paddingBottom: space.md } : { paddingBottom: insets.bottom + space.md }]}>
         <Text style={[type.meta, { textAlign: "center" }]}>{missing ?? "This is how neighbors will see it."}</Text>
         <Pressable
           onPress={submit}
@@ -249,8 +259,24 @@ export function ListingEditor({
           if (next) setCircleIds(next);
         }}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
+}
+
+/** Height of the on-screen keyboard (0 when hidden). */
+function useKeyboardHeight() {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const show = Keyboard.addListener(showEvent, (e) => setHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(hideEvent, () => setHeight(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return height;
 }
 
 const styles = StyleSheet.create({
