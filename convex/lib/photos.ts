@@ -15,7 +15,7 @@ export async function checkPhotos(ctx: MutationCtx, photos: Id<"_storage">[]) {
 export function itemText(title: string, description: string) {
   return {
     title: cleanText(title, "Title", LIMITS.itemTitle),
-    description: cleanText(description, "Description", LIMITS.itemDescription),
+    description: cleanText(description, "Description", LIMITS.itemDescription, { required: false }),
   };
 }
 

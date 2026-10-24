@@ -48,6 +48,13 @@ describe("post and browse (M3)", () => {
     await expect(
       a.as.mutation(api.items.create, { title: "X", description: "Y", photos: [], communityIds: [a.zipCircle] }),
     ).rejects.toThrow("photo");
+    const plain = await a.as.mutation(api.items.create, {
+      title: "Lamp",
+      description: "  ",
+      photos: [await photo(t)],
+      communityIds: [a.zipCircle],
+    });
+    expect((await a.as.query(api.items.get, { itemId: plain })).description).toBe(""); // description is optional
     const four = [await photo(t), await photo(t), await photo(t), await photo(t)];
     await expect(
       a.as.mutation(api.items.create, { title: "X", description: "Y", photos: four, communityIds: [a.zipCircle] }),
