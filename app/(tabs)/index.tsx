@@ -13,9 +13,8 @@ import { useDebounced } from "../../src/lib/useDebounced";
 import { AddWishSheet } from "../../src/features/wishlist/AddWishSheet";
 import { useWishes, type Wish } from "../../src/features/wishlist/store";
 import { MyWishRow, WishRow } from "../../src/features/wishlist/WishRow";
-import { Logo } from "../../src/ui/Logo";
 import { Segmented } from "../../src/ui/Segmented";
-import { YouButton } from "../../src/ui/YouButton";
+import { TabHeader } from "../../src/ui/TabHeader";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 type Mode = "free" | "wishes";
@@ -67,17 +66,10 @@ export default function Browse() {
 
   const header = (
     <View style={styles.header}>
-      <View style={[styles.pad, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
-        <Logo size={24} />
-        <YouButton />
-      </View>
-      <View style={[styles.pad, styles.titleBlock]}>
-        <Text style={type.display}>{heading}</Text>
-        <Text style={type.meta}>{sub}</Text>
-      </View>
+      <TabHeader title={heading} subtitle={sub} />
       <Segmented<Mode>
         options={[
-          { value: "free", label: "Free" },
+          { value: "free", label: "Offers" },
           { value: "wishes", label: "Wishes" },
         ]}
         value={mode}
@@ -88,7 +80,7 @@ export default function Browse() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={mode === "free" ? "Search what's free" : "Search what neighbors want"}
+          placeholder={mode === "free" ? "Search offers" : "Search what neighbors want"}
           placeholderTextColor={color.inkFaint}
           style={styles.searchInput}
           returnKeyType="search"
@@ -197,7 +189,7 @@ export default function Browse() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
   list: { paddingHorizontal: space.lg, paddingBottom: space.xxl },
-  header: { gap: space.lg, paddingTop: space.sm, paddingBottom: space.xl, marginHorizontal: -space.lg },
+  header: { gap: space.lg, paddingBottom: space.xl, marginHorizontal: -space.lg },
   pad: { paddingHorizontal: space.lg },
   titleBlock: { gap: 2, marginTop: space.sm },
   search: {

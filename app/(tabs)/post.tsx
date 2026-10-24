@@ -7,6 +7,7 @@ import { MAX_PHOTOS, pickPhotos, takePhoto } from "../../src/features/give/photo
 import { ShutterRow, Viewfinder } from "../../src/features/give/Viewfinder";
 import { useWishes } from "../../src/features/wishlist/store";
 import { GiveButton } from "../../src/ui/GiveButton";
+import { TabHeader } from "../../src/ui/TabHeader";
 import { color, radius, space, type } from "../../src/ui/theme";
 
 /**
@@ -39,11 +40,8 @@ export default function Give() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <View style={styles.pad}>
-        <Text style={type.display}>What's moving on?</Text>
-        <Text style={[type.body, styles.sub]}>
-          Start with a photo. Good light, the whole thing, a little room around it.
-        </Text>
+      <View style={styles.head}>
+        <TabHeader title="What's moving on?" subtitle="Start with a photo. Good light, the whole thing, a little room around it." />
       </View>
 
       <Viewfinder style={styles.viewfinder} onPress={camera} busy={busy} />
@@ -78,9 +76,9 @@ export default function Give() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: color.white, paddingTop: space.lg },
+  screen: { flex: 1, backgroundColor: color.white },
+  head: { marginBottom: space.lg },
   pad: { paddingHorizontal: space.lg },
-  sub: { color: color.inkSoft, marginTop: space.xs, marginBottom: space.lg },
   viewfinder: { marginHorizontal: space.lg },
   strip: { gap: space.sm, paddingBottom: space.md },
   cards: { gap: space.sm, paddingHorizontal: space.lg },

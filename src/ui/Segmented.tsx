@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { color, font, radius, space } from "./theme";
+import { color, font, space } from "./theme";
 
 /**
- * Two or three options in a Fog track (Browse: Free / Wishes; My stuff:
- * Giving / Getting). An option can carry a small Bay dot ("something here
- * needs you"); never a count or a red badge.
+ * Two or three text tabs over a hairline, the current one underlined
+ * (Browse: Offers / Wishes; My stuff: Giving / Getting). An option can carry
+ * a small Bay dot ("something here needs you"); never a count or a red badge.
  */
 export function Segmented<T extends string>({
   options,
@@ -26,7 +26,8 @@ export function Segmented<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             accessibilityLabel={o.dot ? `${o.label}, something needs you` : o.label}
-            style={[styles.seg, on && styles.segOn]}
+            hitSlop={{ top: 8, bottom: 4 }}
+            style={[styles.tab, on && styles.tabOn]}
           >
             <Text style={[styles.label, on && styles.labelOn]}>{o.label}</Text>
             {o.dot ? <View style={styles.dot} /> : null}
@@ -40,28 +41,23 @@ export function Segmented<T extends string>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: "row",
+    gap: 24,
     marginHorizontal: space.lg,
-    padding: 3,
-    borderRadius: radius.control,
-    backgroundColor: color.fog,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: color.line,
   },
-  seg: {
-    flex: 1,
+  tab: {
     flexDirection: "row",
-    gap: 6,
-    height: 36,
-    borderRadius: radius.control - 3,
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+    paddingTop: space.sm,
+    paddingBottom: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    marginBottom: -StyleSheet.hairlineWidth,
   },
-  segOn: {
-    backgroundColor: color.white,
-    shadowColor: color.ink,
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  label: { fontFamily: font.uiMedium, fontSize: 15, color: color.inkSoft },
-  labelOn: { fontFamily: font.uiSemi, color: color.bay },
+  tabOn: { borderBottomColor: color.ink },
+  label: { fontFamily: font.uiMedium, fontSize: 16, color: color.inkSoft },
+  labelOn: { fontFamily: font.uiBold, color: color.ink },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.bay },
 });

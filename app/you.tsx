@@ -79,7 +79,7 @@ export default function You() {
         <View style={{ gap: space.xs }}>
           <Text style={styles.h2}>Your circles</Text>
           <Text style={[styles.soft, { fontSize: 14, marginBottom: 6 }]}>
-            The groups of neighbors you give and get with.
+            Where you share things with neighbors.
           </Text>
           {home ? (
             <CircleRow

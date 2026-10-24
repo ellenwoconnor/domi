@@ -6,7 +6,7 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { StuffRow } from "../../convex/mystuff";
-import { YouButton } from "../../src/ui/YouButton";
+import { TabHeader } from "../../src/ui/TabHeader";
 import { Segmented } from "../../src/ui/Segmented";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -34,10 +34,7 @@ export default function MyStuff() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
-      <View style={styles.head}>
-        <Text style={type.display}>My stuff</Text>
-        <YouButton />
-      </View>
+      <TabHeader title="My stuff" subtitle="What you're giving away and what's coming your way." />
 
       <View style={styles.tabs}>
         <Segmented<Side>
@@ -116,13 +113,6 @@ function Empty({ side }: { side: Side }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: space.lg,
-    paddingTop: space.md,
-  },
   tabs: { marginTop: space.lg, marginBottom: space.xs },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.bay },
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl },
