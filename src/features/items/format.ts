@@ -36,3 +36,8 @@ export function distanceLabel(from: Point | null | undefined, to: Point) {
   if (mi < 0.1) return "nearby";
   return mi < 10 ? `${mi.toFixed(1)} mi` : `${Math.round(mi)} mi`;
 }
+
+/** "Wooden crib" → "wooden crib", for use mid-sentence. */
+export function lowerFirst(title: string) {
+  return title.charAt(0).toLowerCase() + title.slice(1);
+}
