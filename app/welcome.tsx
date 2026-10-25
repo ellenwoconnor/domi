@@ -12,7 +12,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
 import { CirclesPicture, GivePicture, WishPicture } from "../src/features/intro/Pictures";
 import { PrimaryButton, TextButton } from "../src/ui/Form";
@@ -31,6 +31,8 @@ export default function Welcome() {
   const { replay } = useLocalSearchParams<{ replay?: string }>();
   const markIntroSeen = useMutation(api.profiles.markIntroSeen);
   const { width, height } = useWindowDimensions();
+  // Insets by hand, like the other full-screen modals: SafeAreaView can measure 0 in one.
+  const insets = useSafeAreaInsets();
   const pager = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
 
@@ -60,7 +62,7 @@ export default function Welcome() {
   }
 
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
+    <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.bar}>
         {page === 0 ? (
           <Logo size={24} />
@@ -125,7 +127,7 @@ export default function Welcome() {
           <PrimaryButton title="Next" onPress={() => goTo(page + 1)} />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
