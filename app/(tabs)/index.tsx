@@ -1,8 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { useAskForPush } from "../../src/features/push/useAskForPush";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CircleChips } from "../../src/features/items/CircleChips";
@@ -27,6 +28,14 @@ export default function Browse() {
   const [addOpen, setAddOpen] = useState(false);
   const [addTitle, setAddTitle] = useState("");
   const [safety, setSafety] = useState<WishSafetyTarget | null>(null);
+  const askForPush = useAskForPush();
+
+  // A tapped circle activity push opens Offers or Wishes in that circle.
+  const params = useLocalSearchParams<{ mode?: Mode; circle?: string }>();
+  useEffect(() => {
+    if (params.mode === "free" || params.mode === "wishes") setMode(params.mode);
+    if (params.circle) setCircleId(params.circle as Id<"communities">);
+  }, [params.mode, params.circle]);
 
   const me = useQuery(convexQuery(api.profiles.me, {})).data?.profile;
   const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
@@ -187,6 +196,7 @@ export default function Browse() {
           if (added) {
             setQuery("");
             setMode("wishes");
+            setTimeout(() => askForPush("wish").catch(() => {}), 500); // after the sheet closes
           }
         }}
       />

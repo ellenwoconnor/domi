@@ -13,6 +13,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useAuthState } from "../src/features/auth/useAuthState";
 import { useRedeemSavedCodes } from "../src/features/auth/useRedeemSavedCodes";
+import { usePushSetup } from "../src/features/push/usePushSetup";
 import { secureStorage } from "../src/lib/authStorage";
 import { convex, queryClient } from "../src/lib/convex";
 import { color } from "../src/ui/theme";
@@ -50,6 +51,7 @@ function AppStack() {
   const state = useAuthState();
   const loading = state === "loading";
   useRedeemSavedCodes(state);
+  usePushSetup(state);
 
   useEffect(() => {
     if (!loading) SplashScreen.hideAsync();
@@ -76,6 +78,7 @@ function AppStack() {
         <Stack.Screen name="circle/form" options={{ presentation: "modal" }} />
         <Stack.Screen name="join" options={{ presentation: "modal" }} />
         <Stack.Screen name="welcome" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
+        <Stack.Screen name="notify" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={state === "needsSignup"}>
         <Stack.Screen name="onboarding" />

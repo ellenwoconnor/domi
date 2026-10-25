@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
+import { useAskForPush } from "../../src/features/push/useAskForPush";
 import {
   ActivityIndicator,
   Alert,
@@ -50,6 +51,7 @@ export default function ItemDetail() {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const createRequest = useMutation(api.requests.create);
+  const askForPush = useAskForPush();
   const withdrawRequest = useMutation(api.requests.withdraw);
   const [chosen, setChosen] = useState<AskRow | null>(null);
   const [giving, setGiving] = useState<AskRow | null>(null);
@@ -92,6 +94,8 @@ export default function ItemDetail() {
       await createRequest({ itemId: item.id, note: note.trim() || undefined });
       setSheetOpen(false);
       setNote("");
+      // After the sheet has slid away (iOS can't present a screen mid-dismiss).
+      setTimeout(() => askForPush("request").catch(() => {}), 500);
     } catch (e) {
       Alert.alert("Couldn't send your request", errorMessage(e));
     } finally {

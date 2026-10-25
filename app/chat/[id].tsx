@@ -3,8 +3,9 @@ import { Image } from "expo-image";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { setOpenChat } from "../../src/features/push/push";
 import {
   ActivityIndicator,
   Alert,
@@ -52,6 +53,14 @@ export default function Chat() {
 
   const conv = convQ.data;
   const messages = msgsQ.data;
+
+  // Pushes for this chat don't show a banner while it's on screen.
+  useFocusEffect(
+    useCallback(() => {
+      setOpenChat(conversationId);
+      return () => setOpenChat(null);
+    }, [conversationId]),
+  );
 
   // Their messages count as read while this screen is open.
   const unread = messages?.some((m) => !m.mine && !m.read) ?? false;

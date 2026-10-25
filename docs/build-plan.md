@@ -55,6 +55,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - Only events with an action push (9 types, plus a wish match); chat messages merge into one push. Circle activity pushes (welcome: 5 per circle joined; then back-off at 3/7/14/30 days without an open) replace the daily digest, which moved here from M6 on 2026-10-25.
 - Ask permission right after the "How Domi works" cards (naming the circle), after joining a circle, and at high-intent moments; our own screen before the system dialog.
 - Full requirements and decisions (2026-10-25): `docs/m5-requirements.md`.
+- Status 2026-10-25: built on branch `m5-push` (backend with tests; permission screen, token registration, tap routing, You › Notifications). Still to do: Firebase/FCM credentials for Android, APNs key for iOS, a new dev build, and the device checks.
 - Done when: on physical devices, each push type reaches the right person with role-specific copy and opens the right screen; merged chat pushes; circle activity pushes follow the welcome and back-off rules, never at night.
 
 ## M6. Expiry, caps, and launch readiness

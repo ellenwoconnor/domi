@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { useAskForPush } from "../../src/features/push/useAskForPush";
 import { Keyboard, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
@@ -25,6 +26,7 @@ export default function CircleForm() {
   const [emoji, setEmoji] = useState("🏡");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const askForPush = useAskForPush();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +50,7 @@ export default function CircleForm() {
       } else {
         const newId = await create({ name, emoji, description: description || undefined });
         router.replace(`/circle/${newId}`); // straight to the circle, where Invite is
+        askForPush("join", { circle: name.trim() }).catch(() => {});
       }
     } catch (e) {
       setError(errorMessage(e));

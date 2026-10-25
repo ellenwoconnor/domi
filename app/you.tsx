@@ -3,14 +3,16 @@ import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import Constants from "expo-constants";
-import { router } from "expo-router";
-import { type ReactNode, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import { type ReactNode, useCallback, useState } from "react";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
 import { signOutOfProviders } from "../src/features/auth/nativeSignIn";
 import { CircleBadge } from "../src/features/circles/CircleBadge";
 import { openLegal } from "../src/features/legal";
+import { pushPermission, unregisterDevice, type PushPermission } from "../src/features/push/push";
+import { useAskForPush } from "../src/features/push/useAskForPush";
 import { errorMessage } from "../src/lib/errors";
 import { Avatar } from "../src/ui/Avatar";
 import { ErrorNote } from "../src/ui/Form";
@@ -30,8 +32,23 @@ export default function You() {
   const deleteAccount = useMutation(api.profiles.deleteAccount);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const unregister = useMutation(api.activity.unregisterPushToken);
+  const askForPush = useAskForPush();
+  const [push, setPush] = useState<PushPermission | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      pushPermission().then(setPush).catch(() => setPush(null));
+    }, []),
+  );
+
+  function notifications() {
+    // Granted or blocked: only the Settings app can change it now.
+    if (push === "ask") askForPush("settings").catch(() => {});
+    else Linking.openSettings().catch(() => {});
+  }
 
   async function doSignOut() {
+    await unregisterDevice(unregister);
     await signOutOfProviders();
     await signOut();
   }
@@ -48,6 +65,7 @@ export default function You() {
           onPress: async () => {
             setDeleting(true);
             try {
+              await unregisterDevice(unregister);
               await deleteAccount({});
               await signOutOfProviders();
               await signOut().catch(() => {}); // the session is already gone on the server
@@ -109,6 +127,11 @@ export default function You() {
             label="How Domi works"
             onPress={() => router.push({ pathname: "/welcome", params: { replay: "1" } })}
           />
+          <SettingsRow
+            label="Notifications"
+            value={push === "granted" ? "On" : push === null ? undefined : "Off"}
+            onPress={notifications}
+          />
           <SettingsRow label="Blocked people" onPress={() => router.push("/blocked")} />
           <SettingsRow label="Terms of Service" onPress={() => openLegal("terms")} />
           <SettingsRow label="Privacy Policy" onPress={() => openLegal("privacy")} />
@@ -146,14 +169,26 @@ function Link({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-function SettingsRow({ label, onPress, last = false }: { label: string; onPress: () => void; last?: boolean }) {
+function SettingsRow({
+  label,
+  value,
+  onPress,
+  last = false,
+}: {
+  label: string;
+  value?: string;
+  onPress: () => void;
+  last?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityValue={value ? { text: value } : undefined}
       style={({ pressed }) => [styles.settingsRow, !last && styles.rule, pressed && { opacity: 0.6 }]}
     >
       <Text style={type.body}>{label}</Text>
+      {value ? <Text style={styles.soft}>{value}</Text> : null}
     </Pressable>
   );
 }
@@ -171,7 +206,7 @@ const styles = StyleSheet.create({
   link: { minHeight: 44, justifyContent: "center" },
   linkText: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
   settings: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line },
-  settingsRow: { minHeight: 52, justifyContent: "center" },
+  settingsRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   version: { fontFamily: font.ui, fontSize: 13, color: color.inkFaint, textAlign: "center" },
   rule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.line },
 });

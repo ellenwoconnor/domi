@@ -1,5 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -15,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
 import { CirclesPicture, GivePicture, WishPicture } from "../src/features/intro/Pictures";
+import { useAskForPush } from "../src/features/push/useAskForPush";
 import { PrimaryButton, TextButton } from "../src/ui/Form";
 import { Logo } from "../src/ui/Logo";
 import { color, font, radius, space, type } from "../src/ui/theme";
@@ -30,6 +33,10 @@ const GUTTER = space.lg;
 export default function Welcome() {
   const { replay } = useLocalSearchParams<{ replay?: string }>();
   const markIntroSeen = useMutation(api.profiles.markIntroSeen);
+  const askForPush = useAskForPush();
+  // Name the circle they were invited to, else their neighborhood circle.
+  const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
+  const circleName = (circles.find((c) => c.kind === "custom") ?? circles[0])?.name;
   const { width, height } = useWindowDimensions();
   // Insets by hand, like the other full-screen modals: SafeAreaView can measure 0 in one.
   const insets = useSafeAreaInsets();
@@ -60,6 +67,12 @@ export default function Welcome() {
   function giveFirstThing() {
     router.replace("/listing/new");
   }
+  // First time through, the notifications ask comes next (it then goes on to `next`).
+  async function leave(next: "/" | "/listing/new") {
+    if (!replay && (await askForPush("welcome", { circle: circleName, next, replace: true }))) return;
+    if (next === "/") close();
+    else giveFirstThing();
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -71,7 +84,7 @@ export default function Welcome() {
             <Ionicons name="chevron-back" size={26} color={color.bay} />
           </Pressable>
         )}
-        {last ? null : <TextButton title={replay ? "Close" : "Skip"} onPress={close} />}
+        {last ? null : <TextButton title={replay ? "Close" : "Skip"} onPress={() => leave("/")} />}
       </View>
 
       <ScrollView
@@ -116,12 +129,12 @@ export default function Welcome() {
           <View style={{ gap: space.xs }}>
             <Pressable
               accessibilityRole="button"
-              onPress={giveFirstThing}
+              onPress={() => leave("/listing/new")}
               style={({ pressed }) => [styles.give, pressed && { opacity: 0.85 }]}
             >
               <Text style={styles.giveText}>Give your first thing</Text>
             </Pressable>
-            <TextButton title="Start browsing" onPress={close} />
+            <TextButton title="Start browsing" onPress={() => leave("/")} />
           </View>
         ) : (
           <PrimaryButton title="Next" onPress={() => goTo(page + 1)} />

@@ -13,7 +13,7 @@ Expo SDK 57 (React Native, TypeScript, Expo Router) talking directly to **Convex
 
 ## Status (2026-10-24)
 
-Built on Convex: sign-in and profile, circles and invite links, posting and browsing, requests, picking a recipient and pickup chat, report and block, wishes and offers, My stuff, listing expiry, and the cost controls (photo thumbnails, image caching, upload limits). Still to come: push notifications (M5), the daily digest, and launch readiness (M6). Several milestones still need their on-device checks. See `docs/build-plan.md` for detail.
+Built on Convex: sign-in and profile, circles and invite links, posting and browsing, requests, picking a recipient and pickup chat, report and block, wishes and offers, My stuff, listing expiry, and the cost controls (photo thumbnails, image caching, upload limits). Push notifications (M5) are built and waiting on device checks. Still to come: launch readiness (M6). Several milestones still need their on-device checks. See `docs/build-plan.md` for detail.
 
 ## Getting started
 

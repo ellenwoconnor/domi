@@ -2,6 +2,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect } from "react";
+import { useAskForPush } from "../../src/features/push/useAskForPush";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
@@ -17,6 +19,13 @@ export default function Posted() {
   const item = useQuery(convexQuery(api.items.get, { itemId })).data;
   const share = useShareListing();
   const insets = useSafeAreaInsets();
+  const askForPush = useAskForPush();
+
+  // The listing is up: a good moment to offer notifications (shown over this screen).
+  useEffect(() => {
+    const t = setTimeout(() => askForPush("post").catch(() => {}), 700);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const names = item?.circles.map((c) => c.name) ?? [];
   const where =

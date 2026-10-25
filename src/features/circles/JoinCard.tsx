@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
+import { useAskForPush } from "../push/useAskForPush";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import { errorMessage } from "../../lib/errors";
@@ -26,6 +27,7 @@ const REASONS: Record<string, string> = {
 export function JoinCard({ code, mode }: { code: string; mode: "member" | "signIn" | "onboarding" }) {
   const preview = useQuery(convexQuery(api.invites.preview, { code }));
   const redeem = useMutation(api.invites.redeem);
+  const askForPush = useAskForPush();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +48,7 @@ export function JoinCard({ code, mode }: { code: string; mode: "member" | "signI
       const result = await redeem({ code });
       if (result.ok && result.communityId) {
         router.replace(`/circle/${result.communityId}`);
+        askForPush("join", { circle: p?.name }).catch(() => {});
         return;
       }
       setError(result.ok ? null : REASONS[result.reason]);
