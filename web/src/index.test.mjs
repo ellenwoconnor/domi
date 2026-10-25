@@ -117,3 +117,16 @@ test("terms and privacy pages are served, and every page links to them", async (
   assert.match(privacy, /GeoNames/);
   assert.match(await (await get("/")).text(), /href="\/terms"[\s\S]*href="\/privacy"/);
 });
+
+test("home page has the landing sections and links to terms and privacy", async () => {
+  const res = await get("/");
+  const html = await res.text();
+  assert.equal(res.status, 200);
+  assert.match(html, /Good things find a new home nearby\./);
+  assert.match(html, /id="how"/);
+  assert.match(html, /Easy to give\./);
+  assert.match(html, /id="circles"/);
+  assert.match(html, /href="\/terms"/);
+  assert.match(html, /href="\/privacy"/);
+  assert.ok(!html.includes("${"), "no unfilled template holes");
+});

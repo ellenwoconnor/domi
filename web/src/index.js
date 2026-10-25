@@ -7,10 +7,12 @@
 // - serves a shared listing's photo (/p/<code>) from Cloudflare's cache, so
 //   page visits and link previews don't each download it from Convex (whose
 //   file bandwidth is the paid kind).
+// - serves the home page (/, in home.js),
 // - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
 //   the app links to (src/features/legal.ts). Their text is in legal.js.
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
+import { homeHtml } from "./home.js";
 import { privacyBody, termsBody } from "./legal.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
@@ -59,7 +61,7 @@ export default {
       return html(sharePage(share, clean, url.origin));
     }
 
-    if (path === "/") return html(homePage());
+    if (path === "/") return html(homeHtml);
     if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
     if (path === "/privacy") return html(legalPage("Privacy Policy", "What Domi collects, who sees it, and how to delete it.", privacyBody));
     return html(missingPage("Page not found", "Nothing lives here."), 404);
@@ -190,13 +192,6 @@ function legalPage(title, desc, body) {
   return layout({ title, desc, body: `<article class="legal">${body}</article>` });
 }
 
-function homePage() {
-  return layout({
-    title: "Domi: good things, close to home",
-    desc: "Give and get secondhand with your neighbors, in circles you choose.",
-    body: `<div class="card"><h1>Good things, close to home.</h1><p class="caption">Give and get secondhand with your neighbors. Domi is in private testing.</p></div>`,
-  });
-}
 
 function layout({ title, desc, image, body }) {
   return `<!doctype html>
