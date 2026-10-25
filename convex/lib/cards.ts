@@ -7,17 +7,40 @@ import { displayName, getMembership, isBlockedEitherWay } from "./access";
 
 type Ctx = QueryCtx | MutationCtx;
 
+/** Full-size photo URLs, for item detail. */
 export async function photoUrls(ctx: Ctx, item: Doc<"items">): Promise<string[]> {
   if (item.photosPurgedAt !== undefined) return [];
   const urls = await Promise.all(item.photos.map((p) => ctx.storage.getUrl(p)));
   return urls.filter((u): u is string => u !== null);
 }
 
+/**
+ * Thumbnail URLs, for feeds, lists and small tiles (about a sixth of the
+ * download). Falls back to the full photo where there's no thumbnail.
+ */
+export async function thumbUrls(ctx: Ctx, item: Doc<"items">): Promise<string[]> {
+  if (item.photosPurgedAt !== undefined) return [];
+  const urls = await Promise.all(
+    item.photos.map(async (p, i) => {
+      const thumb = item.thumbs?.[i];
+      return (thumb && (await ctx.storage.getUrl(thumb))) || (await ctx.storage.getUrl(p));
+    }),
+  );
+  return urls.filter((u): u is string => u !== null);
+}
+
+/** The first photo's thumbnail URL, for list rows. */
+export async function firstThumbUrl(ctx: Ctx, item: Doc<"items">): Promise<string | null> {
+  if (item.photosPurgedAt !== undefined || item.photos.length === 0) return null;
+  const thumb = item.thumbs?.[0];
+  return (thumb && (await ctx.storage.getUrl(thumb))) || (await ctx.storage.getUrl(item.photos[0]));
+}
+
 async function ownerPhotos(ctx: Ctx, item: Doc<"items">) {
-  const out: { storageId: Id<"_storage">; url: string }[] = [];
-  for (const storageId of item.photos) {
+  const out: { storageId: Id<"_storage">; thumbId: Id<"_storage"> | null; url: string }[] = [];
+  for (const [i, storageId] of item.photos.entries()) {
     const url = await ctx.storage.getUrl(storageId);
-    if (url) out.push({ storageId, url });
+    if (url) out.push({ storageId, thumbId: item.thumbs?.[i] ?? null, url });
   }
   return out;
 }
@@ -99,7 +122,8 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
     status: item.status,
     visibility: item.visibility,
     wishlistItemId: item.wishlistItemId ?? null,
-    photoUrls: await photoUrls(ctx, item),
+    photoUrls: await photoUrls(ctx, item), // full size: item detail only
+    thumbUrls: await thumbUrls(ctx, item), // feeds, lists, small tiles
     // The owner edits photos by storage id; nobody else gets the ids.
     ownerPhotos: isOwner && item.photosPurgedAt === undefined ? await ownerPhotos(ctx, item) : null,
     approxLat: item.approxLat,

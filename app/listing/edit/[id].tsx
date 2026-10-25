@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { uploadPhoto } from "../../../src/features/give/photos";
+import { uploadListingPhotos } from "../../../src/features/give/photos";
 import { ListingEditor, type ListingValues } from "../../../src/features/items/ListingEditor";
 import { errorMessage } from "../../../src/lib/errors";
 import { color } from "../../../src/ui/theme";
@@ -38,11 +38,8 @@ export default function EditListing() {
 
   const save = async (v: ListingValues) => {
     try {
-      const photos: Id<"_storage">[] = [];
-      for (const p of v.photos) {
-        photos.push((p.storageId ?? (await uploadPhoto(await generateUploadUrl(), p.uri))) as Id<"_storage">);
-      }
-      await update({ itemId, title: v.title, description: v.description, photos, communityIds: v.circleIds });
+      const uploaded = await uploadListingPhotos(v.photos, () => generateUploadUrl());
+      await update({ itemId, title: v.title, description: v.description, ...uploaded, communityIds: v.circleIds });
       router.back();
     } catch (e) {
       Alert.alert("Couldn't save", errorMessage(e, "Check your connection and try again."));
@@ -52,7 +49,7 @@ export default function EditListing() {
   return (
     <ListingEditor
       initial={{
-        photos: (item.ownerPhotos ?? []).map((p) => ({ uri: p.url, storageId: p.storageId })),
+        photos: (item.ownerPhotos ?? []).map((p) => ({ uri: p.url, storageId: p.storageId, thumbId: p.thumbId })),
         title: item.title,
         description: item.description,
         circleIds: item.circles.map((c) => c.id),

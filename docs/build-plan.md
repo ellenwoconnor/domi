@@ -61,6 +61,40 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - Privacy policy, terms, store forms. TestFlight and Google Play closed test (12 testers, 14 days).
 - Done when: the app passes an internal test with real users from the first circle.
 
+## Cost controls (noted 2026-10-24)
+
+From a cost review of the code against `docs/vendors.md`. Today every vendor stops at a hard free-tier cap; once Convex moves to pay-as-you-go Starter, abuse or waste becomes a bill instead of an outage. So the "before launch" items land before that switch. Rate limits use `convex/lib/rateLimit.ts` (a fixed window per user and action).
+
+Before launch (photo bandwidth, the biggest cost). Done 2026-10-24; thumbnails are 600 px so two-column tiles stay sharp on 3x screens:
+- [x] Thumbnails: save a ~400 px (~40 KB) copy at upload for feeds and cards; keep the 1,600 px photo for item detail only. Today `browse` and `search` return the full photo for every card.
+- [x] Disk-cached images: replace React Native `Image` in `PhotoTile` and the other photo screens with `expo-image` (native code, so a new dev build).
+- [x] Shared-listing page: serve the `/i/` photo and link-preview image through the Worker with Cloudflare caching (or point them at the thumbnail), so web visits and iMessage/Slack/WhatsApp previews don't each pull the full photo from Convex.
+
+Before launch (uploads). Done 2026-10-24, with a small built-in limiter (`convex/lib/rateLimit.ts`) rather than the rate-limiter component; the remaining limits below can use it too:
+- [x] In `checkPhotos`, reject files over ~1 MB or not an image (the `_storage` system record has `size` and `contentType`).
+- [x] Daily cron: delete stored files older than a day that no item uses (uploads abandoned mid-post are never cleaned up today).
+- [x] Rate-limit `items.generateUploadUrl` (60/hour: each photo is two uploads).
+
+Rate limits (with the above, or by M6):
+- [ ] `items.create` and `items.repost`: ~20/day.
+- [ ] `conversations.send`: ~30/minute (spam, and each message will send a push).
+- [ ] `invites.redeem` (and share-code redemption): ~10/hour.
+- [ ] Cap circles per user (~10). `browse` reads rows per circle, so this bounds the feed's cost too.
+- [ ] Website: one Cloudflare rate-limiting rule (free plan) on `/c/*` and `/i/*`, and short Cloudflare caching of the "link not working" pages, so scraping can't run up Convex calls or use up the Worker's 100k requests/day.
+
+Account settings (at the prod deployment, M6):
+- [ ] Move Convex to Starter and set a spending alert or cap in billing, if Convex offers one.
+- [ ] Confirm `DEV_PASSWORD_AUTH` is not set on prod.
+- [ ] Habit: ship JS-only changes with `npm run update:preview` rather than a build (15 free iOS builds/month).
+
+When building push (M5):
+- [ ] Send to Expo in batches (up to 100 messages per request), not one call per event.
+
+As usage grows (not urgent):
+- [ ] `browse` is a live query that re-runs for every viewer whenever any listing in their circles changes, reading up to `limit × 2` rows per circle. Move to a paginated feed if function calls or database bandwidth climb.
+
+Already fine: search is debounced, open requests are capped at 5, `browse` returns at most 100, and all text fields have length limits.
+
 ## Possible follow-ups: invites and installs (noted 2026-10-24)
 
 Not scheduled. Ideas from reviewing the invite flow end to end; pick up when they become useful or possible. Already done: returning users who sign in from a link get their saved codes redeemed (`profiles.redeemSavedCodes`), and the invite and listing pages say what Domi is.

@@ -71,11 +71,12 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
   - If a custom circle's owner leaves or deletes their account, ownership passes to the longest-standing member; a circle with no members is deleted.
 - `communityBans` (communityId, userId): written when the owner removes a member, so the person cannot rejoin through an invite.
 - `invites` (code, communityId, inviterId, revokedAt?): one active link per member per custom circle. Regenerate revokes the old one.
-- `items` (ownerId, title, description, photos: storage ids, approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?)
+- `items` (ownerId, title, description, photos: storage ids (full size, item detail only), thumbs?: storage ids (~600 px, same order, for feeds and lists; missing on older listings, which fall back to the full photo), approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?)
   - visibility is 'private' if and only if wishlistItemId is set; private items are offers to a wish and are not posted to circles.
   - approxLat/approxLng are copied from the owner's profile when posting.
   - 'removed' is a soft delete so requests, threads and events stay intact. Account deletion hard-deletes.
-  - Photos of items that ended (gone, removed, or expired and not reposted) are deleted 30 days later by a cron job.
+  - Photos of items that ended (gone, removed, or expired and not reposted) are deleted 30 days later by a cron job, thumbnails included.
+  - Uploads must be images, at most 2 MB (thumbnails 300 KB). Upload URLs are limited to 60 per person per hour. Uploads not attached to a listing within a day are deleted by a daily cron job.
 - `itemCommunities` (itemId, communityId): public items only.
 - `itemShares` (itemId, sharerId, code, revokedAt?): owner only; one active link per item.
 - `shareGrants` (shareId, itemId, userId): written when someone redeems a share link (at signup or later). Lets that user see and request that one item.
@@ -141,7 +142,7 @@ Enforced at the top of every public function (helpers in `convex/lib/access.ts`)
 - A user reads only their own events and push tokens.
 - Blocking works both ways: neither sees the other's items or wishes, neither can request from or message the other. Blocking withdraws open and selected requests between them and closes their conversations.
 - Any member of a custom circle can create an invite; no one can for a zip circle. Banned (removed) members cannot redeem invites to that circle.
-- Photos are served with Convex storage URLs, which only access-checked queries hand out. URLs don't expire; deleting the photo (30 days after the item ends) revokes them.
+- Photos are served with Convex storage URLs, which only access-checked queries hand out. The shared-listing web page shows its photo through the Worker (`/p/<code>`), which checks `shares.preview` on every request and caches only the image bytes. URLs don't expire; deleting the photo (30 days after the item ends) revokes them.
 - Public (signed-out) functions: `invites.preview` and `shares.preview` only. A share preview shows title, description, first photo and circle name while the item is available or pending; otherwise "no longer available".
 
 ## Item state machine and events

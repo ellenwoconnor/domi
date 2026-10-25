@@ -5,5 +5,6 @@ const crons = cronJobs();
 
 crons.interval("expire listings", { minutes: 15 }, internal.maintenance.expireDue, {});
 crons.daily("purge photos of ended listings", { hourUTC: 11, minuteUTC: 17 }, internal.maintenance.purgeEndedPhotos, {});
+crons.daily("purge uploads never attached to a listing", { hourUTC: 11, minuteUTC: 47 }, internal.maintenance.purgeOrphanUploads, {});
 
 export default crons;

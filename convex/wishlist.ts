@@ -149,6 +149,7 @@ export const offer = mutation({
     title: v.string(),
     description: v.string(),
     photos: v.array(v.id("_storage")),
+    thumbs: v.optional(v.array(v.id("_storage"))),
   },
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
@@ -158,13 +159,14 @@ export const offer = mutation({
     if (wish.status !== "open") fail("This wish is closed");
     if ((await liveOffers(ctx, wish._id)).some((o) => o.ownerId === userId)) fail("You've already offered something for this wish");
     const text = itemText(args.title, args.description);
-    await checkPhotos(ctx, args.photos);
+    await checkPhotos(ctx, args.photos, args.thumbs);
 
     const now = Date.now();
     const itemId = await ctx.db.insert("items", {
       ownerId: userId,
       ...text,
       photos: args.photos,
+      thumbs: args.thumbs,
       approxLat: profile.approxLat,
       approxLng: profile.approxLng,
       visibility: "private",

@@ -1,7 +1,7 @@
 import type { Doc, Id } from "./_generated/dataModel";
 import { query, type QueryCtx } from "./_generated/server";
 import { displayName, requireProfile } from "./lib/access";
-import { photoUrls } from "./lib/cards";
+import { firstThumbUrl } from "./lib/cards";
 import { DAY_MS } from "./lib/validate";
 
 // The "My stuff" tab: one row per thing you're giving or getting, each with a
@@ -75,7 +75,7 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
         kind: "item",
         title: item.title,
         subtitle: "an offer",
-        photoUrl: (await photoUrls(ctx, item))[0] ?? null,
+        photoUrl: await firstThumbUrl(ctx, item),
         status: `${await displayName(ctx, wish.userId)}'s wish came true. Thanks for offering.`,
         needsYou: false,
         ended: true,
@@ -127,7 +127,7 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
       kind: "item",
       title: item.title,
       subtitle: offerFor ? "an offer" : null,
-      photoUrl: (await photoUrls(ctx, item))[0] ?? null,
+      photoUrl: await firstThumbUrl(ctx, item),
       status,
       needsYou,
       ended,
@@ -194,7 +194,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         kind: "item",
         title: item.title,
         subtitle: null,
-        photoUrl: (await photoUrls(ctx, item))[0] ?? null,
+        photoUrl: await firstThumbUrl(ctx, item),
         status: line,
         needsYou,
         ended,

@@ -5,6 +5,8 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/s
 import { fail, getProfile, requireProfile, requireUserId } from "./lib/access";
 import { addMembership, findOrCreateZipCircle, leaveCommunity, lookupZip, previewLeave } from "./lib/circles";
 import { closeWish, removeItem, withdrawRequest } from "./lib/lifecycle";
+import { deleteFiles, itemFiles } from "./lib/photos";
+import { RATE_LIMITS, type RateLimitName } from "./lib/rateLimit";
 import { redeemInviteCode, redeemShareCode, type RedeemResult } from "./lib/redeem";
 import { checkLatLng, cleanText, cleanZip, LIMITS, roundCoord } from "./lib/validate";
 
@@ -246,7 +248,7 @@ export async function deleteUserData(ctx: MutationCtx, userId: Id<"users">) {
 
   // Items, their links, shares, grants, requests on them, and photos.
   for (const item of items) {
-    for (const p of item.photos) await ctx.storage.delete(p).catch(() => {});
+    await deleteFiles(ctx, itemFiles(item));
     await deleteAll(ctx, await ctx.db.query("itemCommunities").withIndex("by_item", (q) => q.eq("itemId", item._id)).collect());
     await deleteAll(ctx, await ctx.db.query("requests").withIndex("by_item", (q) => q.eq("itemId", item._id)).collect());
     await deleteAll(ctx, await ctx.db.query("shareGrants").withIndex("by_item", (q) => q.eq("itemId", item._id)).collect());
@@ -269,6 +271,9 @@ export async function deleteUserData(ctx: MutationCtx, userId: Id<"users">) {
     );
   }
   await deleteAll(ctx, await ctx.db.query("shareGrants").withIndex("by_user_item", (q) => q.eq("userId", userId)).collect());
+  for (const name of Object.keys(RATE_LIMITS) as RateLimitName[]) {
+    await deleteAll(ctx, await ctx.db.query("rateLimits").withIndex("by_key", (q) => q.eq("key", `${name}:${userId}`)).collect());
+  }
   await deleteAll(ctx, await ctx.db.query("itemShares").withIndex("by_sharer", (q) => q.eq("sharerId", userId)).collect());
   await deleteAll(ctx, await ctx.db.query("invites").withIndex("by_inviter", (q) => q.eq("inviterId", userId)).collect());
   await deleteAll(ctx, await ctx.db.query("events").withIndex("by_recipient", (q) => q.eq("recipientId", userId)).collect());

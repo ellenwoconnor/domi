@@ -121,7 +121,8 @@ export default defineSchema({
     ownerId: v.id("users"),
     title: v.string(),
     description: v.string(),
-    photos: v.array(v.id("_storage")),
+    photos: v.array(v.id("_storage")), // full size, for item detail
+    thumbs: v.optional(v.array(v.id("_storage"))), // ~400 px, same order as photos; missing on older listings
     approxLat: v.number(),
     approxLng: v.number(),
     visibility: itemVisibility,
@@ -136,6 +137,7 @@ export default defineSchema({
     .index("by_wishlistItem", ["wishlistItemId"])
     .index("by_status_expiresAt", ["status", "expiresAt"])
     .index("by_status_updatedAt", ["status", "updatedAt"])
+    .index("by_status_purged_updatedAt", ["status", "photosPurgedAt", "updatedAt"])
     .searchIndex("search_text", { searchField: "searchText", filterFields: ["visibility"] }),
 
   itemCommunities: defineTable({
@@ -254,4 +256,11 @@ export default defineSchema({
   })
     .index("by_blocker_blocked", ["blockerId", "blockedId"])
     .index("by_blocked", ["blockedId"]),
+
+  // Fixed-window counters for convex/lib/rateLimit.ts, one row per user and action.
+  rateLimits: defineTable({
+    key: v.string(), // "<action>:<userId>"
+    windowStart: v.number(),
+    count: v.number(),
+  }).index("by_key", ["key"]),
 });

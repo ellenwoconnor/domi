@@ -15,11 +15,17 @@ export const LIMITS = {
   reportReason: 1000,
   photosPerItem: 3,
   openRequestsPerUser: 5,
+  // Photos are compressed on the phone (full ~250 KB, thumbnail ~40 KB); these
+  // leave plenty of room and stop anything else being stored.
+  photoMaxBytes: 2_000_000,
+  thumbMaxBytes: 300_000,
 } as const;
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 export const LISTING_LIFETIME_MS = 30 * DAY_MS;
 export const PHOTO_RETENTION_MS = 30 * DAY_MS;
+/** Uploads not attached to a listing by then are deleted (maintenance.purgeOrphanUploads). */
+export const ORPHAN_UPLOAD_MS = DAY_MS;
 
 export function cleanText(value: string, field: string, max: number, { required = true } = {}): string {
   const text = value.trim();

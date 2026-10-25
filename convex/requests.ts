@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { blockedUserIds, displayName, fail, requireOwnItem, requireProfile, requireVisibleItem } from "./lib/access";
-import { photoUrls } from "./lib/cards";
+import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { withdrawRequest } from "./lib/lifecycle";
 import { cleanOptionalText, LIMITS } from "./lib/validate";
@@ -119,7 +119,7 @@ export const mine = query({
             title: item.title,
             status: item.status,
             visibility: item.visibility,
-            photoUrl: (await photoUrls(ctx, item))[0] ?? null,
+            photoUrl: await firstThumbUrl(ctx, item),
             owner: { userId: item.ownerId, displayName: await displayName(ctx, item.ownerId) },
           },
         });

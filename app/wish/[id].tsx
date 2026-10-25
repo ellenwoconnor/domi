@@ -194,7 +194,7 @@ function YourWish({ wish }: { wish: Wish }) {
                 </Text>
                 {waiting.map((o) => (
                   <Pressable key={o.id} onLongPress={() => setPerson(o)} accessibilityHint="Long press to report or block" style={styles.smallOffer}>
-                    <PhotoTile uri={o.photoUrls[0]} style={styles.smallPhoto} />
+                    <PhotoTile uri={o.thumbUrls[0]} style={styles.smallPhoto} />
                     <View style={{ flex: 1 }}>
                       <Text style={type.objectLabel} numberOfLines={2}>
                         {o.title}
@@ -233,7 +233,7 @@ function YourWish({ wish }: { wish: Wish }) {
                       accessibilityHint="Long press to report or block"
                       style={[styles.offer, on && styles.offerOn]}
                     >
-                      <PhotoTile uri={o.photoUrls[0]} style={styles.offerPhoto} />
+                      <PhotoTile uri={o.thumbUrls[0]} style={styles.offerPhoto} />
                       <View style={{ flex: 1, gap: 4 }}>
                         <Text style={type.objectLabel} numberOfLines={3}>
                           {o.title}
@@ -332,7 +332,7 @@ function PickedHero({ offer, top }: { offer: Offer; top: number }) {
       </Pressable>
       <View style={{ alignItems: "center", gap: space.md }}>
         <View style={styles.pickedPhotoWrap}>
-          <PhotoTile uri={offer.photoUrls[0]} style={styles.pickedPhoto} />
+          <PhotoTile uri={offer.thumbUrls[0]} style={styles.pickedPhoto} />
           <View style={styles.pickedMark}>
             <CircleMark size={30} />
           </View>
@@ -384,7 +384,7 @@ function TakeSheet({ offer, others, onClose }: { offer: Offer | null; others: st
   return (
     <Sheet visible={!!offer} onClose={onClose}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-        <PhotoTile uri={offer?.photoUrls[0]} style={{ width: 64, height: 76 }} />
+        <PhotoTile uri={offer?.thumbUrls[0]} style={{ width: 64, height: 76 }} />
         <Text style={[type.title, { fontSize: 24, lineHeight: 30, flex: 1 }]}>{offer ? `${takeLabel(offer)}?` : ""}</Text>
       </View>
       <Text style={type.body}>A private chat opens with {name} to plan pickup.{wait}</Text>

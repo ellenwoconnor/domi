@@ -26,6 +26,7 @@ import type * as lib_events from "../lib/events.js";
 import type * as lib_idTokens from "../lib/idTokens.js";
 import type * as lib_lifecycle from "../lib/lifecycle.js";
 import type * as lib_photos from "../lib/photos.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_redeem from "../lib/redeem.js";
 import type * as lib_validate from "../lib/validate.js";
 import type * as maintenance from "../maintenance.js";
@@ -62,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   "lib/idTokens": typeof lib_idTokens;
   "lib/lifecycle": typeof lib_lifecycle;
   "lib/photos": typeof lib_photos;
+  "lib/rateLimit": typeof lib_rateLimit;
   "lib/redeem": typeof lib_redeem;
   "lib/validate": typeof lib_validate;
   maintenance: typeof maintenance;

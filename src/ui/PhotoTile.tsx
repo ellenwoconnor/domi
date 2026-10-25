@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { color, radius } from "./theme";
 
 /**
@@ -25,7 +26,15 @@ export function PhotoTile({
   return (
     <View style={[styles.tile, rounded && { borderRadius: radius.thing }, style]}>
       {uri ? (
-        <Image source={{ uri }} style={[StyleSheet.absoluteFill, dimmed && { opacity: 0.55 }]} resizeMode="cover" />
+        // expo-image keeps photos in a disk cache, so each phone downloads each photo once.
+        <Image
+          source={{ uri }}
+          style={[StyleSheet.absoluteFill, dimmed && { opacity: 0.55 }]}
+          contentFit="cover"
+          cachePolicy="disk"
+          recyclingKey={uri}
+          transition={120}
+        />
       ) : emoji ? (
         <Text style={{ fontSize: emojiSize, opacity: dimmed ? 0.45 : 1 }}>{emoji}</Text>
       ) : (

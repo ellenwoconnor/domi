@@ -15,18 +15,20 @@ import {
 import { itemCard } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { endSelection, markGone, openRequests, openSelection, removeItem, selectedRequest } from "./lib/lifecycle";
-import { checkPhotos, itemText } from "./lib/photos";
+import { checkPhotos, deleteFiles, itemFiles, itemText } from "./lib/photos";
+import { rateLimit } from "./lib/rateLimit";
 import { LISTING_LIFETIME_MS } from "./lib/validate";
 
 // Listings: post, browse, search, and every owner-side status change.
 
 const LIVE: Doc<"items">["status"][] = ["available", "pending"];
 
-/** Step 1 of posting: the app uploads each (compressed) photo to this URL. */
+/** Step 1 of posting: the app uploads each compressed photo, and its thumbnail, to one of these URLs. */
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    await requireProfile(ctx);
+    const { userId } = await requireProfile(ctx);
+    await rateLimit(ctx, "uploadUrl", userId);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -36,12 +38,13 @@ export const create = mutation({
     title: v.string(),
     description: v.string(),
     photos: v.array(v.id("_storage")),
+    thumbs: v.optional(v.array(v.id("_storage"))),
     communityIds: v.array(v.id("communities")),
   },
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
     const text = itemText(args.title, args.description);
-    await checkPhotos(ctx, args.photos);
+    await checkPhotos(ctx, args.photos, args.thumbs);
     const circles = [...new Set(args.communityIds)];
     if (circles.length === 0) fail("Pick at least one circle");
     for (const c of circles) await requireMember(ctx, c, userId);
@@ -51,6 +54,7 @@ export const create = mutation({
       ownerId: userId,
       ...text,
       photos: args.photos,
+      thumbs: args.thumbs,
       approxLat: profile.approxLat,
       approxLng: profile.approxLng,
       visibility: "public",
@@ -75,6 +79,7 @@ export const update = mutation({
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     photos: v.optional(v.array(v.id("_storage"))),
+    thumbs: v.optional(v.array(v.id("_storage"))), // with photos; leaving it out drops the thumbnails
     communityIds: v.optional(v.array(v.id("communities"))),
   },
   handler: async (ctx, args) => {
@@ -85,10 +90,13 @@ export const update = mutation({
     const text = itemText(args.title ?? item.title, args.description ?? item.description);
     const patch: Partial<Doc<"items">> = { ...text, searchText: `${text.title} ${text.description}`, updatedAt: Date.now() };
 
+    if (args.thumbs && !args.photos) fail("Thumbnails come with photos");
     if (args.photos) {
-      await checkPhotos(ctx, args.photos);
-      for (const old of item.photos) if (!args.photos.includes(old)) await ctx.storage.delete(old);
+      await checkPhotos(ctx, args.photos, args.thumbs);
+      const keep = new Set(itemFiles({ photos: args.photos, thumbs: args.thumbs }));
+      await deleteFiles(ctx, itemFiles(item).filter((f) => !keep.has(f)));
       patch.photos = args.photos;
+      patch.thumbs = args.thumbs;
     }
 
     if (args.communityIds) {

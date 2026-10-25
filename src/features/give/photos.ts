@@ -1,11 +1,14 @@
 import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Alert, Linking } from "react-native";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 /** Most things need one photo; a few angles at most. Matches LIMITS.photosPerItem. */
 export const MAX_PHOTOS = 3;
 
 const LONG_EDGE = 1600;
+/** Feed and list tiles: sharp on a 3x screen in a two-column grid, ~50 KB. */
+const THUMB_LONG_EDGE = 600;
 
 /** Shrink to a 1600px long edge and re-encode as JPEG before upload. */
 async function compress(asset: ImagePicker.ImagePickerAsset): Promise<string> {
@@ -88,4 +91,44 @@ export async function uploadPhoto(uploadUrl: string, uri: string): Promise<strin
   }
   const { storageId } = (await res.json()) as { storageId: string };
   return storageId;
+}
+
+/** A small copy of a local photo for feeds and lists (see convex/lib/photos.ts). */
+async function makeThumb(uri: string): Promise<string> {
+  const original = await ImageManipulator.manipulate(uri).renderAsync();
+  const ctx = ImageManipulator.manipulate(uri);
+  if (Math.max(original.width, original.height) > THUMB_LONG_EDGE) {
+    ctx.resize(original.width >= original.height ? { width: THUMB_LONG_EDGE } : { height: THUMB_LONG_EDGE });
+  }
+  const image = await ctx.renderAsync();
+  const saved = await image.saveAsync({ compress: 0.6, format: SaveFormat.JPEG });
+  return saved.uri;
+}
+
+/** A photo on the listing editor: local (not uploaded yet) or already stored. */
+export type ListingPhoto = { uri: string; storageId?: string; thumbId?: string | null };
+
+/**
+ * Uploads the editor's new photos, each with a thumbnail, and returns the
+ * storage ids to send with create/update/offer. `thumbs` is left out if a kept
+ * photo has none (listings from before thumbnails); the server then falls back
+ * to the full photos.
+ */
+export async function uploadListingPhotos(
+  entries: ListingPhoto[],
+  generateUploadUrl: () => Promise<string>,
+): Promise<{ photos: Id<"_storage">[]; thumbs?: Id<"_storage">[] }> {
+  const photos: Id<"_storage">[] = [];
+  const thumbs: (Id<"_storage"> | null)[] = [];
+  for (const p of entries) {
+    if (p.storageId) {
+      photos.push(p.storageId as Id<"_storage">);
+      thumbs.push((p.thumbId ?? null) as Id<"_storage"> | null);
+      continue;
+    }
+    photos.push((await uploadPhoto(await generateUploadUrl(), p.uri)) as Id<"_storage">);
+    thumbs.push((await uploadPhoto(await generateUploadUrl(), await makeThumb(p.uri))) as Id<"_storage">);
+  }
+  const complete = thumbs.every((t): t is Id<"_storage"> => t !== null);
+  return complete ? { photos, thumbs } : { photos };
 }

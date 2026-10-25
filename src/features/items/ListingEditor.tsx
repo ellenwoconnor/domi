@@ -28,7 +28,7 @@ const TITLE_MAX = 80;
 const DESCRIPTION_MAX = 1000;
 
 /** A photo on the listing: a local file still to upload, or one already stored. */
-export type PhotoEntry = { uri: string; storageId?: string };
+export type PhotoEntry = { uri: string; storageId?: string; thumbId?: string | null };
 
 export type ListingValues = {
   photos: PhotoEntry[];

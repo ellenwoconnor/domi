@@ -56,7 +56,8 @@ test("shared listing page shows the photo, or 'found a home' once it's gone", as
         : { code, available: false },
   });
   const html = await (await get("/i/AAAABBBB")).text();
-  assert.match(html, /og:image" content="https:\/\/x\/p.jpg"/);
+  assert.match(html, /og:image" content="https:\/\/domicircles.com\/p\/AAAABBBB"/); // the cached route, not Convex
+  assert.ok(!html.includes("https://x/p.jpg"));
   assert.match(html, /Free: Crib/);
   assert.match(html, /<b>Ellen<\/b> is giving this away on Domi/);
   assert.match(await (await get("/i/CCCCDDDD")).text(), /already found a home/);
@@ -69,4 +70,36 @@ test("user text is escaped", async () => {
   });
   const html = await (await get("/c/ABCDEFGH")).text();
   assert.ok(!html.includes("<b>x</b>"));
+});
+
+test("listing photo is fetched from Convex once, then served from the cache", async () => {
+  const stored = new Map();
+  globalThis.caches = {
+    default: {
+      match: async (req) => stored.get(req.url)?.clone(),
+      put: async (req, res) => void stored.set(req.url, res),
+    },
+  };
+  let photoFetches = 0;
+  globalThis.fetch = async (url, init) => {
+    if (String(url) === "https://x/p.jpg") {
+      photoFetches++;
+      return new Response("jpeg", { headers: { "content-type": "image/jpeg" } });
+    }
+    const { args } = JSON.parse(init.body);
+    const value =
+      args.code === "AAAABBBB"
+        ? { code: "AAAABBBB", available: true, title: "Crib", photoUrl: "https://x/p.jpg" }
+        : { code: args.code, available: false };
+    return new Response(JSON.stringify({ status: "success", value }));
+  };
+  for (let i = 0; i < 3; i++) {
+    const res = await get("/p/AAAABBBB");
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("content-type"), "image/jpeg");
+    assert.equal(await res.text(), "jpeg");
+  }
+  assert.equal(photoFetches, 1);
+  assert.equal((await get("/p/CCCCDDDD")).status, 404); // taken down: no photo
+  delete globalThis.caches;
 });

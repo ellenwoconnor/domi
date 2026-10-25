@@ -4,9 +4,8 @@ import { useMutation } from "convex/react";
 import { router } from "expo-router";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { api } from "../../convex/_generated/api";
-import type { Id } from "../../convex/_generated/dataModel";
 import { draft, useDraftPhotos } from "../../src/features/give/draft";
-import { uploadPhoto } from "../../src/features/give/photos";
+import { uploadListingPhotos } from "../../src/features/give/photos";
 import { ListingEditor, type ListingValues } from "../../src/features/items/ListingEditor";
 import { errorMessage } from "../../src/lib/errors";
 import { color } from "../../src/ui/theme";
@@ -44,14 +43,11 @@ export default function NewListing() {
 
   const post = async (v: ListingValues) => {
     try {
-      const storageIds: Id<"_storage">[] = [];
-      for (const p of v.photos) {
-        storageIds.push((p.storageId ?? (await uploadPhoto(await generateUploadUrl(), p.uri))) as Id<"_storage">);
-      }
+      const uploaded = await uploadListingPhotos(v.photos, () => generateUploadUrl());
       const itemId = await create({
         title: v.title,
         description: v.description,
-        photos: storageIds,
+        ...uploaded,
         communityIds: v.circleIds,
       });
       draft.clear();

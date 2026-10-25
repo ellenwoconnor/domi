@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { uploadPhoto } from "../../src/features/give/photos";
+import { uploadListingPhotos } from "../../src/features/give/photos";
 import { ListingEditor, type ListingValues } from "../../src/features/items/ListingEditor";
 import { errorMessage } from "../../src/lib/errors";
 import { color, font, space, type } from "../../src/ui/theme";
@@ -62,11 +62,8 @@ export default function Fulfill() {
 
   const send = async (v: ListingValues) => {
     try {
-      const storageIds: Id<"_storage">[] = [];
-      for (const p of v.photos) {
-        storageIds.push((p.storageId ?? (await uploadPhoto(await generateUploadUrl(), p.uri))) as Id<"_storage">);
-      }
-      const itemId = await offer({ wishId: wish.id, title: v.title, description: v.description, photos: storageIds });
+      const uploaded = await uploadListingPhotos(v.photos, () => generateUploadUrl());
+      const itemId = await offer({ wishId: wish.id, title: v.title, description: v.description, ...uploaded });
       router.replace({ pathname: "/fulfill/sent", params: { id: itemId } });
     } catch (e) {
       Alert.alert("Couldn't send your offer", errorMessage(e, "Check your connection and try again."));

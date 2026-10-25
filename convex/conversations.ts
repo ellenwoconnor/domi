@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { displayName, fail, isBlockedEitherWay, requireProfile } from "./lib/access";
-import { photoUrls } from "./lib/cards";
+import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { cleanText, LIMITS } from "./lib/validate";
 
@@ -38,7 +38,7 @@ async function summary(ctx: QueryCtx, c: Doc<"conversations">, userId: Id<"users
     role: c.ownerId === userId ? ("owner" as const) : ("recipient" as const),
     other: { userId: otherId, displayName: await displayName(ctx, otherId) },
     item: item
-      ? { id: item._id, title: item.title, status: item.status, photoUrl: (await photoUrls(ctx, item))[0] ?? null }
+      ? { id: item._id, title: item.title, status: item.status, photoUrl: await firstThumbUrl(ctx, item) }
       : null,
     closed: c.closedAt !== undefined,
     lastMessage: last ? { body: last.body, senderId: last.senderId, at: last._creationTime } : null,

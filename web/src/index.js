@@ -3,7 +3,10 @@
 //   (/.well-known/apple-app-site-association, /.well-known/assetlinks.json),
 // - renders invite pages (/c/<code>) and shared-listing pages (/i/<code>) for
 //   people who don't have the app, with link previews for iMessage, WhatsApp
-//   and Facebook.
+//   and Facebook,
+// - serves a shared listing's photo (/p/<code>) from Cloudflare's cache, so
+//   page visits and link previews don't each download it from Convex (whose
+//   file bandwidth is the paid kind).
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
@@ -11,7 +14,7 @@ const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
 const CODE = /^[0-9A-Za-z-]{4,16}$/;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
@@ -36,6 +39,9 @@ export default {
       );
     }
 
+    const [, photoCode] = path.match(/^\/p\/([^/]+)$/) ?? [];
+    if (photoCode && CODE.test(photoCode)) return sharePhoto(env, ctx, photoCode.toUpperCase().replace(/-/g, ""));
+
     const [, kind, code] = path.match(/^\/(c|i)\/([^/]+)$/) ?? [];
     if (kind && CODE.test(code)) {
       const clean = code.toUpperCase().replace(/-/g, "");
@@ -46,7 +52,7 @@ export default {
       const share = await convexQuery(env, "shares:preview", { code: clean });
       if (!share) return html(missingPage("This link isn't working", "The listing may have been taken down."), 404);
       if (!share.available) return html(missingPage("This one has already found a home", "Things go fast on Domi. Join your neighbors to catch the next one."));
-      return html(sharePage(share, clean));
+      return html(sharePage(share, clean, url.origin));
     }
 
     if (path === "/") return html(homePage());
@@ -115,17 +121,52 @@ function invitePage(p, code) {
   });
 }
 
-function sharePage(p, code) {
+/**
+ * The listing's photo, through Cloudflare's cache. Each request still checks
+ * the listing is shared and available (one cheap Convex query), so a removed
+ * listing's photo stops showing; only the bytes come from the cache.
+ */
+async function sharePhoto(env, ctx, code) {
+  const share = await convexQuery(env, "shares:preview", { code });
+  if (!share?.available || !share.photoUrl) {
+    return new Response("Not found", { status: 404, headers: { "cache-control": "public, max-age=60" } });
+  }
+  const cache = globalThis.caches?.default;
+  const key = new Request(share.photoUrl);
+  let hit = cache ? await cache.match(key) : undefined;
+  if (!hit) {
+    const upstream = await fetch(share.photoUrl);
+    if (!upstream.ok) return new Response("Not found", { status: 404 });
+    hit = new Response(upstream.body, {
+      headers: {
+        "content-type": upstream.headers.get("content-type") ?? "image/jpeg",
+        "cache-control": "public, max-age=604800", // the photo behind a storage URL never changes
+      },
+    });
+    if (cache) {
+      const put = cache.put(key, hit.clone());
+      if (ctx?.waitUntil) ctx.waitUntil(put);
+      else await put;
+    }
+  }
+  // Browsers and link-preview services may keep it for an hour.
+  return new Response(hit.body, {
+    headers: { "content-type": hit.headers.get("content-type") ?? "image/jpeg", "cache-control": "public, max-age=3600" },
+  });
+}
+
+function sharePage(p, code, origin) {
   const title = `Free: ${p.title}`;
   const desc = `${p.description}`.slice(0, 200);
+  const photo = p.photoUrl ? `${origin}/p/${code}` : null;
   return layout({
     title,
     desc,
-    image: p.photoUrl,
+    image: photo,
     body: `
       <p class="intro"><b>${esc(p.ownerName)}</b> is giving this away on Domi, an app for sharing things with the people near you.</p>
       <div class="listing">
-        ${p.photoUrl ? `<img class="photo" src="${esc(p.photoUrl)}" alt="${esc(p.title)}">` : ""}
+        ${photo ? `<img class="photo" src="${esc(photo)}" alt="${esc(p.title)}">` : ""}
         <span class="free">Free${p.status === "pending" ? " · pending pickup" : ""}</span>
         <h1>${esc(p.title)}</h1>
         <p class="body">${esc(p.description)}</p>

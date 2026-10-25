@@ -66,12 +66,14 @@ Names and where each one lives; values stay in those places.
 
 ## Watch: photo bandwidth
 
-The cost most likely to grow is **Convex file egress** (people downloading photos). Every time the app shows a photo it downloads it, and the free tier is only 1 GB/month: about 5,000 views of a 200 KB photo. In M3 we should:
+The cost most likely to grow is **Convex file egress** (people downloading photos). Every time the app shows a photo it downloads it, and the free tier is only 1 GB/month: about 5,000 views of a 200 KB photo. Built 2026-10-24:
 
-1. Save a small thumbnail (~400 px, ~40 KB) for feeds and the full photo (~1,600 px, ~250 KB) only for item detail.
-2. Use a disk-caching image component (`expo-image`) so each phone downloads each photo once.
+1. Each photo is saved twice: a ~600 px thumbnail (~50 KB) for feeds and lists, and the full photo (~1,600 px, ~250 KB) only for item detail.
+2. The app shows photos with `expo-image`, which caches them on disk, so each phone downloads each photo once.
+3. The shared-listing web page and its link previews get the photo from Cloudflare's cache (`/p/<code>` on the Worker), not from Convex.
+4. Uploads are capped (images only, 2 MB, 60 upload URLs per person per hour) and abandoned uploads are deleted daily.
 
-With both, a user browsing ~30 new listings a day uses about 1–2 MB/day, roughly 40 MB/month.
+With these, a user browsing ~30 new listings a day uses about 1–2 MB/day, roughly 40 MB/month.
 
 ## Cost projection
 

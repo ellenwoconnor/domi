@@ -17,7 +17,7 @@ export function ItemCard({ item, me }: { item: ItemView; me?: { approxLat: numbe
     <Link href={{ pathname: "/item/[id]", params: { id: item.id } }} asChild>
       <Pressable style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}>
         <View>
-          <PhotoTile uri={item.photoUrls[0]} dimmed={pending} style={styles.photo} />
+          <PhotoTile uri={item.thumbUrls[0]} dimmed={pending} style={styles.photo} />
           {item.isOwner || pending ? (
             <View style={styles.tag}>
               <Text style={styles.tagText}>{item.isOwner ? "Yours" : "Pending pickup"}</Text>
