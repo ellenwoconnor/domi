@@ -24,7 +24,7 @@ export default internalMutation({
     const pinned: Record<string, string> = {
       // The effective date of the terms in web/src/legal.js. Bump when the terms
       // change; signup requires the app to send this exact value.
-      terms_version: "2026-10-24",
+      terms_version: "2026-10-25",
     };
     for (const [key, value] of Object.entries({ ...defaults, ...pinned })) {
       const existing = await ctx.db

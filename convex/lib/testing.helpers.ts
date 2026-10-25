@@ -7,7 +7,7 @@ import schema from "../schema";
 
 const modules = import.meta.glob("../**/*.ts");
 
-export const TERMS = "2026-10-24";
+export const TERMS = "2026-10-25";
 
 export async function setup() {
   const t = convexTest(schema, modules);

@@ -1,11 +1,11 @@
 // Domi's Terms of Service and Privacy Policy, served at /terms and /privacy.
-// Adapted from the Corcles terms (3/19/25), reviewed 2026-10-24.
+// Adapted from the Corcles terms (3/19/25), reviewed 2026-10-24; non-physical offers and "free for now" wording 2026-10-25.
 //
 // When the terms change in a meaningful way: update TERMS_EFFECTIVE here, and
 // bump terms_version in convex/init.ts to the same date, so new signups accept
 // the new version.
 
-export const TERMS_EFFECTIVE = "October 24, 2026";
+export const TERMS_EFFECTIVE = "October 25, 2026";
 export const PRIVACY_EFFECTIVE = "October 24, 2026";
 export const CONTACT_EMAIL = "support@domicircles.com";
 
@@ -15,7 +15,7 @@ export const termsBody = `
 <h1>Terms of Service</h1>
 <p class="meta">Effective ${TERMS_EFFECTIVE}</p>
 
-<p>Domi is an app for giving things away, for free, to people near you, in circles you choose. These Terms of Service ("Terms") cover the Domi app and domicircles.com (together, "Domi", "we" or "us"). By creating an account or using Domi, you agree to these Terms and to our <a href="/privacy">Privacy Policy</a>. If you don't agree, please don't use Domi.</p>
+<p>Domi is an app for giving things away to people near you, in circles you choose. These Terms of Service ("Terms") cover the Domi app and domicircles.com (together, "Domi", "we" or "us"). By creating an account or using Domi, you agree to these Terms and to our <a href="/privacy">Privacy Policy</a>. If you don't agree, please don't use Domi.</p>
 
 <h2>1. Who can use Domi</h2>
 <ul>
@@ -34,14 +34,14 @@ export const termsBody = `
 <li><b>Share links.</b> If you share a listing outside Domi, anyone with the link can see its title, description, first photo, your display name and the circle's name while it's available.</li>
 </ul>
 
-<h2>3. Everything on Domi is free</h2>
-<p>Domi is for giving, not selling. Don't ask for or accept money, payment apps, trades, deposits or tips for anything on Domi, and don't use Domi to advertise a business. Domi doesn't process payments.</p>
+<h2>3. Domi is free, for now</h2>
+<p>Right now, everything on Domi is given away for free. Don't ask for or accept money, payment apps, trades, deposits or tips for anything on Domi, and don't use Domi to advertise a business, including "free" offers that lead to something paid. Domi doesn't process payments. If we add selling or other paid features later, they'll come with their own terms, and we'll ask you to accept them before you use those features.</p>
 
 <h2>4. Domi isn't part of the exchange</h2>
 <p>Domi helps neighbors find each other. We don't own, inspect, verify or guarantee any item or any person. By using Domi, you agree that:</p>
 <ul>
-<li>Every exchange is between the people involved. Domi isn't responsible for the condition, safety or legality of items, or for no-shows, damage, injury, fraud, misrepresentation or disputes.</li>
-<li>You take on the risks of meeting people and giving or receiving items. Domi doesn't run background checks or verify identities.</li>
+<li>Every exchange is between the people involved. Domi isn't responsible for the condition, safety or legality of items or help offered, or for no-shows, damage, injury, fraud, misrepresentation or disputes.</li>
+<li>You take on the risks of meeting people and giving or receiving items or help. Domi doesn't run background checks, verify identities, or check anyone's skills, licenses or insurance.</li>
 <li>You release Domi from claims that come from items, meetings, messages or exchanges with other people.</li>
 </ul>
 
@@ -56,7 +56,7 @@ export const termsBody = `
 <li>Animals</li>
 <li>Adult or sexual content or products</li>
 <li>IDs, documents or anything holding someone's personal information</li>
-<li>Services, gift cards, tickets or other non-physical things</li>
+<li>Gift cards, cash, or anything that works like money</li>
 </ul>
 
 <h2>6. Treat people with respect</h2>
@@ -93,7 +93,7 @@ export const termsBody = `
 <p>Domi is provided "as is" and "as available". To the fullest extent the law allows, we make no warranties of any kind, express or implied, including merchantability, fitness for a particular purpose and non-infringement, and we don't promise Domi will always be available, secure or error-free.</p>
 
 <h2>12. Limitation of liability</h2>
-<p>To the fullest extent the law allows, Domi isn't liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of data, items or goodwill, arising from your use of Domi or any exchange with another person. Domi is free, and if you're unhappy with it, your remedy is to stop using it and delete your account. You agree to cover any claims against Domi that come from your content, the items you give or receive, or your breaking these Terms.</p>
+<p>To the fullest extent the law allows, Domi isn't liable for any indirect, incidental, special, consequential or punitive damages, or for any loss of data, items or goodwill, arising from your use of Domi or any exchange with another person. If you're unhappy with Domi, your remedy is to stop using it and delete your account. You agree to cover any claims against Domi that come from your content, the items you give or receive, or your breaking these Terms.</p>
 
 <h2>13. Apple</h2>
 <p>If you use Domi on an iPhone or iPad:</p>

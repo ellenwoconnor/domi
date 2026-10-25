@@ -32,6 +32,6 @@ describe("appConfig", () => {
     await t.run((ctx) => ctx.db.insert("appConfig", { key: "terms_version", value: "2026-10-21" }));
     await t.mutation(internal.init.default, {});
     const terms = await t.query(api.appConfig.get, { key: "terms_version" });
-    expect(terms?.value).toBe("2026-10-24");
+    expect(terms?.value).toBe("2026-10-25");
   });
 });
