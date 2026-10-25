@@ -41,7 +41,7 @@ export default function Welcome() {
   }, [replay, markIntroSeen]);
 
   const pictureW = width - GUTTER * 2;
-  const pictureH = Math.round(Math.min(340, Math.max(210, height * 0.34)));
+  const pictureH = Math.round(Math.min(300, Math.max(210, height * 0.34)));
   const last = page === PAGES - 1;
 
   function goTo(i: number) {
@@ -83,7 +83,7 @@ export default function Welcome() {
       >
         <Card
           width={width}
-          title="Good things find a new home nearby on Domi."
+          title="Good things find a new home nearby."
           body="Domi circles are sharing groups. We've added you to your neighborhood circle. You can create other circles and invite others into them."
         >
           <CirclesPicture width={pictureW} height={pictureH} />
@@ -129,17 +129,21 @@ export default function Welcome() {
   );
 }
 
-/** Every card is laid out the same way: title, then the explanation, then the picture. */
+/**
+ * Every card is laid out the same way: title, picture, explanation. The title
+ * box is always two lines tall (text sits at its bottom), so the pictures,
+ * which all share one size, line up from card to card.
+ */
 function Card({ width, title, body, children }: { width: number; title: string; body: string; children: ReactNode }) {
   return (
     <ScrollView style={{ width }} contentContainerStyle={styles.card} showsVerticalScrollIndicator={false}>
-      <View style={styles.words}>
+      <View style={styles.titleBox}>
         <Text style={type.display} accessibilityRole="header">
           {title}
         </Text>
-        <Text style={styles.body}>{body}</Text>
       </View>
       {children}
+      <Text style={styles.body}>{body}</Text>
     </ScrollView>
   );
 }
@@ -154,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   card: { paddingHorizontal: GUTTER, paddingTop: space.sm, paddingBottom: space.lg, gap: space.lg },
-  words: { gap: space.sm },
+  titleBox: { minHeight: type.display.lineHeight * 2, justifyContent: "flex-end" },
   body: { ...type.body, color: color.inkSoft },
   footer: { paddingHorizontal: GUTTER, paddingTop: space.sm, paddingBottom: space.md, gap: space.lg },
   dots: { flexDirection: "row", justifyContent: "center", gap: 6 },

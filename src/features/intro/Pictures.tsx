@@ -71,7 +71,7 @@ export function CirclesPicture({ width, height }: Size) {
 
 /** Card 2: a free listing (a wooden high chair) that three neighbors have asked for. */
 export function GivePicture({ width, height }: Size) {
-  const photo = Math.max(84, Math.min(164, height - 150));
+  const photo = Math.max(84, Math.min(140, height - 160));
   return (
     <View
       accessible
