@@ -7,12 +7,13 @@
 // - serves a shared listing's photo (/p/<code>) from Cloudflare's cache, so
 //   page visits and link previews don't each download it from Convex (whose
 //   file bandwidth is the paid kind).
-// - serves the home page (/, in home.js),
+// - serves the home page (/, in home.js) and its link-preview image (/og.png),
 // - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
 //   the app links to (src/features/legal.ts). Their text is in legal.js.
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
 import { homeHtml } from "./home.js";
+import { OG_IMAGE_BASE64 } from "./og-image.js";
 import { privacyBody, termsBody } from "./legal.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
@@ -62,11 +63,19 @@ export default {
     }
 
     if (path === "/") return html(homeHtml);
+    if (path === "/og.png") return ogImage();
     if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
     if (path === "/privacy") return html(legalPage("Privacy Policy", "What Domi collects, who sees it, and how to delete it.", privacyBody));
     return html(missingPage("Page not found", "Nothing lives here."), 404);
   },
 };
+
+export const OG_IMAGE_URL = "https://domicircles.com/og.png";
+
+function ogImage() {
+  const bytes = Uint8Array.from(atob(OG_IMAGE_BASE64), (c) => c.charCodeAt(0));
+  return new Response(bytes, { headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" } });
+}
 
 export async function convexQuery(env, path, args) {
   if (!env.CONVEX_URL) throw new Error("CONVEX_URL is not set");
@@ -202,7 +211,7 @@ function layout({ title, desc, image, body }) {
 <meta property="og:site_name" content="Domi">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-${image ? `<meta property="og:image" content="${esc(image)}"><meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`}
+<meta property="og:image" content="${esc(image ?? OG_IMAGE_URL)}"><meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>

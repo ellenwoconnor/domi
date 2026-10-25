@@ -38,7 +38,11 @@ export const homeHtml = `<!doctype html>
 <meta property="og:site_name" content="Domi">
 <meta property="og:title" content="Domi: good things find a new home nearby">
 <meta property="og:description" content="A free app for exchanging things locally, in circles you choose.">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="https://domicircles.com/">
+<meta property="og:image" content="https://domicircles.com/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Domi: good things find a new home nearby. Free things, from neighbors.">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>

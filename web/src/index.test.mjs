@@ -130,3 +130,12 @@ test("home page has the landing sections and links to terms and privacy", async 
   assert.match(html, /href="\/privacy"/);
   assert.ok(!html.includes("${"), "no unfilled template holes");
 });
+
+test("link-preview image is served, and pages without their own photo use it", async () => {
+  const res = await get("/og.png");
+  assert.equal(res.headers.get("content-type"), "image/png");
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  assert.deepEqual([...bytes.slice(1, 4)].map((b) => String.fromCharCode(b)).join(""), "PNG");
+  assert.match(await (await get("/")).text(), /og:image" content="https:\/\/domicircles.com\/og.png"/);
+  assert.match(await (await get("/terms")).text(), /og:image" content="https:\/\/domicircles.com\/og.png"/);
+});
