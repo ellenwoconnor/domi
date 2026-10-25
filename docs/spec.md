@@ -22,7 +22,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Messaging | A thread opens when a recipient is picked; either side can message. |
 | Profile | View and edit profile, including zip, with a confirmation that lists what will be cancelled in the old zip circle. |
 | Lifecycle | Available → Pending → Gone, or Expired after 30 days, or Removed. |
-| Notifications | Push, fed by `events`. In the app, the My stuff tab shows what needs you (see "My stuff"). At most one circle digest per day. |
+| Notifications | Push, fed by `events`, only when there's something to do. In the app, the My stuff tab shows what needs you (see "My stuff"). At most one circle activity push per day. |
 | Growth | Invite links that land people in the right circle, with a web landing page for people without the app. Listing share links (above). |
 | Safety | Report and block. Block hides each person's items, wishes and messages from the other. Manual review in the Convex dashboard. Cap of 5 open requests per user. `bannedAt` on profiles to suspend. |
 
@@ -168,7 +168,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | wish fulfilled elsewhere / wish removed | another offer picked up, or wish removed | other offerers | "Maya's wish was fulfilled" / "Maya removed the wish" |
 | joined via invite | invite redeemed | inviter | "Sam joined 🍼 Baby Shower" |
 
-Push sending (M5): inserting an event schedules a `sendPush` action that reads `pushTokens`, sends through the Expo push API and sets pushedAt, respecting per-circle mute and the daily digest cap.
+Push sending (M5, details in `docs/m5-requirements.md`): only events with an action push. Inserting one sets `pushDueAt` and schedules `push.flush`, which claims due events, sends through the Expo push API in batches and sets `pushedAt`. Chat messages merge. Circle activity (new listings and wishes) pushes as `circle_activity` events: 5 welcome pushes per circle joined, then back-off; per-circle mute applies only to these.
 
 ## Invite links
 

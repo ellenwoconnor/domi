@@ -51,13 +51,14 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 - Done when: post, browse, offer, the wisher picks, chat, picked up → wish fulfilled, all on Convex; mock wish data deleted. Details: `docs/m4-requirements.md`, "M4b".
 
 ## M5. Events and push
-- `events`, `pushTokens`. The mutations that change state write events per the table in `docs/spec.md`. (Events and `activity.ts` done; `sendPush` not yet.)
-- Writing an event schedules a `sendPush` action (`ctx.scheduler.runAfter(0, ...)`). The in-app "what needs you" view is My stuff (built 2026-10-21, `mystuff.ts`), not an Activity feed.
-- Ask push permission after the first meaningful action, not at launch.
-- Done when: on physical devices, each transition sends the right push to the right person with role-specific copy, and My stuff shows the same thing.
+- `events`, `pushTokens`. The mutations that change state write events per the table in `docs/spec.md`. (Events and `activity.ts` done.)
+- Only events with an action push (9 types, plus a wish match); chat messages merge into one push. Circle activity pushes (welcome: 5 per circle joined; then back-off at 3/7/14/30 days without an open) replace the daily digest, which moved here from M6 on 2026-10-25.
+- Ask permission right after the "How Domi works" cards (naming the circle), after joining a circle, and at high-intent moments; our own screen before the system dialog.
+- Full requirements and decisions (2026-10-25): `docs/m5-requirements.md`.
+- Done when: on physical devices, each push type reaches the right person with role-specific copy and opens the right screen; merged chat pushes; circle activity pushes follow the welcome and back-off rules, never at night.
 
 ## M6. Expiry, caps, and launch readiness
-- Convex cron jobs (`convex/crons.ts`) for listing expiry and daily digest; open-request cap per user, per-circle mute. (Expiry, photo purge, cap and mute done; digest not yet.)
+- Convex cron jobs (`convex/crons.ts`) for listing expiry; open-request cap per user, per-circle mute. (Done. The digest became M5's circle activity pushes.)
 - Privacy policy, terms, store forms. TestFlight and Google Play closed test (12 testers, 14 days).
 - Status 2026-10-24: Terms of Service and Privacy Policy written (adapted from the Corcles terms; text in `web/src/legal.js`) and served at domicircles.com/terms and /privacy; the app links to them from sign-in, onboarding and You. `terms_version` is 2026-10-24. Still to do: set up support@domicircles.com (Cloudflare Email Routing → Gmail), and a "the terms changed, please accept" prompt for existing users before the terms next change.
 - Done when: the app passes an internal test with real users from the first circle.
