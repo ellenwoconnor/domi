@@ -5,6 +5,7 @@ A Cloudflare Worker (free plan) that serves:
 - `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json`, which iPhones and Android phones check before opening `https://domicircles.com/c/…` and `/i/…` links in the app.
 - `/c/<code>`: the invite page (circle, inviter, code to copy) for people without the app.
 - `/i/<code>`: the read-only page for a listing shared outside Domi.
+- `/p/<code>`: that listing's photo (used by the page and its link preview), served from Cloudflare's cache so repeat views don't download it from Convex. Each request still checks the listing is available.
 
 It reads from the public Convex queries `invites:preview` and `shares:preview`.
 
