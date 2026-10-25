@@ -12,6 +12,7 @@ import {
   requireProfile,
 } from "./lib/access";
 import { itemCard } from "./lib/cards";
+import { noteCircleActivity } from "./lib/circleActivity";
 import { writeEvent } from "./lib/events";
 import { closeWish, openSelection } from "./lib/lifecycle";
 import { checkPhotos, itemText } from "./lib/photos";
@@ -72,6 +73,7 @@ export const create = mutation({
       status: "open",
     });
     for (const communityId of circles) await ctx.db.insert("wishlistCommunities", { wishlistItemId: wishId, communityId });
+    await noteCircleActivity(ctx, circles, userId);
     return wishId;
   },
 });

@@ -13,6 +13,7 @@ import {
   requireVisibleItem,
 } from "./lib/access";
 import { itemCard } from "./lib/cards";
+import { noteCircleActivity, notifyWishMatches } from "./lib/circleActivity";
 import { writeEvent } from "./lib/events";
 import { endSelection, markGone, openRequests, openSelection, removeItem, selectedRequest } from "./lib/lifecycle";
 import { checkPhotos, deleteFiles, itemFiles, itemText } from "./lib/photos";
@@ -64,6 +65,8 @@ export const create = mutation({
       searchText: `${text.title} ${text.description}`,
     });
     for (const communityId of circles) await ctx.db.insert("itemCommunities", { itemId, communityId });
+    await noteCircleActivity(ctx, circles, userId);
+    await notifyWishMatches(ctx, (await ctx.db.get(itemId))!, circles);
     return itemId;
   },
 });

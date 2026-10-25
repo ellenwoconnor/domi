@@ -1,8 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireProfile } from "./lib/access";
+import { fail, requireProfile } from "./lib/access";
 
-// The Activity tab and push tokens. Both read from `events` (see lib/events.ts).
+// Events (read state, taps), push tokens, app opens. Both read from `events` (see lib/events.ts).
 
 export const list = query({
   args: { limit: v.optional(v.number()) },
@@ -59,10 +59,69 @@ export const markRead = mutation({
   },
 });
 
-export const registerPushToken = mutation({
-  args: { token: v.string(), platform: v.union(v.literal("ios"), v.literal("android")) },
+const clock = {
+  timeZone: v.optional(v.string()),
+  utcOffsetMinutes: v.optional(v.number()),
+};
+
+function clockPatch(args: { timeZone?: string; utcOffsetMinutes?: number }) {
+  const patch: { timeZone?: string; utcOffsetMinutes?: number } = {};
+  if (args.timeZone && args.timeZone.length <= 64) patch.timeZone = args.timeZone;
+  if (args.utcOffsetMinutes !== undefined && Math.abs(args.utcOffsetMinutes) <= 14 * 60) {
+    patch.utcOffsetMinutes = Math.round(args.utcOffsetMinutes);
+  }
+  return patch;
+}
+
+/** The app came to the foreground (at most every few minutes). Resets back-off. */
+export const touch = mutation({
+  args: clock,
   handler: async (ctx, args) => {
+    const { profile } = await requireProfile(ctx);
+    await ctx.db.patch(profile._id, { lastOpenedAt: Date.now(), backoffSent: 0, ...clockPatch(args) });
+  },
+});
+
+/** The person tapped a push. Logged for open rates; also marks it read. */
+export const markOpened = mutation({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, { eventId }) => {
     const { userId } = await requireProfile(ctx);
+    const e = await ctx.db.get(eventId);
+    if (!e || e.recipientId !== userId) return; // not theirs: say nothing
+    const now = Date.now();
+    await ctx.db.patch(e._id, { openedAt: e.openedAt ?? now, readAt: e.readAt ?? now });
+  },
+});
+
+/** "Not now" on our own notifications screen (the system dialog is never shown then). */
+export const declinePushAsk = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { profile } = await requireProfile(ctx);
+    await ctx.db.patch(profile._id, { pushAskCount: (profile.pushAskCount ?? 0) + 1, pushAskedAt: Date.now() });
+  },
+});
+
+/** Sign-out: this device stops getting this person's pushes. */
+export const unregisterPushToken = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const { userId } = await requireProfile(ctx);
+    const rows = await ctx.db
+      .query("pushTokens")
+      .withIndex("by_token", (q) => q.eq("token", token))
+      .collect();
+    for (const t of rows) if (t.userId === userId) await ctx.db.delete(t._id);
+  },
+});
+
+export const registerPushToken = mutation({
+  args: { token: v.string(), platform: v.union(v.literal("ios"), v.literal("android")), ...clock },
+  handler: async (ctx, args) => {
+    const { userId, profile } = await requireProfile(ctx);
+    if (args.token.length > 200) fail("That isn't a push token");
+    await ctx.db.patch(profile._id, { pushAskedAt: Date.now(), ...clockPatch(args) });
     const existing = await ctx.db
       .query("pushTokens")
       .withIndex("by_token", (q) => q.eq("token", args.token))

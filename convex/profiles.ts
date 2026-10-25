@@ -29,6 +29,8 @@ export const me = query({
         termsVersion: profile.termsVersion,
         banned: profile.bannedAt !== undefined,
         introSeen: profile.introSeenAt !== undefined,
+        pushAskCount: profile.pushAskCount ?? 0,
+        pushAskedAt: profile.pushAskedAt ?? null,
       },
     };
   },

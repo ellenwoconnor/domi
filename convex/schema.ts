@@ -47,6 +47,13 @@ export const eventType = v.union(
   v.literal("offer_unpicked"),
   v.literal("wish_closed"),
   v.literal("joined_via_invite"),
+  v.literal("wish_match"), // a new listing matches your open wish (M5)
+  v.literal("circle_activity"), // new listings/wishes in your circles (M5, replaces the digest)
+);
+export const pushResult = v.union(
+  v.literal("sent"),
+  v.literal("skipped"), // e.g. merged chat messages already read
+  v.literal("no_device"),
 );
 
 export default defineSchema({
@@ -70,7 +77,18 @@ export default defineSchema({
     termsAcceptedAt: v.number(),
     bannedAt: v.optional(v.number()),
     introSeenAt: v.optional(v.number()), // when the "How Domi works" cards were first shown
-  }).index("by_userId", ["userId"]),
+    // Push (M5). See docs/m5-requirements.md.
+    lastOpenedAt: v.optional(v.number()), // app came to the foreground; "seen" and back-off
+    timeZone: v.optional(v.string()), // IANA name from the phone
+    utcOffsetMinutes: v.optional(v.number()), // fallback if the runtime can't resolve timeZone
+    activityDueAt: v.optional(v.number()), // when to look at circle activity for this person
+    lastActivityPushAt: v.optional(v.number()),
+    backoffSent: v.optional(v.number()), // back-off pushes since the last open
+    pushAskCount: v.optional(v.number()), // our own "turn on notifications?" screen, "Not now" taps
+    pushAskedAt: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_activityDueAt", ["activityDueAt"]),
 
   zipCodes: defineTable({
     zip: v.string(),
@@ -98,6 +116,7 @@ export default defineSchema({
     inviteId: v.optional(v.id("invites")),
     muted: v.boolean(),
     joinedAt: v.number(),
+    welcomePushesSent: v.optional(v.number()), // circle activity pushes in the welcome phase (5 max)
   })
     .index("by_community_user", ["communityId", "userId"])
     .index("by_user", ["userId"])
@@ -227,10 +246,20 @@ export default defineSchema({
     title: v.string(),
     body: v.string(),
     readAt: v.optional(v.number()),
-    pushedAt: v.optional(v.number()),
+    pushDueAt: v.optional(v.number()), // set while a push is waiting to go out
+    pushedAt: v.optional(v.number()), // when the push was handled (see pushResult)
+    pushResult: v.optional(pushResult),
+    openedAt: v.optional(v.number()), // the person tapped the push
   })
     .index("by_recipient", ["recipientId"])
-    .index("by_actor", ["actorId"]),
+    .index("by_actor", ["actorId"])
+    .index("by_pushDueAt", ["pushDueAt"])
+    .index("by_recipient_conversation", ["recipientId", "conversationId"]),
+
+  // One row: when the next push.flush is scheduled, so a burst of events schedules one flush.
+  pushState: defineTable({
+    flushAt: v.optional(v.number()),
+  }),
 
   pushTokens: defineTable({
     userId: v.id("users"),
