@@ -53,7 +53,7 @@
     "build:dev:ios": "npx eas-cli@latest build --profile development --platform ios",
     "setup:auth": "node scripts/setup-auth-keys.mjs",
     "test:web": "node --test web/src/index.test.mjs",
-    "update:preview": "npx eas-cli@latest update --channel preview --environment preview",
+    "update:preview": "npx eas-cli@latest update --channel preview --environment preview --platform ios",
     "build:preview:ios": "npx eas-cli@latest build --profile preview --platform ios"
   },
   "private": true
