@@ -60,11 +60,12 @@ h2{font-size:clamp(32px,3.6vw,44px);line-height:1.1}
 
 /* header */
 header.wrap{padding-top:24px;padding-bottom:24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
-.logo{display:flex;align-items:flex-end;font-weight:800;font-size:28px;line-height:1;color:var(--bay);text-decoration:none;letter-spacing:-.5px}
-.ring{display:inline-flex;align-items:center;justify-content:center;border:3.5px solid var(--bay);border-radius:50%;width:17px;height:17px;margin:0 1px 1px}
-.ring span{width:5px;height:5px;border-radius:50%;background:var(--poppy)}
-.ring-sm{display:inline-flex;align-items:center;justify-content:center;border:2.5px solid var(--bay);border-radius:50%;width:12px;height:12px;margin:0 1px 1px}
-.ring-sm span{width:4px;height:4px;border-radius:50%;background:var(--poppy)}
+.logo{display:inline-block;font-weight:800;font-size:28px;line-height:1;color:var(--bay);text-decoration:none;letter-spacing:-.5px;white-space:nowrap}
+/* The "o" mark, sized to Figtree ExtraBold's own o: 0.54em tall, sitting just below the baseline like a round letter. */
+.ring{display:inline-block;position:relative;vertical-align:-.02em;width:.54em;height:.54em;border:.115em solid currentColor;border-radius:50%;margin:0 .02em}
+.ring span{position:absolute;inset:0;margin:auto;width:.15em;height:.15em;border-radius:50%;background:var(--poppy)}
+.chip-ring{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:2.5px solid #fff;border-radius:50%}
+.chip-ring span{width:4px;height:4px;border-radius:50%;background:var(--poppy)}
 nav.main{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;font-weight:500;font-size:15px}
 nav.main a:not(.button){color:var(--ink);text-decoration:none}
 nav.main .button{padding:11px 18px}
@@ -131,7 +132,6 @@ svg{fill:none;stroke:var(--bay);stroke-width:1.8;stroke-linecap:round;stroke-lin
 .chips{list-style:none;padding:4px 0 0;display:flex;flex-wrap:wrap;gap:10px}
 .chips li{background:var(--fog);border-radius:999px;padding:9px 16px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
 .chips li.on{background:var(--bay);color:#fff}
-.chips .ring-sm{border-color:#fff;width:13px;height:13px;margin:0}
 .invite-col{flex:1 1 380px;min-width:0;display:flex;justify-content:center}
 .invite{width:100%;max-width:440px;background:var(--blush);border-radius:24px;padding:32px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
 .faces{display:flex}
@@ -155,7 +155,7 @@ svg{fill:none;stroke:var(--bay);stroke-width:1.8;stroke-linecap:round;stroke-lin
 /* footer */
 footer.wrap{padding-top:32px;padding-bottom:48px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;font-size:14px;color:var(--soft)}
 .foot-left{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
-.foot-logo{display:flex;align-items:flex-end;font-weight:800;font-size:20px;line-height:1;color:var(--bay)}
+.foot-logo{font-weight:800;font-size:20px;line-height:1;color:var(--bay);white-space:nowrap}
 footer nav{display:flex;flex-wrap:wrap;gap:8px 24px}
 footer nav a{color:var(--soft)}
 </style></head>
@@ -225,7 +225,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 <h2 id="circles-title">Your neighborhood, and the people you choose.</h2>
 <p class="lead">Your village isn't just the people who live next door. Organize as many local sharing circles as you want and invite friends in easily with a link.</p>
 <ul class="chips" aria-label="Example circles">
-<li class="on">${ring("ring-sm")}Kensington</li>
+<li class="on">${ring("chip-ring")}Kensington</li>
 <li>Maya's baby shower</li>
 <li>Cedar St. building</li>
 <li>Thursday soccer parents</li>
@@ -253,7 +253,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 </main>
 
 <footer class="wrap">
-<div class="foot-left"><span class="foot-logo">${wordmark("ring-sm")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
+<div class="foot-left"><span class="foot-logo">${wordmark("ring")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
 <nav aria-label="Footer"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@domicircles.com">support@domicircles.com</a></nav>
 </footer>
 </body></html>`;

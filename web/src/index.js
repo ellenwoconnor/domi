@@ -209,9 +209,9 @@ ${image ? `<meta property="og:image" content="${esc(image)}"><meta name="twitter
 :root{--bay:#1F4E79;--poppy:#F2652B;--blush:#FDE8DE;--fog:#EAF0F4;--ink:#18222E;--soft:#4C5866;--faint:#86919E}
 *{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
 main{max-width:440px;margin:0 auto;padding:24px 20px 48px;display:flex;flex-direction:column;gap:20px}
-.logo{font-weight:800;font-size:24px;color:var(--bay);text-decoration:none;display:flex;align-items:flex-end}
-.logo i{display:inline-flex;width:14px;height:14px;border:3px solid var(--bay);border-radius:50%;margin:0 1px 4px;align-items:center;justify-content:center}
-.logo i:after{content:"";width:4px;height:4px;border-radius:50%;background:var(--poppy)}
+.logo{align-self:flex-start;font-weight:800;font-size:24px;line-height:1;color:var(--bay);text-decoration:none;white-space:nowrap}
+.logo i{display:inline-block;position:relative;vertical-align:-.02em;width:.54em;height:.54em;border:.115em solid currentColor;border-radius:50%;margin:0 .02em}
+.logo i:after{content:"";position:absolute;inset:0;margin:auto;width:.15em;height:.15em;border-radius:50%;background:var(--poppy)}
 h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;line-height:40px;margin:0}
 .caption{font-family:Fraunces,serif;font-style:italic;color:var(--soft);margin:0}
 .intro{font-size:17px;margin:0}.intro b{font-weight:600}
