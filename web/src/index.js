@@ -7,7 +7,11 @@
 // - serves a shared listing's photo (/p/<code>) from Cloudflare's cache, so
 //   page visits and link previews don't each download it from Convex (whose
 //   file bandwidth is the paid kind).
+// - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
+//   the app links to (src/features/legal.ts). Their text is in legal.js.
 // Data comes from the public Convex queries invites:preview and shares:preview.
+
+import { privacyBody, termsBody } from "./legal.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
@@ -56,6 +60,8 @@ export default {
     }
 
     if (path === "/") return html(homePage());
+    if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
+    if (path === "/privacy") return html(legalPage("Privacy Policy", "What Domi collects, who sees it, and how to delete it.", privacyBody));
     return html(missingPage("Page not found", "Nothing lives here."), 404);
   },
 };
@@ -180,6 +186,10 @@ function missingPage(heading, text) {
   return layout({ title: heading, desc: text, body: `<div class="card"><h1>${esc(heading)}</h1><p class="caption">${esc(text)}</p></div>` });
 }
 
+function legalPage(title, desc, body) {
+  return layout({ title, desc, body: `<article class="legal">${body}</article>` });
+}
+
 function homePage() {
   return layout({
     title: "Domi: good things, close to home",
@@ -219,7 +229,11 @@ h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;l
 .code-box{background:var(--fog);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .code-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .code{font-weight:800;font-size:26px;letter-spacing:2px;color:var(--bay)}
+.legal{display:flex;flex-direction:column;gap:12px}.legal h1{font-size:30px;line-height:36px}
+.legal h2{font-size:18px;font-weight:600;margin:16px 0 0}.legal p,.legal ul{margin:0}.legal ul{padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.legal a,footer a{color:var(--bay)}
+footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content:center;padding-top:8px}
 .copy{border:0;background:#fff;color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>
-<body><main><a class="logo" href="/">d<i></i>mi</a>${body}</main></body></html>`;
+<body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }

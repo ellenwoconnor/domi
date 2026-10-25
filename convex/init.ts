@@ -19,16 +19,22 @@ export default internalMutation({
   handler: async (ctx) => {
     const defaults: Record<string, string> = {
       welcome_message: "Hello from Convex 👋",
-      // Bump when the terms change; signup requires the app to send this exact value.
-      terms_version: "2026-10-21",
     };
-    for (const [key, value] of Object.entries(defaults)) {
+    // Owned by the code: set on every run, so bumping it here updates the deployment.
+    const pinned: Record<string, string> = {
+      // The effective date of the terms in web/src/legal.js. Bump when the terms
+      // change; signup requires the app to send this exact value.
+      terms_version: "2026-10-24",
+    };
+    for (const [key, value] of Object.entries({ ...defaults, ...pinned })) {
       const existing = await ctx.db
         .query("appConfig")
         .withIndex("by_key", (q) => q.eq("key", key))
         .unique();
       if (!existing) {
         await ctx.db.insert("appConfig", { key, value });
+      } else if (key in pinned && existing.value !== value) {
+        await ctx.db.patch(existing._id, { value });
       }
     }
     for (const z of DEV_ZIPS) {

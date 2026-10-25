@@ -14,7 +14,7 @@ Last updated 2026-10-21. Prices checked that day; recheck before relying on them
 | **Cloudflare** | DNS for domicircles.com; the website Worker (`web/`): app-link files, invite and listing pages | Free | $0 |
 | **Squarespace Domains** | Registrar for domicircles.com (DNS is on Cloudflare) | — | ~$20/year renewal (first year was ~$10; check the renewal notice) |
 | **GitHub** | Source code (`ellenwoconnor/domi`) | Free | $0 |
-| **GeoNames** | US zip code reference data (`scripts/import-zips.mjs`) | Free, CC BY 4.0 | $0, **must credit "GeoNames" in the app's legal/about screen** |
+| **GeoNames** | US zip code reference data (`scripts/import-zips.mjs`) | Free, CC BY 4.0 | $0; credited on You (`app/you.tsx`) and in the privacy policy |
 | **Google Fonts** | Fraunces and Figtree (bundled in the app; the website loads them from Google) | Free | $0 |
 
 ## IDs that are safe to expose
@@ -35,7 +35,8 @@ These are public identifiers. They ship inside the app or the website, or they'r
 | Convex prod deployment | not created yet | — |
 | Cloudflare account ID | `b0f8e0d4a12ccb67e937209833ae618d` | wrangler (not secret, but no need to publish) |
 | Cloudflare Worker | `domicircles` on `domicircles.com` | `web/wrangler.toml` |
-| Domain | `domicircles.com` | app links, website |
+| Domain | `domicircles.com` | app links, website, terms and privacy pages |
+| Support email | `support@domicircles.com` (listed in the terms and privacy policy; set up forwarding with Cloudflare Email Routing, free) | — |
 | App URL scheme | `domi://` | `app.json` |
 
 ## Secrets (never in git or app code)

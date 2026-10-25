@@ -106,12 +106,15 @@ export default function You() {
 
         <View style={styles.settings}>
           <SettingsRow label="Blocked people" onPress={() => router.push("/blocked")} />
-          <SettingsRow label="Terms and privacy" onPress={() => openLegal("terms")} />
+          <SettingsRow label="Terms of Service" onPress={() => openLegal("terms")} />
+          <SettingsRow label="Privacy Policy" onPress={() => openLegal("privacy")} />
           <SettingsRow label="Sign out" onPress={doSignOut} />
           <SettingsRow label={deleting ? "Deleting…" : "Delete account"} onPress={confirmDelete} last />
         </View>
         <ErrorNote message={error} />
         <Text style={styles.version}>Domi {Constants.expoConfig?.version ?? ""}</Text>
+        {/* Required by the GeoNames CC BY 4.0 license (docs/vendors.md). */}
+        <Text style={styles.version}>Zip code data from GeoNames (CC BY 4.0)</Text>
       </ScrollView>
     </SafeAreaView>
   );

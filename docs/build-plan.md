@@ -59,6 +59,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 ## M6. Expiry, caps, and launch readiness
 - Convex cron jobs (`convex/crons.ts`) for listing expiry and daily digest; open-request cap per user, per-circle mute. (Expiry, photo purge, cap and mute done; digest not yet.)
 - Privacy policy, terms, store forms. TestFlight and Google Play closed test (12 testers, 14 days).
+- Status 2026-10-24: Terms of Service and Privacy Policy written (adapted from the Corcles terms; text in `web/src/legal.js`) and served at domicircles.com/terms and /privacy; the app links to them from sign-in, onboarding and You. `terms_version` is 2026-10-24. Still to do: set up support@domicircles.com (Cloudflare Email Routing → Gmail), and a "the terms changed, please accept" prompt for existing users before the terms next change.
 - Done when: the app passes an internal test with real users from the first circle.
 
 ## Cost controls (noted 2026-10-24)

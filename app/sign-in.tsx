@@ -6,6 +6,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DevSignIn, devSignInEnabled } from "../src/features/auth/DevSignIn";
 import { appleSignInParams, googleSignInParams } from "../src/features/auth/nativeSignIn";
+import { openLegal } from "../src/features/legal";
 import { Logo } from "../src/ui/Logo";
 import { color, radius, space, type } from "../src/ui/theme";
 
@@ -65,7 +66,17 @@ export default function SignIn() {
               style={styles.google}
             />
             {error ? <Text style={[type.meta, styles.error]}>{error}</Text> : null}
-            <Text style={[type.meta, styles.legal]}>By continuing, you agree to Domi's Terms and Privacy Policy.</Text>
+            <Text style={[type.meta, styles.legal]}>
+              By continuing, you agree to Domi's{" "}
+              <Text style={styles.legalLink} onPress={() => openLegal("terms")}>
+                Terms
+              </Text>{" "}
+              and{" "}
+              <Text style={styles.legalLink} onPress={() => openLegal("privacy")}>
+                Privacy Policy
+              </Text>
+              .
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -83,4 +94,5 @@ const styles = StyleSheet.create({
   google: { height: 52, width: "100%" },
   error: { color: color.ink, backgroundColor: color.fog, padding: space.md, borderRadius: radius.control },
   legal: { textAlign: "center", color: color.inkFaint },
+  legalLink: { color: color.bay, textDecorationLine: "underline" },
 });

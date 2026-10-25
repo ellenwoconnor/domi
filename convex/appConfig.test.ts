@@ -26,4 +26,12 @@ describe("appConfig", () => {
     const t = convexTest(schema, modules);
     expect(await t.query(api.appConfig.get, { key: "nope" })).toBeNull();
   });
+
+  test("init moves an existing deployment to the current terms version", async () => {
+    const t = convexTest(schema, modules);
+    await t.run((ctx) => ctx.db.insert("appConfig", { key: "terms_version", value: "2026-10-21" }));
+    await t.mutation(internal.init.default, {});
+    const terms = await t.query(api.appConfig.get, { key: "terms_version" });
+    expect(terms?.value).toBe("2026-10-24");
+  });
 });

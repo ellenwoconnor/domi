@@ -103,3 +103,17 @@ test("listing photo is fetched from Convex once, then served from the cache", as
   assert.equal((await get("/p/CCCCDDDD")).status, 404); // taken down: no photo
   delete globalThis.caches;
 });
+
+test("terms and privacy pages are served, and every page links to them", async () => {
+  const terms = await get("/terms");
+  assert.equal(terms.status, 200);
+  const t = await terms.text();
+  assert.match(t, /<title>Terms of Service · Domi<\/title>/);
+  assert.match(t, /zero tolerance for objectionable content and abusive users/);
+  assert.match(t, /support@domicircles\.com/);
+  assert.ok(!/corcles/i.test(t));
+  const privacy = await (await get("/privacy")).text();
+  assert.match(privacy, /Delete account/);
+  assert.match(privacy, /GeoNames/);
+  assert.match(await (await get("/")).text(), /href="\/terms"[\s\S]*href="\/privacy"/);
+});

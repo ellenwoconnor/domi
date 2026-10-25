@@ -32,7 +32,7 @@ Paid listings, bidding, price cuts, payments, escrow, karma/points, calendar sch
 
 ## Navigation and My stuff
 
-Tabs: **Browse · Give · My stuff**. Each tab has the same header: the Domi wordmark, your initial top right, then a title and a subtitle. Your initial opens **You**: name and zip (Edit → Edit profile), Your circles (Start a circle, Join with a code), Terms and privacy, Sign out, Delete account. Browse (Offers / Wishes) and My stuff (Giving / Getting) use the same underlined text tabs.
+Tabs: **Browse · Give · My stuff**. Each tab has the same header: the Domi wordmark, your initial top right, then a title and a subtitle. Your initial opens **You**: name and zip (Edit → Edit profile), Your circles (Start a circle, Join with a code), Blocked people, Terms of Service, Privacy Policy, Sign out, Delete account, and the GeoNames credit. Browse (Offers / Wishes) and My stuff (Giving / Getting) use the same underlined text tabs.
 
 My stuff has two sides, **Giving** and **Getting**. Each thing is one row: photo, title, and one plain status line. A row that needs you has a Bay status line and a small dot, and sorts first; the side and the tab show a dot (never a count or red badge) when anything needs you. It opens on the side that needs you. Endings (picked up, went to someone else) stay for 3 days at the bottom, then drop off. Served by `mystuff.giving`, `mystuff.getting`, `mystuff.needsYou`.
 
@@ -193,7 +193,7 @@ Push sending (M5): inserting an event schedules a `sendPush` action that reads `
 - Requests carry an optional note of up to 140 characters; messaging starts only after selection.
 - Zip code is editable, with a confirmation of what will be cancelled.
 - Any member of a custom circle can invite others.
-- Terms of service must be accepted at signup.
+- Terms of service must be accepted at signup. Terms and privacy policy live at domicircles.com/terms and /privacy (`web/src/legal.js`); `terms_version` in `convex/init.ts` is their effective date.
 - Circles have an optional description.
 - Private wishes are out of scope; only private offers exist.
 - Profile photo field exists; upload is deferred.

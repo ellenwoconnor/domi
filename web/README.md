@@ -7,6 +7,8 @@ A Cloudflare Worker (free plan) that serves:
 - `/i/<code>`: the read-only page for a listing shared outside Domi.
 - `/p/<code>`: that listing's photo (used by the page and its link preview), served from Cloudflare's cache so repeat views don't download it from Convex. Each request still checks the listing is available.
 
+- `/terms` and `/privacy`: the Terms of Service and Privacy Policy the app links to (text in `src/legal.js`).
+
 It reads from the public Convex queries `invites:preview` and `shares:preview`.
 
 ## One-time setup
