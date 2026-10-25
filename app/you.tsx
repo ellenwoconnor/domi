@@ -105,6 +105,10 @@ export default function You() {
         </View>
 
         <View style={styles.settings}>
+          <SettingsRow
+            label="How Domi works"
+            onPress={() => router.push({ pathname: "/welcome", params: { replay: "1" } })}
+          />
           <SettingsRow label="Blocked people" onPress={() => router.push("/blocked")} />
           <SettingsRow label="Terms of Service" onPress={() => openLegal("terms")} />
           <SettingsRow label="Privacy Policy" onPress={() => openLegal("privacy")} />

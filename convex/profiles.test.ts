@@ -150,3 +150,26 @@ describe("account deletion", () => {
     expect(leftovers.messages).toHaveLength(0);
   });
 });
+
+describe("intro cards", () => {
+  test("a new profile hasn't seen them; marking is kept and repeatable", async () => {
+    const t = await setup();
+    const maya = await newUser(t, "Maya");
+    expect((await maya.as.query(api.profiles.me, {}))?.profile?.introSeen).toBe(false);
+    await maya.as.mutation(api.profiles.markIntroSeen, {});
+    const first = await t.run(async (ctx) => (await ctx.db.query("profiles").first())?.introSeenAt);
+    expect(first).toBeTypeOf("number");
+    await maya.as.mutation(api.profiles.markIntroSeen, {});
+    const again = await t.run(async (ctx) => (await ctx.db.query("profiles").first())?.introSeenAt);
+    expect(again).toBe(first);
+    expect((await maya.as.query(api.profiles.me, {}))?.profile?.introSeen).toBe(true);
+  });
+
+  test("only for signed-up people", async () => {
+    const t = await setup();
+    await expect(t.mutation(api.profiles.markIntroSeen, {})).rejects.toThrow("Not signed in");
+    const userId = await t.run((ctx) => ctx.db.insert("users", {}));
+    const as = t.withIdentity({ subject: `${userId}|s` });
+    await expect(as.mutation(api.profiles.markIntroSeen, {})).rejects.toThrow("Finish signing up");
+  });
+});

@@ -69,6 +69,7 @@ export default defineSchema({
     termsVersion: v.string(),
     termsAcceptedAt: v.number(),
     bannedAt: v.optional(v.number()),
+    introSeenAt: v.optional(v.number()), // when the "How Domi works" cards were first shown
   }).index("by_userId", ["userId"]),
 
   zipCodes: defineTable({

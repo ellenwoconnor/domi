@@ -28,6 +28,7 @@ export const me = query({
         approxLng: profile.approxLng,
         termsVersion: profile.termsVersion,
         banned: profile.bannedAt !== undefined,
+        introSeen: profile.introSeenAt !== undefined,
       },
     };
   },
@@ -123,6 +124,15 @@ export const redeemSavedCodes = mutation({
       shares.push({ code, result: await redeemShareCode(ctx, userId, code) });
     }
     return { invites, shares };
+  },
+});
+
+/** The "How Domi works" cards were shown. Keeps the first time; safe to call again. */
+export const markIntroSeen = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { profile } = await requireProfile(ctx);
+    if (profile.introSeenAt === undefined) await ctx.db.patch(profile._id, { introSeenAt: Date.now() });
   },
 });
 

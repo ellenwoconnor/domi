@@ -75,6 +75,7 @@ function AppStack() {
         <Stack.Screen name="circle/[id]" />
         <Stack.Screen name="circle/form" options={{ presentation: "modal" }} />
         <Stack.Screen name="join" options={{ presentation: "modal" }} />
+        <Stack.Screen name="welcome" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={state === "needsSignup"}>
         <Stack.Screen name="onboarding" />

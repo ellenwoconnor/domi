@@ -1,7 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { Tabs } from "expo-router/js-tabs";
+import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { api } from "../../convex/_generated/api";
 import { color, font } from "../../src/ui/theme";
@@ -9,6 +11,17 @@ import { color, font } from "../../src/ui/theme";
 export default function TabsLayout() {
   const needs = useQuery(convexQuery(api.mystuff.needsYou, {}));
   const needsYou = (needs.data?.total ?? 0) > 0;
+
+  // First time in the app: open the "How Domi works" cards once.
+  const me = useQuery(convexQuery(api.profiles.me, {}));
+  const showIntro = me.data?.profile?.introSeen === false;
+  const introOpened = useRef(false);
+  useEffect(() => {
+    if (showIntro && !introOpened.current) {
+      introOpened.current = true;
+      router.push("/welcome");
+    }
+  }, [showIntro]);
 
   return (
     <Tabs
