@@ -98,6 +98,16 @@ As usage grows (not urgent):
 
 Already fine: search is debounced, open requests are capped at 5, `browse` returns at most 100, and all text fields have length limits.
 
+## To do (added 2026-10-25)
+
+Not yet scheduled into a milestone.
+
+- [ ] Add the location picker.
+- [ ] Add a way for users to give feedback.
+- [ ] Add instrumentation. Pick the approach first; ask before adding a new vendor or library.
+- [ ] Move circles to a tab (today they live under You). This changes the tab bar, so it gets a design check first.
+- [ ] Invite QR code, for inviting in person without a contact or phone number. The circle page gets two buttons: **Show QR code** (full-screen card with the circle name, "Point your phone's camera here", the QR, and the typed code as a backup) and **Send invite link** (today's share sheet). The QR opens the same `/c/<code>` link. Plan: the Worker serves `/c/<code>/qr.svg` from a small pure-JS QR library (ask before adding it) and the app shows that image, so no native library and it ships with `npm run update:preview`; the computer version of the invite page uses the same image.
+
 ## Possible follow-ups: invites and installs (noted 2026-10-24)
 
 Not scheduled. Ideas from reviewing the invite flow end to end; pick up when they become useful or possible. Already done: returning users who sign in from a link get their saved codes redeemed (`profiles.redeemSavedCodes`), and the invite and listing pages say what Domi is.
