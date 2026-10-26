@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { mutation, query, type QueryCtx } from "./_generated/server";
 import {
   blockedUserIds,
   displayName,
@@ -12,32 +13,99 @@ import {
 import { addMembership, deleteCircleRows, leaveCommunity, previewLeave } from "./lib/circles";
 import { cleanEmoji, cleanOptionalText, cleanText, LIMITS } from "./lib/validate";
 
+/** My circles: zip circle first, then custom circles by name. */
+async function myCircles(ctx: QueryCtx, userId: Id<"users">) {
+  const memberships = await ctx.db
+    .query("memberships")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const out = [];
+  for (const m of memberships) {
+    const c = await ctx.db.get(m.communityId);
+    if (!c) continue;
+    out.push({
+      id: c._id,
+      name: c.name,
+      emoji: c.emoji,
+      description: c.description ?? null,
+      kind: c.kind,
+      memberCount: c.memberCount,
+      role: m.role,
+      muted: m.muted,
+    });
+  }
+  return out.sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === "zip" ? -1 : 1));
+}
+
 /** Circles I'm in. */
 export const mine = query({
   args: {},
   handler: async (ctx) => {
     const { userId } = await requireProfile(ctx);
-    const memberships = await ctx.db
-      .query("memberships")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-    const out = [];
-    for (const m of memberships) {
-      const c = await ctx.db.get(m.communityId);
-      if (!c) continue;
-      out.push({
-        id: c._id,
-        name: c.name,
-        emoji: c.emoji,
-        description: c.description ?? null,
-        kind: c.kind,
-        memberCount: c.memberCount,
-        role: m.role,
-        muted: m.muted,
-      });
-    }
-    // Zip circle first, then custom circles by name.
-    return out.sort((a, b) => (a.kind === b.kind ? a.name.localeCompare(b.name) : a.kind === "zip" ? -1 : 1));
+    return await myCircles(ctx, userId);
+  },
+});
+
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+// Enough to say "12 offers this week"; past this the count reads as "50+".
+const NEWS_CAP = 50;
+
+/**
+ * The Circles tab: my circles, each with what's new in it this week (other
+ * people's offers still up for grabs and open wishes, posted in the last 7
+ * days; blocked people left out), plus a few neighbors' names for the home circle.
+ */
+export const overview = query({
+  args: {},
+  handler: async (ctx) => {
+    const { userId } = await requireProfile(ctx);
+    const blocked = await blockedUserIds(ctx, userId);
+    const since = Date.now() - WEEK;
+    const circles = await myCircles(ctx, userId);
+    return await Promise.all(
+      circles.map(async (c) => {
+        let newOffers = 0;
+        const itemLinks = await ctx.db
+          .query("itemCommunities")
+          .withIndex("by_community", (q) => q.eq("communityId", c.id).gt("_creationTime", since))
+          .order("desc")
+          .take(NEWS_CAP * 2);
+        for (const link of itemLinks) {
+          const item = await ctx.db.get(link.itemId);
+          if (item && item.status === "available" && item.ownerId !== userId && !blocked.has(item.ownerId)) newOffers++;
+        }
+        let newWishes = 0;
+        const wishLinks = await ctx.db
+          .query("wishlistCommunities")
+          .withIndex("by_community", (q) => q.eq("communityId", c.id).gt("_creationTime", since))
+          .order("desc")
+          .take(NEWS_CAP * 2);
+        for (const link of wishLinks) {
+          const wish = await ctx.db.get(link.wishlistItemId);
+          if (wish && wish.status === "open" && wish.userId !== userId && !blocked.has(wish.userId)) newWishes++;
+        }
+        const faces: string[] = [];
+        if (c.kind === "zip") {
+          const recent = await ctx.db
+            .query("memberships")
+            .withIndex("by_community_joinedAt", (q) => q.eq("communityId", c.id))
+            .order("desc")
+            .take(12);
+          for (const m of recent) {
+            if (faces.length >= 4) break;
+            if (m.userId === userId || blocked.has(m.userId)) continue;
+            const p = await getProfile(ctx, m.userId);
+            if (p) faces.push(p.displayName);
+          }
+        }
+        return {
+          ...c,
+          newOffers: Math.min(newOffers, NEWS_CAP),
+          newWishes: Math.min(newWishes, NEWS_CAP),
+          faces,
+        };
+      }),
+    );
   },
 });
 

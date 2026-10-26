@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import { circle, doc, invite, newUser, post, setup } from "./lib/testing.helpers";
 
@@ -147,5 +147,39 @@ describe("circles and invites (M2)", () => {
     expect((await doc(t, samsItem))?.status).toBe("removed");
     expect(await t.run((ctx) => ctx.db.get(shower))).toBeNull();
     expect((await sam.as.query(api.communities.mine, {})).map((c) => c.kind)).toEqual(["zip"]);
+  });
+});
+
+describe("Circles tab overview", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("counts other people's new offers and wishes this week, without blocked people or old posts", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-01T17:00:00Z"));
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const sam = await newUser(t, "Sam");
+    const jo = await newUser(t, "Jo");
+    const shower = await circle(ellen);
+    await invite(ellen, sam, shower);
+
+    await post(t, sam, [sam.zipCircle], "Old lamp"); // more than a week before the others
+    vi.setSystemTime(new Date("2026-10-20T17:00:00Z"));
+    await post(t, sam, [sam.zipCircle, shower], "Crib");
+    await post(t, jo, [jo.zipCircle], "Rug");
+    await post(t, ellen, [ellen.zipCircle], "Chair"); // her own
+    await sam.as.mutation(api.wishlist.create, { title: "Stroller", communityIds: [shower] });
+    await ellen.as.mutation(api.safety.block, { userId: jo.userId });
+
+    const overview = await ellen.as.query(api.communities.overview, {});
+    expect(overview.map((c) => [c.name, c.newOffers, c.newWishes])).toEqual([
+      [overview[0].name, 1, 0], // zip circle: Sam's crib (Jo is blocked; the lamp is old; the chair is hers)
+      ["Baby Shower", 1, 1],
+    ]);
+    expect(overview[0].kind).toBe("zip");
+    expect(overview[0].faces).toEqual(["Sam"]);
+    expect(overview[1].faces).toEqual([]);
   });
 });

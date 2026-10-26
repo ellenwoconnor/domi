@@ -6,6 +6,7 @@ import { Tabs } from "expo-router/js-tabs";
 import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { api } from "../../convex/_generated/api";
+import { CirclesTabIcon } from "../../src/features/circles/CirclesTabIcon";
 import { color, font } from "../../src/ui/theme";
 
 export default function TabsLayout() {
@@ -40,6 +41,13 @@ export default function TabsLayout() {
           tabBarIcon: ({ color: c, focused }) => (
             <Ionicons name={focused ? "grid" : "grid-outline"} size={22} color={c} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="circles"
+        options={{
+          title: "Circles",
+          tabBarIcon: ({ color: c, focused }) => <CirclesTabIcon color={c} focused={focused} />,
         }}
       />
       <Tabs.Screen

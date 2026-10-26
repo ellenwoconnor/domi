@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 import { space, type } from "./theme";
 import { YouButton } from "./YouButton";
 
-/** The top of each tab (Browse, Give, My stuff): the wordmark and your initial, then a title and a subtitle. */
+/** The top of each tab (Browse, Circles, Give, My stuff): the wordmark and your initial, then a title and a subtitle. */
 export function TabHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <View style={styles.wrap}>

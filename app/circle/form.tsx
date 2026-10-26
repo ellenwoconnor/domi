@@ -15,16 +15,20 @@ import { FormScroll } from "../../src/ui/FormScroll";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
 import { color, space } from "../../src/ui/theme";
 
-/** Start a circle, or (with ?id=) edit one you own. */
+/** Start a circle (optionally prefilled with ?name=&emoji=), or (with ?id=) edit one you own. */
 export default function CircleForm() {
-  const { id } = useLocalSearchParams<{ id?: Id<"communities"> }>();
+  const { id, name: presetName, emoji: presetEmoji } = useLocalSearchParams<{
+    id?: Id<"communities">;
+    name?: string;
+    emoji?: string;
+  }>();
   const editing = !!id;
   const existing = useQuery(convexQuery(api.communities.get, id ? { communityId: id } : "skip"));
   const create = useMutation(api.communities.create);
   const update = useMutation(api.communities.update);
 
-  const [emoji, setEmoji] = useState("🏡");
-  const [name, setName] = useState("");
+  const [emoji, setEmoji] = useState(presetEmoji || "🏡");
+  const [name, setName] = useState(presetName ?? "");
   const [description, setDescription] = useState("");
   const askForPush = useAskForPush();
   const [busy, setBusy] = useState(false);

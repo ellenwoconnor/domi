@@ -16,7 +16,7 @@ type Side = "giving" | "getting";
 /**
  * My stuff: what you're giving and what you're getting, one calm row each.
  * A row that needs you has a Bay status line and a small dot; nothing else
- * competes for attention. The avatar opens You (profile, circles, settings).
+ * competes for attention. The avatar opens You (profile and settings).
  */
 export default function MyStuff() {
   const giving = useQuery(convexQuery(api.mystuff.giving, {}));
