@@ -258,6 +258,6 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 
 <footer class="wrap">
 <div class="foot-left"><span class="foot-logo">${wordmark("ring")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
-<nav aria-label="Footer"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@domicircles.com">support@domicircles.com</a></nav>
+<nav aria-label="Footer"><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@domicircles.com">support@domicircles.com</a></nav>
 </footer>
 </body></html>`;

@@ -1,5 +1,5 @@
 import type { Doc, Id } from "../_generated/dataModel";
-import type { MutationCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { blockedUserIds, displayName, isBlockedEitherWay } from "./access";
 import { writeEvent } from "./events";
 import { isQuiet, nextMorning, sameLocalDay } from "./localTime";
@@ -52,7 +52,7 @@ type Found = {
 };
 
 /** New, unseen listings and wishes from others in each of my unmuted circles. */
-async function newActivity(ctx: MutationCtx, profile: Doc<"profiles">): Promise<Found[]> {
+export async function newActivity(ctx: QueryCtx | MutationCtx, profile: Doc<"profiles">): Promise<Found[]> {
   const me = profile.userId;
   const blocked = await blockedUserIds(ctx, me);
   const sinceAll = Math.max(profile.lastOpenedAt ?? 0, profile.lastActivityPushAt ?? 0);

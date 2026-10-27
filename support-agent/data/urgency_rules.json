@@ -1,0 +1,79 @@
+{
+  "_about": "Deterministic urgency rules, applied after the model decides. They can only raise urgency, never lower it, so a model mistake can't hide a safety report. Patterns are case-insensitive regular expressions matched against the subject and body.",
+  "always_urgent_categories": [
+    "safety",
+    "legal"
+  ],
+  "rules": [
+    {
+      "id": "threat-or-danger",
+      "reason": "Possible threat or physical danger",
+      "patterns": [
+        "\\bthreat(en|ened|ening)?\\b",
+        "\\bunsafe\\b",
+        "\\bscared\\b",
+        "\\bstalk(ing|ed|er)?\\b",
+        "follow(ed|ing) me",
+        "(showed|shown|shows) up at my (door|house|home)",
+        "\\bassault",
+        "\\bweapon\\b",
+        "\\bhurt me\\b",
+        "(?<!glue )\\b(gun|knife)\\b"
+      ]
+    },
+    {
+      "id": "harassment",
+      "reason": "Harassment or abuse",
+      "patterns": [
+        "\\bharass",
+        "\\bcreep(y)?\\b",
+        "won'?t stop messaging",
+        "\\bslur\\b",
+        "sexual"
+      ]
+    },
+    {
+      "id": "minor",
+      "reason": "Possible minor on the app or child safety",
+      "patterns": [
+        "\\b(1[0-7]|[5-9]) ?(years? old|yo)\\b",
+        "\\bmy (son|daughter|kid) (is using|made an account|signed up)",
+        "\\bunderage\\b",
+        "\\bminors? (on|using)\\b"
+      ]
+    },
+    {
+      "id": "privacy-leak",
+      "reason": "Possible privacy or data leak",
+      "patterns": [
+        "(see|seeing|saw) (someone else'?s|other people'?s|another (person|user)'?s)",
+        "my address (is|was) (showing|visible|public)",
+        "\\bdata (breach|leak)\\b",
+        "\\bhacked\\b"
+      ]
+    },
+    {
+      "id": "legal",
+      "reason": "Legal request or threat",
+      "patterns": [
+        "\\bsubpoena\\b",
+        "\\blaw enforcement\\b",
+        "\\bpolice\\b",
+        "\\blawyer\\b",
+        "\\battorney\\b",
+        "\\bDMCA\\b",
+        "\\bcopyright\\b",
+        "\\bsue (you|domi)\\b"
+      ]
+    },
+    {
+      "id": "self-harm",
+      "reason": "Possible self-harm risk",
+      "patterns": [
+        "\\bkill (myself|me)\\b",
+        "\\bsuicid",
+        "\\bend it all\\b"
+      ]
+    }
+  ]
+}

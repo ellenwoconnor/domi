@@ -10,11 +10,13 @@
 // - serves the home page (/, in home.js) and its link-preview image (/og.png),
 // - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
 //   the app links to (src/features/legal.ts). Their text is in legal.js.
+// - serves the help page and FAQ (/support, text in support.js).
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
 import { homeHtml } from "./home.js";
 import { OG_IMAGE_BASE64 } from "./og-image.js";
 import { privacyBody, termsBody } from "./legal.js";
+import { supportBody } from "./support.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
@@ -65,6 +67,7 @@ export default {
     if (path === "/") return html(homeHtml);
     if (path === "/og.png") return ogImage();
     if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
+    if (path === "/support" || path === "/help") return html(legalPage("Help & support", "Answers to common questions about Domi, and how to reach us.", supportBody));
     if (path === "/privacy") return html(legalPage("Privacy Policy", "What Domi collects, who sees it, and how to delete it.", privacyBody));
     return html(missingPage("Page not found", "Nothing lives here."), 404);
   },
@@ -237,7 +240,13 @@ h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;l
 .legal h2{font-size:18px;font-weight:600;margin:16px 0 0}.legal p,.legal ul{margin:0}.legal ul{padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .legal a,footer a{color:var(--bay)}
 footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content:center;padding-top:8px}
+.contact{background:var(--fog);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.toc{display:flex;flex-wrap:wrap;gap:8px}.toc a{background:var(--fog);color:var(--bay);text-decoration:none;font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px}
+.faq{display:flex;flex-direction:column}.faq details{border-bottom:1px solid var(--fog)}
+.faq summary{cursor:pointer;font-weight:600;padding:12px 24px 12px 0;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";position:absolute;right:4px;top:10px;color:var(--bay);font-size:20px;line-height:1.2}.faq details[open] summary:after{content:"\\2212"}
+.answer{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;color:var(--soft)}.answer ul{padding-left:20px;margin:0}.legal h2[id]{scroll-margin-top:16px}
 .copy{border:0;background:#fff;color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>
-<body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
+<body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }
