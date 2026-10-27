@@ -1,0 +1,80 @@
+{
+  "_about": "Bugs and limitations we already know about, so the agent can match a report instead of treating it as new. Keep this short and current.",
+  "issues": [
+    {
+      "id": "android",
+      "title": "No Android app yet",
+      "status": "planned",
+      "symptoms": [
+        "android",
+        "pixel",
+        "samsung",
+        "google play",
+        "can't find the app"
+      ],
+      "workaround": "Domi is iPhone-only during private testing."
+    },
+    {
+      "id": "wrong-provider",
+      "title": "Signing in with the other provider creates a new empty account",
+      "status": "by design",
+      "symptoms": [
+        "my stuff is gone",
+        "empty account",
+        "lost my listings",
+        "new phone",
+        "signed in again"
+      ],
+      "workaround": "Sign out and sign in with the same option (Apple or Google) used originally."
+    },
+    {
+      "id": "invite-regenerated",
+      "title": "Old invite links stop working after the member makes a new one",
+      "status": "by design",
+      "symptoms": [
+        "invite link",
+        "invite code",
+        "isn't working",
+        "invalid code",
+        "expired link"
+      ],
+      "workaround": "Ask the person who invited you for a fresh link."
+    },
+    {
+      "id": "update-on-relaunch",
+      "title": "App updates install on the next launch, so a fix may need a restart or two",
+      "status": "by design",
+      "symptoms": [
+        "still broken",
+        "after the update",
+        "old version"
+      ],
+      "workaround": "Close Domi fully and reopen it, twice if needed."
+    },
+    {
+      "id": "push-focus",
+      "title": "Notifications held back by iOS Focus or turned off in Settings",
+      "status": "by design",
+      "symptoms": [
+        "no notifications",
+        "not getting notified",
+        "didn't get a notification"
+      ],
+      "workaround": "Check You > Notifications in Domi and iPhone Settings > Notifications > Domi, and any Focus modes."
+    },
+    {
+      "id": "photos-purged",
+      "title": "Photos are deleted 30 days after a listing ends (picked up, removed, or expired and not reposted), so old listings show gray boxes",
+      "status": "by design",
+      "symptoms": [
+        "gray boxes",
+        "grey boxes",
+        "photos missing",
+        "photos gone",
+        "lost my photos",
+        "lost all the photos"
+      ],
+      "workaround": "Expected for listings that ended more than 30 days ago. Active listings keep their photos. To keep a listing's photos, repost it before then."
+    }
+  ]
+}

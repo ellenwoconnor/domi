@@ -1,0 +1,145 @@
+{
+  "_about": "Fake Domi accounts for the take-home, shaped like the real Convex data (profiles, memberships, items, requests, conversations, pushTokens). Keyed by the user id that the in-app feedback email puts in its footer. In production, lookup_account becomes a read-only Convex query returning the same shape. Today is 2026-10-26.",
+  "users": {
+    "k1lena": {
+      "profile": { "displayName": "Lena", "zip": "94610", "signIn": "apple", "createdAt": "2026-09-02" },
+      "circles": [
+        { "name": "Oakland · 94610", "kind": "zip", "role": "member", "joinedAt": "2026-09-02" },
+        { "name": "Design team", "kind": "custom", "role": "member", "joinedAt": "2026-10-01" }
+      ],
+      "items": [], "requests": [], "conversations": [], "pushTokens": 1
+    },
+    "k3priya": {
+      "profile": { "displayName": "Priya", "zip": "94611", "signIn": "google", "createdAt": "2026-08-20" },
+      "circles": [{ "name": "Oakland · 94611", "kind": "zip", "role": "member", "joinedAt": "2026-08-20" }],
+      "items": [
+        { "id": "it_shelf", "title": "Bookshelf", "status": "expired", "postedAt": "2026-09-24", "expiresAt": "2026-10-24", "updatedAt": "2026-10-24", "requests": 0 }
+      ],
+      "requests": [], "conversations": [], "pushTokens": 1
+    },
+    "k4tom": {
+      "profile": { "displayName": "Tom", "zip": "94703", "signIn": "apple", "createdAt": "2026-09-10" },
+      "circles": [{ "name": "Berkeley · 94703", "kind": "zip", "role": "member", "joinedAt": "2026-09-10" }],
+      "items": [
+        { "id": "it_couch", "title": "Gray couch", "status": "available", "postedAt": "2026-10-23", "expiresAt": "2026-11-22", "updatedAt": "2026-10-25", "requests": 6 }
+      ],
+      "requests": [], "conversations": [], "pushTokens": 1
+    },
+    "k6dev": {
+      "profile": { "displayName": "Dev", "zip": "94610", "signIn": "google", "createdAt": "2026-09-15" },
+      "circles": [{ "name": "Oakland · 94610", "kind": "zip", "role": "member", "joinedAt": "2026-09-15" }],
+      "items": [],
+      "requests": [
+        { "itemTitle": "Desk lamp", "itemStatus": "available", "status": "open", "updatedAt": "2026-10-20" },
+        { "itemTitle": "Kids' scooter", "itemStatus": "pending", "status": "open", "updatedAt": "2026-10-21" },
+        { "itemTitle": "Plant stand", "itemStatus": "available", "status": "open", "updatedAt": "2026-10-22" },
+        { "itemTitle": "Rice cooker", "itemStatus": "available", "status": "open", "updatedAt": "2026-10-24" },
+        { "itemTitle": "Board games", "itemStatus": "available", "status": "open", "updatedAt": "2026-10-25" },
+        { "itemTitle": "Yoga mat", "itemStatus": "gone", "status": "closed", "updatedAt": "2026-10-12" }
+      ],
+      "conversations": [], "pushTokens": 1
+    },
+    "k9rosa": {
+      "profile": { "displayName": "Rosa", "zip": "94610", "signIn": "apple", "createdAt": "2026-08-05" },
+      "circles": [
+        { "name": "Oakland · 94610", "kind": "zip", "role": "member", "joinedAt": "2026-08-05" },
+        { "name": "Cedar St. building", "kind": "custom", "role": "owner", "joinedAt": "2026-08-12" }
+      ],
+      "items": [
+        { "id": "it_crib", "title": "Crib", "status": "available", "postedAt": "2026-10-18", "expiresAt": "2026-11-17", "updatedAt": "2026-10-18", "requests": 2, "postedTo": ["Oakland · 94610"] },
+        { "id": "it_toys", "title": "Bath toys", "status": "available", "postedAt": "2026-10-22", "expiresAt": "2026-11-21", "updatedAt": "2026-10-22", "requests": 0, "postedTo": ["Oakland · 94610", "Cedar St. building"] }
+      ],
+      "requests": [{ "itemTitle": "Moving boxes", "itemStatus": "available", "status": "open", "updatedAt": "2026-10-25" }],
+      "conversations": [], "pushTokens": 1
+    },
+    "k18paul": {
+      "profile": { "displayName": "Paul", "zip": "94618", "signIn": "apple", "createdAt": "2026-09-28" },
+      "circles": [{ "name": "Oakland · 94618", "kind": "zip", "role": "member", "joinedAt": "2026-09-28" }],
+      "items": [
+        { "id": "it_drill", "title": "Cordless drill", "status": "available", "postedAt": "2026-10-19", "expiresAt": "2026-11-18", "updatedAt": "2026-10-24", "requests": 3 }
+      ],
+      "requests": [], "conversations": [],
+      "pushTokens": 0,
+      "notes": "No push token has ever been registered for this account: notifications were never allowed on the phone."
+    },
+    "k19mei": {
+      "profile": { "displayName": "Mei", "zip": "94606", "signIn": "google", "createdAt": "2026-09-01" },
+      "circles": [{ "name": "Oakland · 94606", "kind": "zip", "role": "member", "joinedAt": "2026-09-01" }],
+      "items": [
+        { "id": "it_lamp", "title": "Floor lamp", "status": "pending", "postedAt": "2026-10-20", "expiresAt": "2026-11-19", "updatedAt": "2026-10-25", "requests": 2, "chosen": { "displayName": "Ana", "requestStatus": "selected", "chosenAt": "2026-10-25" } }
+      ],
+      "requests": [],
+      "conversations": [],
+      "pushTokens": 1
+    },
+    "k20jorge": {
+      "profile": { "displayName": "Jorge", "zip": "94602", "signIn": "apple", "createdAt": "2026-08-30" },
+      "circles": [{ "name": "Oakland · 94602", "kind": "zip", "role": "member", "joinedAt": "2026-08-30" }],
+      "items": [
+        { "id": "it_bike", "title": "Kids bike", "status": "gone", "postedAt": "2026-10-15", "expiresAt": "2026-11-14", "updatedAt": "2026-10-25T15:12", "requests": 3, "chosen": { "displayName": "Dana", "requestStatus": "selected", "chosenAt": "2026-10-24" }, "markedPickedUpBy": "owner", "markedPickedUpAt": "2026-10-25T15:12" }
+      ],
+      "requests": [],
+      "conversations": [{ "itemTitle": "Kids bike", "with": "Dana", "closed": false, "lastMessageAt": "2026-10-24T18:40", "lastMessageFrom": "Dana" }],
+      "pushTokens": 1
+    },
+    "k21fatima": {
+      "profile": { "displayName": "Fatima", "zip": "94619", "signIn": "google", "createdAt": "2026-09-05" },
+      "circles": [{ "name": "Oakland · 94619", "kind": "zip", "role": "member", "joinedAt": "2026-09-05" }],
+      "circleHistory": [{ "name": "Thursday soccer parents", "joinedAt": "2026-09-20", "leftAt": "2026-10-19" }],
+      "items": [], "requests": [], "conversations": [], "pushTokens": 1
+    },
+    "k22rick": {
+      "profile": { "displayName": "Rick", "zip": "94705", "signIn": "apple", "createdAt": "2026-10-26" },
+      "circles": [{ "name": "Berkeley · 94705", "kind": "zip", "role": "member", "joinedAt": "2026-10-26" }],
+      "items": [], "requests": [], "conversations": [], "pushTokens": 1,
+      "notes": "Account created today with Sign in with Apple."
+    },
+    "k26karen": {
+      "profile": { "displayName": "Karen", "zip": "94610", "signIn": "apple", "createdAt": "2026-08-14" },
+      "circles": [{ "name": "Oakland · 94610", "kind": "zip", "role": "member", "joinedAt": "2026-08-14" }],
+      "items": [
+        { "id": "it_stroller", "title": "Stroller", "status": "gone", "postedAt": "2026-10-10", "expiresAt": "2026-11-09", "updatedAt": "2026-10-17", "requests": 4, "chosen": { "displayName": "Greg", "requestStatus": "selected", "chosenAt": "2026-10-15" }, "markedPickedUpBy": "owner", "markedPickedUpAt": "2026-10-17T10:05" }
+      ],
+      "requests": [],
+      "conversations": [{ "itemTitle": "Stroller", "with": "Greg", "closed": false, "lastMessageAt": "2026-10-24T21:50", "lastMessageFrom": "Greg" }],
+      "pushTokens": 1
+    },
+    "k28zoe": {
+      "profile": { "displayName": "Zoe", "zip": "94612", "signIn": "google", "createdAt": "2026-09-09" },
+      "circles": [{ "name": "Oakland · 94612", "kind": "zip", "role": "member", "joinedAt": "2026-09-09" }],
+      "items": [
+        { "id": "it_dress", "title": "Green dress", "status": "available", "postedAt": "2026-10-21", "expiresAt": "2026-11-20", "updatedAt": "2026-10-25", "requests": 2 }
+      ],
+      "requests": [],
+      "conversations": [{ "itemTitle": "Green dress", "with": "Mark", "closed": true, "closedReason": "owner un-picked", "lastMessageAt": "2026-10-25T23:10", "lastMessageFrom": "Mark" }],
+      "pushTokens": 1
+    },
+    "k30leo": {
+      "profile": { "displayName": "Leo", "zip": "94609", "signIn": "apple", "createdAt": "2026-09-18" },
+      "circles": [{ "name": "Oakland · 94609", "kind": "zip", "role": "member", "joinedAt": "2026-09-18" }],
+      "items": [],
+      "requests": [{ "itemTitle": "Standing desk", "itemStatus": "pending", "status": "selected", "updatedAt": "2026-10-25" }],
+      "conversations": [{ "itemTitle": "Standing desk", "with": "Priya", "closed": false, "lastMessageAt": "2026-10-26T08:02", "lastMessageFrom": "Priya" }],
+      "pushTokens": 1
+    },
+    "k37ruth": {
+      "profile": { "displayName": "Ruth", "zip": "94608", "signIn": "google", "createdAt": "2026-07-30" },
+      "circles": [{ "name": "Emeryville · 94608", "kind": "zip", "role": "member", "joinedAt": "2026-07-30" }],
+      "items": [
+        { "id": "it_chairs", "title": "Patio chairs", "status": "gone", "postedAt": "2026-08-28", "expiresAt": "2026-09-27", "updatedAt": "2026-09-14", "requests": 5, "photosPurgedAt": "2026-10-14" },
+        { "id": "it_rug", "title": "Area rug", "status": "expired", "postedAt": "2026-08-15", "expiresAt": "2026-09-14", "updatedAt": "2026-09-14", "requests": 0, "photosPurgedAt": "2026-10-14" },
+        { "id": "it_mirror", "title": "Mirror", "status": "available", "postedAt": "2026-10-20", "expiresAt": "2026-11-19", "updatedAt": "2026-10-20", "requests": 1 }
+      ],
+      "requests": [], "conversations": [], "pushTokens": 1
+    },
+    "k42wes": {
+      "profile": { "displayName": "Wes", "zip": "94607", "signIn": "apple", "createdAt": "2026-09-12" },
+      "circles": [{ "name": "Oakland · 94607", "kind": "zip", "role": "member", "joinedAt": "2026-09-12" }],
+      "items": [],
+      "wishes": [{ "title": "Bike for a 10-year-old", "status": "open", "offers": 1 }],
+      "requests": [],
+      "conversations": [{ "itemTitle": "Trek bike (offer)", "with": "Sam", "closed": false, "lastMessageAt": "2026-10-25T12:30", "lastMessageFrom": "Wes", "messageCount": 412 }],
+      "pushTokens": 1
+    }
+  }
+}

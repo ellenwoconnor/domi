@@ -139,3 +139,15 @@ test("link-preview image is served, and pages without their own photo use it", a
   assert.match(await (await get("/")).text(), /og:image" content="https:\/\/domicircles.com\/og.png"/);
   assert.match(await (await get("/terms")).text(), /og:image" content="https:\/\/domicircles.com\/og.png"/);
 });
+
+test("support page is served with the FAQ and contact email, and pages link to it", async () => {
+  const res = await get("/support");
+  assert.equal(res.status, 200);
+  const html = await res.text();
+  assert.match(html, /<title>Help &amp; support · Domi<\/title>/);
+  assert.match(html, /mailto:support@domicircles.com/);
+  assert.ok((html.match(/<details>/g) ?? []).length >= 20);
+  assert.equal((await get("/help")).status, 200);
+  assert.match(await (await get("/")).text(), /href="\/support"/);
+  assert.match(await (await get("/terms")).text(), /href="\/support"/);
+});

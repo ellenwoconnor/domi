@@ -9,6 +9,7 @@ A Cloudflare Worker (free plan) that serves:
 
 - `/`: the home page (`src/home.js`, from the landing page design canvas), and `/og.png`, its link-preview image (`src/og-image.js`), also used by pages without a photo of their own.
 - `/terms` and `/privacy`: the Terms of Service and Privacy Policy the app links to (text in `src/legal.js`).
+- `/support` (and `/help`): the help page and FAQ. Answers live in `src/faq.json`, which the support agent (`support-agent/`) also reads; `src/support.js` lays out the page.
 
 It reads from the public Convex queries `invites:preview` and `shares:preview`.
 

@@ -1,0 +1,199 @@
+{
+  "_about": "Domi's FAQ. Source for the help page (domicircles.com/support, rendered by support.js) and for the support agent (support-agent/). Plain text; blank lines separate paragraphs, lines starting with '- ' are bullet lists, [text](url) is a link, and the support email is linked automatically.",
+  "sections": [
+    {
+      "id": "start",
+      "title": "Getting started",
+      "items": [
+        {
+          "q": "How do I get Domi?",
+          "a": "Domi is in private testing on iPhone, and circles open by invite. If a friend or neighbor sent you an invite link, open it on your iPhone. If you don't have one, email support@domicircles.com to ask."
+        },
+        {
+          "q": "Is there an Android app?",
+          "a": "Not yet. We're starting with iPhone and will add Android later."
+        },
+        {
+          "q": "Is Domi really free?",
+          "a": "Yes. There's no cost to use Domi, no ads, and we don't sell your information. Everything on Domi is given away for free: please don't ask for or accept money, trades or tips."
+        },
+        {
+          "q": "How do I sign in?",
+          "a": "With Apple or Google. Domi doesn't use passwords. If you're signing in on a new phone, use the same option (Apple or Google) you used before, or you'll end up with a new, empty account."
+        },
+        {
+          "q": "Who can use Domi?",
+          "a": "Adults 18 and over in the United States."
+        },
+        {
+          "q": "Why does Domi ask for my zip code?",
+          "a": "Your zip code puts you in your home circle, so you see things your neighbors are giving away. Domi only stores an approximate location (about the center of your zip code), never your street address."
+        },
+        {
+          "q": "How do I see the intro again?",
+          "a": "Tap your initial in the top corner to open You, then How Domi works."
+        }
+      ]
+    },
+    {
+      "id": "giving",
+      "title": "Giving",
+      "items": [
+        {
+          "q": "How do I give something away?",
+          "a": "Go to the Give tab, take or choose one to three photos, add a title (and a description if you like), and pick which of your circles to post it to."
+        },
+        {
+          "q": "How do I choose who gets it?",
+          "a": "When people request your listing, it shows up in My stuff › Giving with \"Choose one.\" Open it, read their notes, and choose one person. Domi opens a private chat between you two to plan pickup. Share your address or porch-pickup details there, never in the listing."
+        },
+        {
+          "q": "They didn't show up. Can I pick someone else?",
+          "a": "Yes. Open the listing and tap Un-pick. The listing goes back to available, and everyone else who requested it is still in line, so you can choose the next person."
+        },
+        {
+          "q": "How do I mark it as picked up?",
+          "a": "Open the listing and tap Mark picked up. This closes it out for everyone who was waiting."
+        },
+        {
+          "q": "How long does a listing stay up?",
+          "a": "30 days. After that it expires, and you can repost it from My stuff › Giving with one tap."
+        },
+        {
+          "q": "Can I edit or take down a listing?",
+          "a": "Yes. Open your listing to edit it, or tap Remove listing. Anyone who requested it gets a notification."
+        },
+        {
+          "q": "Can I share a listing outside Domi?",
+          "a": "Yes. On your listing, tap Share outside Domi to get a link you can post anywhere, like a Buy Nothing group or a group chat. Anyone with the link sees the title, description, first photo, your display name and the circle's name while it's available. Someone who joins Domi from the link can request that listing even if they're not in your circles."
+        },
+        {
+          "q": "What can't I give away?",
+          "a": "No weapons, alcohol, tobacco, vapes, cannabis or medicine, recalled products, hazardous materials, homemade or opened food, animals, adult products, or gift cards and cash. Check children's gear like car seats and cribs for recalls first. The full list is in the [Terms](/terms)."
+        }
+      ]
+    },
+    {
+      "id": "getting",
+      "title": "Getting & wishes",
+      "items": [
+        {
+          "q": "How do I ask for something?",
+          "a": "Open the listing and tap Request. You can add a short note (up to 140 characters) so the giver knows a little about you. If the giver picks you, you'll get a notification and a chat opens."
+        },
+        {
+          "q": "What does \"Get in line\" mean?",
+          "a": "The giver has already picked someone, but the pickup hasn't happened yet. You can still request it: if their pick falls through, you're in line and the giver can choose you."
+        },
+        {
+          "q": "Why can't I request more things?",
+          "a": "You can have up to 5 open requests at a time, so things are shared around. Once an item is picked up, goes to someone else, or you withdraw a request, you can request something new."
+        },
+        {
+          "q": "I changed my mind. How do I cancel a request?",
+          "a": "Open the listing and tap Withdraw request. If you were already picked, the giver gets a notification and can choose someone else."
+        },
+        {
+          "q": "What's a wish?",
+          "a": "A wish is something you're looking for, like a kids' bike or a moving box. Post it to your circles, and neighbors who have one can offer it. Offers are private: only you and the person offering see them. Pick the offer that works best, and Domi opens a chat to plan pickup."
+        }
+      ]
+    },
+    {
+      "id": "circles",
+      "title": "Circles",
+      "items": [
+        {
+          "q": "What's the difference between my home circle and other circles?",
+          "a": "Your home circle is everyone on Domi in your zip code. You're added automatically, and it changes if you change your zip code. Invite-only circles are groups anyone can start, and people join by invite link or code."
+        },
+        {
+          "q": "How do I start a circle?",
+          "a": "Go to the Circles tab and tap Start a circle. Give it a name and an emoji, and a description if you like. Then tap Invite to share your link."
+        },
+        {
+          "q": "How do I join a circle?",
+          "a": "Open the invite link someone sent you. Or go to the Circles tab, tap Join with a code, and type in the code from the invite."
+        },
+        {
+          "q": "My invite link isn't working.",
+          "a": "Each member has their own invite link, and it stops working if they make a new one. Ask the person who sent it for a fresh link. If you were removed from a circle, you can't rejoin it by invite."
+        },
+        {
+          "q": "How do I leave a circle?",
+          "a": "Open the circle and tap Leave this circle. Your listings and wishes are taken out of that circle, and requests you made there are withdrawn. You can't leave your home circle, but you can change your zip code."
+        },
+        {
+          "q": "I started a circle. What can I do?",
+          "a": "You can remove members (tap someone in the member list) and delete the circle. If you leave, the longest-standing member takes over."
+        }
+      ]
+    },
+    {
+      "id": "safety",
+      "title": "Safety",
+      "items": [
+        {
+          "q": "Tips for a safe pickup",
+          "a": "- Leave things on a porch for pickup, or meet in a public place.\n- Bring a friend if you're meeting someone you don't know.\n- Look items over before you take them.\n- Only share your address with the person you picked, and never share financial information."
+        },
+        {
+          "q": "How do I report something?",
+          "a": "Use Report this listing on a listing, Report this wish on a wish, or Report or block in a chat. Tell us what happened. We review reports within 24 hours and remove content and accounts that break the rules. The person you report isn't told who reported them."
+        },
+        {
+          "q": "How does blocking work?",
+          "a": "Blocking works both ways: neither of you sees the other's listings or wishes, and you can't message each other. Any open requests or picks between you are quietly cancelled. To unblock someone, go to You › Blocked people."
+        },
+        {
+          "q": "Someone asked me for money.",
+          "a": "Everything on Domi is free, so that's against the rules. Please report them, and don't send payment or financial details."
+        }
+      ]
+    },
+    {
+      "id": "account",
+      "title": "Account & privacy",
+      "items": [
+        {
+          "q": "How do I change my name or zip code?",
+          "a": "Tap your initial, then Edit. If you change your zip code, Domi first shows what will be cancelled in your old home circle (like listings and requests there), so you can decide."
+        },
+        {
+          "q": "How do I turn notifications on or off?",
+          "a": "Tap your initial, then Notifications. Domi only notifies you when there's something to do, like someone picking you or a new message, plus at most one update a day about new things in your circles."
+        },
+        {
+          "q": "Who can see my information?",
+          "a": "People in your circles see your display name and what you post there, with an approximate area, never your address. Only the person you pick (or who picks you) sees your chat. The full details are in the [Privacy Policy](/privacy)."
+        },
+        {
+          "q": "How do I delete my account?",
+          "a": "Tap your initial, then Delete account. This permanently deletes your profile, listings and photos, wishes, requests and chats. It can't be undone."
+        },
+        {
+          "q": "Can I get a copy of my data?",
+          "a": "Email support@domicircles.com from the email address on your Apple or Google account, and we'll respond within 30 days."
+        }
+      ]
+    },
+    {
+      "id": "problems",
+      "title": "Something's not working",
+      "items": [
+        {
+          "q": "I'm not getting notifications.",
+          "a": "Check You › Notifications in Domi, then your iPhone's Settings › Notifications › Domi. Focus modes can also hold notifications back."
+        },
+        {
+          "q": "A link someone shared won't open.",
+          "a": "The listing may have been picked up or taken down, or the invite may have been replaced. Ask the person for a new link. To open links in the app, you need Domi installed."
+        },
+        {
+          "q": "Something looks wrong or the app crashed.",
+          "a": "Try closing and reopening Domi: updates install on the next launch. If it keeps happening, email support@domicircles.com with:\n\n- what you were doing and what you expected to happen\n- a screenshot or screen recording, if you can\n- your iPhone model and iOS version"
+        }
+      ]
+    }
+  ]
+}
