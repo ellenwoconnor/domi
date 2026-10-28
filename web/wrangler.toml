@@ -10,3 +10,6 @@ routes = [{ pattern = "domicircles.com", custom_domain = true }]
 CONVEX_URL = "https://sincere-corgi-37.convex.cloud"
 # Android signing-key SHA-256 fingerprint(s), comma-separated, from `npx eas-cli credentials` (later).
 ANDROID_SHA256 = ""
+# TestFlight public link for the external tester group (testflight.apple.com/join/...).
+# Shown on /beta and on invite and listing pages. Empty: they say to ask for the link.
+TESTFLIGHT_URL = ""
