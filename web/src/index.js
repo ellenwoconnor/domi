@@ -119,60 +119,39 @@ const fmt = (code) => (code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /**
- * How to get the test version: TestFlight first, then Domi through the
- * TestFlight public link (TESTFLIGHT_URL), then back to this link. With an
- * invite or share code, step 3 opens it in the app and shows the code.
+ * How to get the test version, kept short: a one-line note, then three steps
+ * (TestFlight, Domi through the TestFlight public link in TESTFLIGHT_URL, then
+ * back to this link). `join` is the last button's label for invite/share pages.
  */
-export function installSteps(env, { openUrl, code, askWho = "the person who invited you", whyLink = true } = {}) {
+export function installSteps(env, { openUrl, code, join, askWho = "the person who invited you" } = {}) {
   const link = env?.TESTFLIGHT_URL;
-  const domiStep = link
-    ? `<p>Get Domi through TestFlight. Tap below, then <b>Accept</b> and <b>Install</b>.</p>
-        <a class="button" href="${esc(link)}">Get the Domi test app</a>`
-    : `<p>Get Domi through TestFlight. The test link isn't ready yet; ask ${esc(askWho)} to send it.</p>`;
+  const getDomi = link
+    ? `<p><b>Get Domi.</b> Tap the button, then tap <b>Accept</b> and <b>Install</b>.</p>
+        <a class="button" href="${esc(link)}">Get Domi</a>`
+    : `<p><b>Get Domi.</b> Ask ${esc(askWho)} to send you the Domi test link.</p>`;
   const last = code
-    ? `<li><p>Come back to this page and tap <b>Open in Domi</b>. Or type this code when Domi asks for one.</p>
-        <a class="button" href="${esc(openUrl)}">Open in Domi</a>
-        <div class="code-row code-box"><span class="code" id="code">${esc(fmt(code))}</span>
-          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button>
-        </div></li>`
-    : `<li><p>Open Domi, sign in with Apple or Google, and enter your name and zip code. If someone sent you an invite link, tap it after installing to join their circle.</p></li>`;
+    ? `<li><p><b>Come back to this page</b> and tap the button.</p>
+        <a class="button" href="${esc(openUrl)}">${esc(join)}</a>
+        <p class="meta">Or type this code in Domi: <b class="code-inline">${esc(fmt(code))}</b>
+          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button></p></li>`
+    : `<li><p><b>Open Domi</b> and sign in with Apple or Google.</p></li>`;
   return `
-    <section class="steps">
-      <h2>Get the test version</h2>
-      <p class="meta">Domi is in private testing on iPhone, through Apple's TestFlight app. It's free.</p>
-      <ol>
-        <li><p>Install <b>TestFlight</b>, Apple's app for trying apps before they're in the App Store.</p>
-          <a class="button secondary" href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
-        <li>${domiStep}</li>
-        ${last}
-      </ol>
-      ${whyLink ? `<p class="meta"><a href="/beta">Why a test version?</a></p>` : ""}
-    </section>`;
+    <p class="note">Domi isn't in the App Store yet. It's open to friends and family for now, and we'd love to know what you think. Here's how to get it on your iPhone:</p>
+    <ol class="steps">
+      <li><p><b>Get TestFlight.</b> It's Apple's free app for trying new apps.</p>
+        <a class="button secondary" href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
+      <li>${getDomi}</li>
+      ${last}
+    </ol>`;
 }
 
 function betaPage(env) {
   return layout({
-    title: "Try Domi early",
-    desc: "Domi is in private testing. Here's how to install the test version on your iPhone.",
+    title: "You're invited to try Domi",
+    desc: "Domi is a free app for giving things away to the people near you. Here's how to get it.",
     body: `
-      <div class="card">
-        <h1>You're invited to try Domi early.</h1>
-        <p class="caption">Domi is a free app for giving things away to the people near you: your neighborhood, and the circles you choose.</p>
-      </div>
-      <section class="why">
-        <h2>Why a test version?</h2>
-        <p>Domi is new. Before it opens to everyone, it's being tried out by a few circles of neighbors and friends. You're getting this because someone wants you in theirs.</p>
-        <p>Test versions come through <b>TestFlight</b>, Apple's own app for trying apps before they're released. It's free and safe, and you can delete Domi anytime.</p>
-      </section>
-      ${installSteps(env, { askWho: "the person who sent you here", whyLink: false })}
-      <section class="why">
-        <h2>Good to know</h2>
-        <ul>
-          <li>iPhone only for now.</li>
-          <li>It's a test version, so things may change. Your feedback shapes it: take a screenshot in the app to send it through TestFlight, or email <a href="mailto:support@domicircles.com">support@domicircles.com</a>.</li>
-          <li>Everything on Domi is free. No selling, no payments.</li>
-        </ul>
-      </section>`,
+      <p class="intro">You're invited to try <b>Domi</b>, a free app for giving things away to the people near you.</p>
+      ${installSteps(env, { askWho: "the person who sent you here" })}`,
   });
 }
 
@@ -190,7 +169,7 @@ function invitePage(p, code, env) {
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
       </div>
-      ${installSteps(env, { openUrl: `domi://c/${code}`, code, askWho: p.invitedBy })}`,
+      ${installSteps(env, { openUrl: `domi://c/${code}`, code, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
   });
 }
 
@@ -245,7 +224,7 @@ function sharePage(p, code, origin, env) {
         <p class="body">${esc(p.description)}</p>
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
       </div>
-      ${installSteps(env, { openUrl: `domi://i/${code}`, code, askWho: p.ownerName })}`,
+      ${installSteps(env, { openUrl: `domi://i/${code}`, code, join: "See it in Domi", askWho: p.ownerName })}`,
   });
 }
 
@@ -299,15 +278,14 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .faq summary{cursor:pointer;font-weight:600;padding:12px 24px 12px 0;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}
 .faq summary:after{content:"+";position:absolute;right:4px;top:10px;color:var(--bay);font-size:20px;line-height:1.2}.faq details[open] summary:after{content:"\\2212"}
 .answer{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;color:var(--soft)}.answer ul{padding-left:20px;margin:0}.legal h2[id]{scroll-margin-top:16px}
-.steps,.why{display:flex;flex-direction:column;gap:10px}
-.steps h2,.why h2{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:22px;line-height:28px;margin:0}
-.why p,.why ul,.steps p{margin:0}.why ul{padding-left:20px;display:flex;flex-direction:column;gap:6px}.why a,.steps .meta a{color:var(--bay)}
-.steps ol{list-style:none;counter-reset:step;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
-.steps li{counter-increment:step;position:relative;padding-left:40px;display:flex;flex-direction:column;gap:10px}
-.steps li:before{content:counter(step);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--fog);color:var(--bay);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+.note{margin:0;font-size:17px}
+.steps{list-style:none;counter-reset:step;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.steps li{counter-increment:step;position:relative;padding-left:44px;display:flex;flex-direction:column;gap:10px}
+.steps li p{margin:0;font-size:17px}.steps li p.meta{font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.steps li:before{content:counter(step);position:absolute;left:0;top:-2px;width:32px;height:32px;border-radius:50%;background:var(--bay);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px}
 .button.secondary{background:var(--fog);color:var(--bay)}
-.code-box.code-row{flex-direction:row}
-.copy{border:0;background:#fff;color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
+.code-inline{font-weight:800;color:var(--bay);letter-spacing:1px}
+.copy{border:0;background:var(--fog);color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>
 <body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }
