@@ -11,6 +11,9 @@
 // - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
 //   the app links to (src/features/legal.ts). Their text is in legal.js.
 // - serves the help page and FAQ (/support, text in support.js).
+// - serves /beta, which explains the TestFlight test version and how to
+//   install it; invite and listing pages show the same steps. The TestFlight
+//   public link comes from the TESTFLIGHT_URL var (wrangler.toml).
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
 import { homeHtml } from "./home.js";
@@ -21,6 +24,8 @@ import { supportBody } from "./support.js";
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
 const CODE = /^[0-9A-Za-z-]{4,16}$/;
+// Apple's TestFlight app in the App Store (needed before a TestFlight link works).
+export const TESTFLIGHT_APP_URL = "https://apps.apple.com/app/testflight/id899247664";
 
 export default {
   async fetch(request, env, ctx) {
@@ -56,15 +61,16 @@ export default {
       const clean = code.toUpperCase().replace(/-/g, "");
       if (kind === "c") {
         const invite = await convexQuery(env, "invites:preview", { code: clean });
-        return html(invite ? invitePage(invite, clean) : missingPage("This invite link isn't working", "It may have been replaced with a new one. Ask the person who sent it for a fresh link."), invite ? 200 : 404);
+        return html(invite ? invitePage(invite, clean, env) : missingPage("This invite link isn't working", "It may have been replaced with a new one. Ask the person who sent it for a fresh link."), invite ? 200 : 404);
       }
       const share = await convexQuery(env, "shares:preview", { code: clean });
       if (!share) return html(missingPage("This link isn't working", "The listing may have been taken down."), 404);
       if (!share.available) return html(missingPage("This one has already found a home", "Things go fast on Domi. Join your neighbors to catch the next one."));
-      return html(sharePage(share, clean, url.origin));
+      return html(sharePage(share, clean, url.origin, env));
     }
 
     if (path === "/") return html(homeHtml);
+    if (path === "/beta") return html(betaPage(env));
     if (path === "/og.png") return ogImage();
     if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
     if (path === "/support" || path === "/help") return html(legalPage("Help & support", "Answers to common questions about Domi, and how to reach us.", supportBody));
@@ -112,18 +118,65 @@ export function esc(s) {
 const fmt = (code) => (code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code);
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-function getTheApp(openUrl, code) {
+/**
+ * How to get the test version: TestFlight first, then Domi through the
+ * TestFlight public link (TESTFLIGHT_URL), then back to this link. With an
+ * invite or share code, step 3 opens it in the app and shows the code.
+ */
+export function installSteps(env, { openUrl, code, askWho = "the person who invited you", whyLink = true } = {}) {
+  const link = env?.TESTFLIGHT_URL;
+  const domiStep = link
+    ? `<p>Get Domi through TestFlight. Tap below, then <b>Accept</b> and <b>Install</b>.</p>
+        <a class="button" href="${esc(link)}">Get the Domi test app</a>`
+    : `<p>Get Domi through TestFlight. The test link isn't ready yet; ask ${esc(askWho)} to send it.</p>`;
+  const last = code
+    ? `<li><p>Come back to this page and tap <b>Open in Domi</b>. Or type this code when Domi asks for one.</p>
+        <a class="button" href="${esc(openUrl)}">Open in Domi</a>
+        <div class="code-row code-box"><span class="code" id="code">${esc(fmt(code))}</span>
+          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button>
+        </div></li>`
+    : `<li><p>Open Domi, sign in with Apple or Google, and enter your name and zip code. If someone sent you an invite link, tap it after installing to join their circle.</p></li>`;
   return `
-    <a class="button" href="${esc(openUrl)}">Open in Domi</a>
-    <div class="code-box">
-      <p class="meta">Don't have Domi yet? It's in private testing. Once you're in, enter this code:</p>
-      <div class="code-row"><span class="code" id="code">${esc(fmt(code))}</span>
-        <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button>
-      </div>
-    </div>`;
+    <section class="steps">
+      <h2>Get the test version</h2>
+      <p class="meta">Domi is in private testing on iPhone, through Apple's TestFlight app. It's free.</p>
+      <ol>
+        <li><p>Install <b>TestFlight</b>, Apple's app for trying apps before they're in the App Store.</p>
+          <a class="button secondary" href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
+        <li>${domiStep}</li>
+        ${last}
+      </ol>
+      ${whyLink ? `<p class="meta"><a href="/beta">Why a test version?</a></p>` : ""}
+    </section>`;
 }
 
-function invitePage(p, code) {
+function betaPage(env) {
+  return layout({
+    title: "Try Domi early",
+    desc: "Domi is in private testing. Here's how to install the test version on your iPhone.",
+    body: `
+      <div class="card">
+        <h1>You're invited to try Domi early.</h1>
+        <p class="caption">Domi is a free app for giving things away to the people near you: your neighborhood, and the circles you choose.</p>
+      </div>
+      <section class="why">
+        <h2>Why a test version?</h2>
+        <p>Domi is new. Before it opens to everyone, it's being tried out by a few circles of neighbors and friends. You're getting this because someone wants you in theirs.</p>
+        <p>Test versions come through <b>TestFlight</b>, Apple's own app for trying apps before they're released. It's free and safe, and you can delete Domi anytime.</p>
+      </section>
+      ${installSteps(env, { askWho: "the person who sent you here", whyLink: false })}
+      <section class="why">
+        <h2>Good to know</h2>
+        <ul>
+          <li>iPhone only for now.</li>
+          <li>It's a test version, so things may change. Your feedback shapes it: take a screenshot in the app to send it through TestFlight, or email <a href="mailto:support@domicircles.com">support@domicircles.com</a>.</li>
+          <li>Everything on Domi is free. No selling, no payments.</li>
+        </ul>
+      </section>`,
+  });
+}
+
+function invitePage(p, code, env) {
   const title = `${p.invitedBy} invited you to ${p.emoji} ${p.name}`;
   const desc = p.description || `An invite-only circle on Domi, where neighbors give things away for free. ${plural(p.memberCount, "member")}.`;
   return layout({
@@ -137,7 +190,7 @@ function invitePage(p, code) {
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
       </div>
-      ${getTheApp(`domi://c/${code}`, code)}`,
+      ${installSteps(env, { openUrl: `domi://c/${code}`, code, askWho: p.invitedBy })}`,
   });
 }
 
@@ -175,7 +228,7 @@ async function sharePhoto(env, ctx, code) {
   });
 }
 
-function sharePage(p, code, origin) {
+function sharePage(p, code, origin, env) {
   const title = `Free: ${p.title}`;
   const desc = `${p.description}`.slice(0, 200);
   const photo = p.photoUrl ? `${origin}/p/${code}` : null;
@@ -192,7 +245,7 @@ function sharePage(p, code, origin) {
         <p class="body">${esc(p.description)}</p>
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
       </div>
-      ${getTheApp(`domi://i/${code}`, code)}`,
+      ${installSteps(env, { openUrl: `domi://i/${code}`, code, askWho: p.ownerName })}`,
   });
 }
 
@@ -246,6 +299,14 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .faq summary{cursor:pointer;font-weight:600;padding:12px 24px 12px 0;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}
 .faq summary:after{content:"+";position:absolute;right:4px;top:10px;color:var(--bay);font-size:20px;line-height:1.2}.faq details[open] summary:after{content:"\\2212"}
 .answer{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;color:var(--soft)}.answer ul{padding-left:20px;margin:0}.legal h2[id]{scroll-margin-top:16px}
+.steps,.why{display:flex;flex-direction:column;gap:10px}
+.steps h2,.why h2{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:22px;line-height:28px;margin:0}
+.why p,.why ul,.steps p{margin:0}.why ul{padding-left:20px;display:flex;flex-direction:column;gap:6px}.why a,.steps .meta a{color:var(--bay)}
+.steps ol{list-style:none;counter-reset:step;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
+.steps li{counter-increment:step;position:relative;padding-left:40px;display:flex;flex-direction:column;gap:10px}
+.steps li:before{content:counter(step);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--fog);color:var(--bay);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+.button.secondary{background:var(--fog);color:var(--bay)}
+.code-box.code-row{flex-direction:row}
 .copy{border:0;background:#fff;color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>
 <body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;

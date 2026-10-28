@@ -151,3 +151,35 @@ test("support page is served with the FAQ and contact email, and pages link to i
   assert.match(await (await get("/")).text(), /href="\/support"/);
   assert.match(await (await get("/terms")).text(), /href="\/support"/);
 });
+
+test("/beta explains the test version and links TestFlight; the Domi link comes from TESTFLIGHT_URL", async () => {
+  const without = await (await get("/beta")).text();
+  assert.match(without, /Try Domi early · Domi/);
+  assert.match(without, /Why a test version\?/);
+  assert.match(without, /apps\.apple\.com\/app\/testflight\/id899247664/);
+  assert.match(without, /test link isn't ready yet; ask the person who sent you here/);
+  assert.ok(!without.includes('href="/beta"')); // no link to itself
+
+  const res = await worker.fetch(new Request("https://domicircles.com/beta"), {
+    ...env,
+    TESTFLIGHT_URL: "https://testflight.apple.com/join/AbC123",
+  });
+  const withLink = await res.text();
+  assert.match(withLink, /href="https:\/\/testflight\.apple\.com\/join\/AbC123">Get the Domi test app/);
+  assert.ok(!withLink.includes("isn't ready yet"));
+});
+
+test("invite and listing pages show the install steps, ask the inviter or owner for the link, and link to /beta", async () => {
+  mockConvex({
+    "invites:preview": ({ code }) => ({ code, name: "Baby Shower", emoji: "🍼", description: null, memberCount: 3, invitedBy: "Sam" }),
+    "shares:preview": ({ code }) => ({ code, available: true, title: "Crib", description: "Oak", status: "available", photoUrl: null, ownerName: "Ellen", circleName: null, postedAt: 1 }),
+  });
+  const invite = await (await get("/c/7K2MQX9P")).text();
+  assert.match(invite, /Get the test version/);
+  assert.match(invite, /ask Sam to send it/);
+  assert.match(invite, /href="\/beta"/);
+  assert.match(invite, /Open in Domi/);
+  const listing = await (await get("/i/AAAABBBB")).text();
+  assert.match(listing, /ask Ellen to send it/);
+  assert.match(listing, /domi:\/\/i\/AAAABBBB/);
+});
