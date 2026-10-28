@@ -10,7 +10,7 @@ import {
   requireMember,
   requireProfile,
 } from "./lib/access";
-import { addMembership, deleteCircleRows, leaveCommunity, previewLeave } from "./lib/circles";
+import { addMembership, customCircleCount, deleteCircleRows, leaveCommunity, MAX_CIRCLES, previewLeave, TOO_MANY_CIRCLES } from "./lib/circles";
 import { cleanEmoji, cleanOptionalText, cleanText, LIMITS } from "./lib/validate";
 
 /** My circles: zip circle first, then custom circles by name. */
@@ -165,6 +165,7 @@ export const create = mutation({
   args: { name: v.string(), emoji: v.string(), description: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const { userId } = await requireProfile(ctx);
+    if ((await customCircleCount(ctx, userId)) >= MAX_CIRCLES) fail(TOO_MANY_CIRCLES);
     const id = await ctx.db.insert("communities", {
       name: cleanText(args.name, "Name", LIMITS.circleName),
       emoji: cleanEmoji(args.emoji),

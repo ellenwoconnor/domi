@@ -17,6 +17,7 @@ import { writeEvent } from "./lib/events";
 import { closeWish, openSelection } from "./lib/lifecycle";
 import { checkPhotos, itemText } from "./lib/photos";
 import { cleanOptionalText, cleanText, LIMITS, LISTING_LIFETIME_MS } from "./lib/validate";
+import { rateLimit } from "./lib/rateLimit";
 
 // Wishes and offers. Offers are private listings linked to a wish; they
 // accumulate and the wisher picks one. See "Wish offers" in docs/spec.md.
@@ -63,6 +64,7 @@ export const create = mutation({
   args: { title: v.string(), description: v.optional(v.string()), communityIds: v.array(v.id("communities")) },
   handler: async (ctx, args) => {
     const { userId } = await requireProfile(ctx);
+    await rateLimit(ctx, "wish", userId);
     const circles = [...new Set(args.communityIds)];
     if (circles.length === 0) fail("Pick at least one circle");
     for (const c of circles) await requireMember(ctx, c, userId);
@@ -155,6 +157,7 @@ export const offer = mutation({
   },
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
+    await rateLimit(ctx, "post", userId);
     const wish = await ctx.db.get(args.wishId);
     if (!wish || !(await canSeeWish(ctx, userId, wish))) fail("Wish not found");
     if (wish.userId === userId) fail("You can't offer on your own wish");

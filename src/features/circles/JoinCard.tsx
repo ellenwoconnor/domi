@@ -17,6 +17,7 @@ const REASONS: Record<string, string> = {
   revoked: "That invite link has been replaced. Ask for a new one.",
   banned: "You can't rejoin this circle.",
   unavailable: "That invite isn't available.",
+  too_many_circles: "You're in 10 circles, the most for now. Leave one to join this one.",
 };
 
 /**

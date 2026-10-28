@@ -1,7 +1,7 @@
 import type { Id } from "../_generated/dataModel";
 import type { MutationCtx } from "../_generated/server";
 import { displayName, getMembership, isBlockedEitherWay } from "./access";
-import { addMembership } from "./circles";
+import { addMembership, customCircleCount, MAX_CIRCLES } from "./circles";
 import { isWellFormedCode, normalizeCode } from "./codes";
 import { writeEvent } from "./events";
 
@@ -9,7 +9,7 @@ import { writeEvent } from "./events";
 
 export type RedeemResult =
   | { ok: true; communityId?: Id<"communities">; itemId?: Id<"items"> }
-  | { ok: false; reason: "invalid" | "revoked" | "banned" | "unavailable" };
+  | { ok: false; reason: "invalid" | "revoked" | "banned" | "unavailable" | "too_many_circles" };
 
 export async function redeemInviteCode(ctx: MutationCtx, userId: Id<"users">, rawCode: string): Promise<RedeemResult> {
   const code = normalizeCode(rawCode);
@@ -29,6 +29,7 @@ export async function redeemInviteCode(ctx: MutationCtx, userId: Id<"users">, ra
     .withIndex("by_community_user", (q) => q.eq("communityId", community._id).eq("userId", userId))
     .first();
   if (banned) return { ok: false, reason: "banned" };
+  if ((await customCircleCount(ctx, userId)) >= MAX_CIRCLES) return { ok: false, reason: "too_many_circles" };
 
   await addMembership(ctx, community, userId, { invitedBy: invite.inviterId, inviteId: invite._id });
   const who = await displayName(ctx, userId);

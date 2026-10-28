@@ -5,6 +5,7 @@ import { displayName, fail, requireOwnItem, requireProfile } from "./lib/access"
 import { photoUrls } from "./lib/cards";
 import { generateCode, isWellFormedCode, normalizeCode } from "./lib/codes";
 import { redeemShareCode } from "./lib/redeem";
+import { rateLimit } from "./lib/rateLimit";
 
 // Listing share links for posting outside Domi (e.g. a Buy Nothing group).
 // URL: https://<domain>/i/<code>. Owner only. Redeeming lets the person
@@ -90,6 +91,7 @@ export const redeem = mutation({
   args: { code: v.string() },
   handler: async (ctx, { code }) => {
     const { userId } = await requireProfile(ctx);
+    await rateLimit(ctx, "redeem", userId);
     return await redeemShareCode(ctx, userId, code);
   },
 });
