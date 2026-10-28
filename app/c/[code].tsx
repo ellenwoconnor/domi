@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuthState } from "../../src/features/auth/useAuthState";
+import { hasProfile, useAuthState } from "../../src/features/auth/useAuthState";
 import { JoinCard } from "../../src/features/circles/JoinCard";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
 import { color, space } from "../../src/ui/theme";
@@ -11,7 +11,7 @@ export default function InviteLink() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const state = useAuthState();
   if (state === "loading") return <SafeAreaView style={styles.screen} />;
-  const mode = state === "onboarded" ? "member" : state === "signedOut" ? "signIn" : "onboarding";
+  const mode = hasProfile(state) ? "member" : state === "signedOut" ? "signIn" : "onboarding";
   return (
     <SafeAreaView style={styles.screen}>
       <ScreenHeader close />

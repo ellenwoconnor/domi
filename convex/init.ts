@@ -23,7 +23,8 @@ export default internalMutation({
     // Owned by the code: set on every run, so bumping it here updates the deployment.
     const pinned: Record<string, string> = {
       // The effective date of the terms in web/src/legal.js. Bump when the terms
-      // change; signup requires the app to send this exact value.
+      // change; signup requires the app to send this exact value, and people who
+      // accepted an older version are asked to accept again (app/terms.tsx).
       terms_version: "2026-10-25",
     };
     for (const [key, value] of Object.entries({ ...defaults, ...pinned })) {

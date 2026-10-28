@@ -8,7 +8,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import { addPendingCode } from "../../src/features/auth/pendingCodes";
-import { useAuthState } from "../../src/features/auth/useAuthState";
+import { hasProfile, useAuthState } from "../../src/features/auth/useAuthState";
 import { errorMessage } from "../../src/lib/errors";
 import { ErrorNote, PrimaryButton } from "../../src/ui/Form";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
@@ -29,7 +29,7 @@ export default function SharedListingLink() {
 
   // Signed up: redeem and go straight to the listing.
   useEffect(() => {
-    if (state !== "onboarded") return;
+    if (!hasProfile(state)) return;
     redeem({ code })
       .then((r) => {
         if (r.ok && r.itemId) router.replace(`/item/${r.itemId}`);
@@ -48,7 +48,7 @@ export default function SharedListingLink() {
     <SafeAreaView style={styles.screen}>
       <ScreenHeader close />
       <ScrollView contentContainerStyle={styles.body}>
-        {state === "loading" || state === "onboarded" || preview.isPending ? (
+        {state === "loading" || hasProfile(state) || preview.isPending ? (
           error ? <ErrorNote message={error} /> : <ActivityIndicator color={color.bay} />
         ) : !p || !p.available ? (
           <Text style={type.title}>This one has already found a home.</Text>

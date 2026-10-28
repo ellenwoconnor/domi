@@ -173,3 +173,45 @@ describe("intro cards", () => {
     await expect(as.mutation(api.profiles.markIntroSeen, {})).rejects.toThrow("Finish signing up");
   });
 });
+
+describe("terms changes (M6)", () => {
+  const bump = (t: Awaited<ReturnType<typeof setup>>, value: string) =>
+    t.run(async (ctx) => {
+      const row = await ctx.db
+        .query("appConfig")
+        .withIndex("by_key", (q) => q.eq("key", "terms_version"))
+        .unique();
+      await ctx.db.patch(row!._id, { value });
+    });
+
+  test("people who accepted an older version must accept the new one", async () => {
+    const t = await setup();
+    const ana = await newUser(t, "Ana");
+    expect((await ana.as.query(api.profiles.me, {}))?.profile).toMatchObject({ termsCurrent: true });
+
+    await bump(t, "2027-01-01");
+    expect((await ana.as.query(api.profiles.me, {}))?.profile).toMatchObject({
+      termsCurrent: false,
+      currentTermsVersion: "2027-01-01",
+    });
+
+    await expect(ana.as.mutation(api.profiles.acceptTerms, { termsVersion: TERMS })).rejects.toThrow("changed again");
+    await ana.as.mutation(api.profiles.acceptTerms, { termsVersion: "2027-01-01" });
+    expect((await ana.as.query(api.profiles.me, {}))?.profile).toMatchObject({ termsCurrent: true });
+    const profile = await t.run((ctx) =>
+      ctx.db
+        .query("profiles")
+        .withIndex("by_userId", (q) => q.eq("userId", ana.userId))
+        .unique(),
+    );
+    expect(profile?.termsVersion).toBe("2027-01-01");
+  });
+
+  test("only signed-up people can accept", async () => {
+    const t = await setup();
+    await expect(t.mutation(api.profiles.acceptTerms, { termsVersion: TERMS })).rejects.toThrow();
+    const userId = await t.run((ctx) => ctx.db.insert("users", { name: "Nopro" }));
+    const as = t.withIdentity({ subject: `${userId}|session-x` });
+    await expect(as.mutation(api.profiles.acceptTerms, { termsVersion: TERMS })).rejects.toThrow("Finish signing up");
+  });
+});

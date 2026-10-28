@@ -1,18 +1,15 @@
-import { useAuthActions } from "@convex-dev/auth/react";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { useMutation } from "convex/react";
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
-import { signOutOfProviders } from "../src/features/auth/nativeSignIn";
+import { useAccountActions } from "../src/features/auth/useAccountActions";
 import { openLegal } from "../src/features/legal";
-import { pushPermission, unregisterDevice, type PushPermission } from "../src/features/push/push";
+import { pushPermission, type PushPermission } from "../src/features/push/push";
 import { useAskForPush } from "../src/features/push/useAskForPush";
-import { errorMessage } from "../src/lib/errors";
 import { Avatar } from "../src/ui/Avatar";
 import { ErrorNote } from "../src/ui/Form";
 import { ScreenHeader } from "../src/ui/ScreenHeader";
@@ -24,11 +21,7 @@ export default function You() {
   const { data: circles } = useQuery(convexQuery(api.communities.mine, {}));
   const p = me?.profile;
   const home = circles?.find((c) => c.kind === "zip");
-  const { signOut } = useAuthActions();
-  const deleteAccount = useMutation(api.profiles.deleteAccount);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const unregister = useMutation(api.activity.unregisterPushToken);
+  const { doSignOut, confirmDelete, deleting, error } = useAccountActions();
   const askForPush = useAskForPush();
   const [push, setPush] = useState<PushPermission | null>(null);
   useFocusEffect(
@@ -41,38 +34,6 @@ export default function You() {
     // Granted or blocked: only the Settings app can change it now.
     if (push === "ask") askForPush("settings").catch(() => {});
     else Linking.openSettings().catch(() => {});
-  }
-
-  async function doSignOut() {
-    await unregisterDevice(unregister);
-    await signOutOfProviders();
-    await signOut();
-  }
-
-  function confirmDelete() {
-    Alert.alert(
-      "Delete your account?",
-      "This permanently deletes your profile, listings, wishes, requests and messages. Anyone you were arranging a pickup with will be told. This can't be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete account",
-          style: "destructive",
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await unregisterDevice(unregister);
-              await deleteAccount({});
-              await signOutOfProviders();
-              await signOut().catch(() => {}); // the session is already gone on the server
-            } catch (e) {
-              setError(errorMessage(e));
-              setDeleting(false);
-            }
-          },
-        },
-      ],
-    );
   }
 
   return (
