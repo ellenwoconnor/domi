@@ -5,6 +5,7 @@ import { displayName, fail, isBlockedEitherWay, requireProfile } from "./lib/acc
 import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { cleanText, LIMITS } from "./lib/validate";
+import { rateLimit } from "./lib/rateLimit";
 
 // Pickup threads. Only the two participants can read or write, and only
 // while the conversation is open. Realtime comes from Convex live queries.
@@ -110,6 +111,7 @@ export const send = mutation({
     if (c.closedAt !== undefined) fail("This conversation is closed");
     const otherId = c.ownerId === userId ? c.recipientId : c.ownerId;
     if (await isBlockedEitherWay(ctx, userId, otherId)) fail("You can't message this person");
+    await rateLimit(ctx, "message", userId);
     const body = cleanText(args.body, "Message", LIMITS.message);
     const now = Date.now();
     const messageId = await ctx.db.insert("messages", { conversationId: c._id, senderId: userId, body });

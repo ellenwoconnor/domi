@@ -44,6 +44,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
+    await rateLimit(ctx, "post", userId);
     const text = itemText(args.title, args.description);
     await checkPhotos(ctx, args.photos, args.thumbs);
     const circles = [...new Set(args.communityIds)];
@@ -143,6 +144,7 @@ export const repost = mutation({
     const item = await requireOwnItem(ctx, userId, itemId);
     if (item.status !== "expired") fail("Only expired listings can be reposted");
     if (item.photosPurgedAt !== undefined) fail("This listing is too old to repost; post it again");
+    await rateLimit(ctx, "post", userId);
     if (item.visibility === "public") {
       const link = await ctx.db
         .query("itemCommunities")

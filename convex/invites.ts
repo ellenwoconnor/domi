@@ -4,6 +4,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/s
 import { displayName, fail, requireMember, requireProfile } from "./lib/access";
 import { generateCode, isWellFormedCode, normalizeCode } from "./lib/codes";
 import { redeemInviteCode } from "./lib/redeem";
+import { rateLimit } from "./lib/rateLimit";
 
 // Invite links: one per member per custom circle. URL: https://<domain>/c/<code>
 
@@ -100,6 +101,7 @@ export const redeem = mutation({
   args: { code: v.string() },
   handler: async (ctx, { code }) => {
     const { userId } = await requireProfile(ctx);
+    await rateLimit(ctx, "redeem", userId);
     return await redeemInviteCode(ctx, userId, code);
   },
 });

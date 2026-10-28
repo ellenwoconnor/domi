@@ -27,6 +27,22 @@ export async function addMembership(
   return id;
 }
 
+/** Most invite-only circles one person can be in (the home zip circle doesn't count). Bounds the feed's cost. */
+export const MAX_CIRCLES = 10;
+export const TOO_MANY_CIRCLES = `You're in ${MAX_CIRCLES} circles, the most for now. Leave one to join or start another.`;
+
+export async function customCircleCount(ctx: QueryCtx | MutationCtx, userId: Id<"users">) {
+  const memberships = await ctx.db
+    .query("memberships")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  let count = 0;
+  for (const m of memberships) {
+    if ((await ctx.db.get(m.communityId))?.kind === "custom") count++;
+  }
+  return count;
+}
+
 export async function lookupZip(ctx: QueryCtx | MutationCtx, zip: string) {
   return await ctx.db
     .query("zipCodes")
