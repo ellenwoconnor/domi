@@ -18,6 +18,7 @@ export const me = query({
     if (userId === null) return null;
     const profile = await getProfile(ctx, userId);
     if (!profile) return { userId, needsSignup: true as const, profile: null };
+    const terms = await currentTermsVersion(ctx);
     return {
       userId,
       needsSignup: false as const,
@@ -27,6 +28,10 @@ export const me = query({
         approxLat: profile.approxLat,
         approxLng: profile.approxLng,
         termsVersion: profile.termsVersion,
+        // False when the terms changed since this person accepted them: the app
+        // asks them to accept the new version before anything else.
+        termsCurrent: terms === null || profile.termsVersion === terms,
+        currentTermsVersion: terms,
         banned: profile.bannedAt !== undefined,
         introSeen: profile.introSeenAt !== undefined,
         pushAskCount: profile.pushAskCount ?? 0,
@@ -36,7 +41,7 @@ export const me = query({
   },
 });
 
-async function currentTermsVersion(ctx: MutationCtx) {
+async function currentTermsVersion(ctx: QueryCtx | MutationCtx) {
   const row = await ctx.db
     .query("appConfig")
     .withIndex("by_key", (q) => q.eq("key", "terms_version"))
@@ -126,6 +131,19 @@ export const redeemSavedCodes = mutation({
       shares.push({ code, result: await redeemShareCode(ctx, userId, code) });
     }
     return { invites, shares };
+  },
+});
+
+/** Accepts the current terms after they changed (signup accepts them in completeSignup). */
+export const acceptTerms = mutation({
+  args: { termsVersion: v.string() },
+  handler: async (ctx, args) => {
+    const { profile } = await requireProfile(ctx);
+    const terms = await currentTermsVersion(ctx);
+    if (!terms) fail("Terms of service aren't configured");
+    if (args.termsVersion !== terms) fail("The terms changed again. Please review the latest version.");
+    if (profile.termsVersion === terms) return;
+    await ctx.db.patch(profile._id, { termsVersion: terms, termsAcceptedAt: Date.now() });
   },
 });
 

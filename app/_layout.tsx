@@ -45,6 +45,7 @@ export default function RootLayout() {
 /**
  * Three states, each with its own screens:
  * signed out → sign-in; signed in without a profile → onboarding; onboarded → the app.
+ * Signed up but the terms changed since they accepted → the updated-terms screen.
  * Invite and shared-listing links (c/, i/) open in every state.
  */
 function AppStack() {
@@ -79,6 +80,9 @@ function AppStack() {
         <Stack.Screen name="join" options={{ presentation: "modal" }} />
         <Stack.Screen name="welcome" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
         <Stack.Screen name="notify" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
+      </Stack.Protected>
+      <Stack.Protected guard={state === "needsTerms"}>
+        <Stack.Screen name="terms" />
       </Stack.Protected>
       <Stack.Protected guard={state === "needsSignup"}>
         <Stack.Screen name="onboarding" />
