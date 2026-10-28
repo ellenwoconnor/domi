@@ -25,6 +25,7 @@ These are public identifiers. They ship inside the app or the website, or they'r
 | --- | --- | --- |
 | Apple Team ID | `8XGZ3GZ28Q` | `web/src/index.js` (apple-app-site-association) |
 | iOS bundle ID / Android package | `com.ellenwoconnor.domi` | `app.json`, `convex/lib/idTokens.ts` |
+| App Store Connect app (Apple ID) | `6827833753` | `eas.json` (`submit.production.ios.ascAppId`) |
 | EAS project ID | `143c2f13-0e37-45a7-8f0a-21432b734733` | `app.json` |
 | Expo slug | `domi` | `app.json` |
 | Google Cloud project number | `681321857586` | inside the client IDs |
