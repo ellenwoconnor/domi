@@ -60,9 +60,34 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 
 ## M6. Expiry, caps, and launch readiness
 - Convex cron jobs (`convex/crons.ts`) for listing expiry; open-request cap per user, per-circle mute. (Done. The digest became M5's circle activity pushes.)
-- Privacy policy, terms, store forms. TestFlight and Google Play closed test (12 testers, 14 days).
-- Status 2026-10-24: Terms of Service and Privacy Policy written (adapted from the Corcles terms; text in `web/src/legal.js`) and served at domicircles.com/terms and /privacy; the app links to them from sign-in, onboarding and You. `terms_version` is 2026-10-25 (non-physical offers allowed, "free for now" wording). Still to do: set up support@domicircles.com (Cloudflare Email Routing → Gmail), and a "the terms changed, please accept" prompt for existing users before the terms next change.
+- Terms of Service and Privacy Policy (done 2026-10-24): text in `web/src/legal.js`, served at domicircles.com/terms and /privacy, linked from sign-in, onboarding and You. `terms_version` is 2026-10-25. support@domicircles.com is set up.
 - Done when: the app passes an internal test with real users from the first circle.
+
+Checklist (agreed 2026-10-27; Android/Play closed test and in-app feedback still to decide):
+
+1. Abuse and cost limits
+   - [x] Rate limits (`convex/lib/rateLimit.ts`): posting (listings, reposts, offers) 20/day, wishes 20/day, chat messages 30/minute, invite and share code redemption 10/hour. Tests in `convex/limits.test.ts`.
+   - [x] At most 10 invite-only circles per person (`MAX_CIRCLES` in `convex/lib/circles.ts`; the home circle doesn't count). Redeeming at the cap returns `too_many_circles`.
+   - [ ] Website: Cloudflare rate-limiting rule on `/c/*` and `/i/*`, and short caching of the "link not working" pages (Cloudflare dashboard).
+2. Terms re-acceptance
+   - [x] When `terms_version` changes, people who accepted an older version see `app/terms.tsx` (agree, sign out, or delete account) before the app. `profiles.acceptTerms`.
+3. Production backend
+   - [ ] Create the Convex prod deployment; `setup:auth`, env vars, seed.
+   - [ ] Load the full US zip table into prod (`scripts/import-zips.mjs`, `--prod`).
+   - [ ] Confirm `DEV_PASSWORD_AUTH` is not set on prod.
+   - [ ] Point the `production` EAS profile and the website at prod; update `docs/vendors.md` and `CLAUDE.md`.
+   - [ ] Move Convex to Starter (pay as you go) before sending the TestFlight link to the circle; set a spending alert if offered. Until then the free plan is fine.
+4. TestFlight
+   - [ ] App Store Connect app record.
+   - [ ] `ITSAppUsesNonExemptEncryption: false` in `app.json`.
+   - [ ] Production build and `eas submit` to TestFlight.
+   - [ ] App privacy details, description, support URL.
+   - [ ] External tester group with a public link; Beta App Review (reviewer notes plus a test-circle invite code).
+   - [ ] Optional: "Get Domi" button on the invite and listing pages linking to TestFlight.
+5. Internal test with the first circle
+   - [ ] Test script: invite signup, post, request, pick, chat, pickup, wish and fulfill, push.
+   - [ ] Feedback channel (TestFlight's built-in feedback, or a "Send feedback" item in You).
+   - [ ] Run the test; triage and fix.
 
 ## Cost controls (noted 2026-10-24)
 
@@ -79,10 +104,10 @@ Before launch (uploads). Done 2026-10-24, with a small built-in limiter (`convex
 - [x] Rate-limit `items.generateUploadUrl` (60/hour: each photo is two uploads).
 
 Rate limits (with the above, or by M6):
-- [ ] `items.create` and `items.repost`: ~20/day.
-- [ ] `conversations.send`: ~30/minute (spam, and each message will send a push).
-- [ ] `invites.redeem` (and share-code redemption): ~10/hour.
-- [ ] Cap circles per user (~10). `browse` reads rows per circle, so this bounds the feed's cost too.
+- [x] `items.create` and `items.repost`: ~20/day. (M6, with offers; wishes have their own 20/day.)
+- [x] `conversations.send`: ~30/minute (spam, and each message will send a push).
+- [x] `invites.redeem` (and share-code redemption): ~10/hour.
+- [x] Cap circles per user (~10). `browse` reads rows per circle, so this bounds the feed's cost too.
 - [ ] Website: one Cloudflare rate-limiting rule (free plan) on `/c/*` and `/i/*`, and short Cloudflare caching of the "link not working" pages, so scraping can't run up Convex calls or use up the Worker's 100k requests/day.
 
 Account settings (at the prod deployment, M6):
@@ -91,7 +116,7 @@ Account settings (at the prod deployment, M6):
 - [ ] Habit: ship JS-only changes with `npm run update:preview` rather than a build (15 free iOS builds/month).
 
 When building push (M5):
-- [ ] Send to Expo in batches (up to 100 messages per request), not one call per event.
+- [x] Send to Expo in batches (up to 100 messages per request), not one call per event.
 
 As usage grows (not urgent):
 - [ ] `browse` is a live query that re-runs for every viewer whenever any listing in their circles changes, reading up to `limit × 2` rows per circle. Move to a paginated feed if function calls or database bandwidth climb.
