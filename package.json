@@ -54,7 +54,10 @@
     "setup:auth": "node scripts/setup-auth-keys.mjs",
     "test:web": "node --test web/src/index.test.mjs",
     "update:preview": "npx eas-cli@latest update --channel preview --environment preview --platform ios",
-    "build:preview:ios": "npx eas-cli@latest build --profile preview --platform ios"
+    "build:preview:ios": "npx eas-cli@latest build --profile preview --platform ios",
+    "build:prod:ios": "npx eas-cli@latest build --profile production --platform ios",
+    "submit:ios": "npx eas-cli@latest submit --profile production --platform ios --latest",
+    "update:production": "npx eas-cli@latest update --channel production --environment production --platform ios"
   },
   "private": true
 }
