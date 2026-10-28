@@ -43,7 +43,8 @@ Keep this list accurate.
 - Build the development app on Expo's servers (needed after adding native libraries): `npm run build:dev:ios`
 - Build the shareable test app (installs on registered iPhones; register a new phone first with `npx eas-cli@latest device:create`, then say yes to re-provisioning): `npm run build:preview:ios`
 - Push JS/TS changes to installed preview builds without rebuilding (EAS Update, channel `preview`; the app picks it up on the next launch or two): `npm run update:preview`. Native changes (new native library, `app.json` plugins/permissions) change the fingerprint runtime version and need a new build instead.
-- One-time auth key setup per Convex deployment: `npm run setup:auth`
+- One-time auth key setup per Convex deployment: `npm run setup:auth` (prod: `npm run setup:auth -- --prod`)
+- Production (Convex `rugged-dragon-667`): any `npx convex` command takes `--prod` (e.g. `npx convex run --prod init` after a deploy, `npx convex env list --prod`). Deploy functions: `npx convex deploy`. App builds for TestFlight: `npm run build:prod:ios`, then `npm run submit:ios`; JS-only fixes to them: `npm run update:production`. Production builds and updates read `EXPO_PUBLIC_*` values from EAS environment variables (environment `production`), not `.env.local`.
 - Run a function by hand: `npx convex run <module>:<fn> '{"arg": 1}'`
 - Open the Convex dashboard (data browser, logs): `npx convex dashboard`
 - Tests: `npm test`

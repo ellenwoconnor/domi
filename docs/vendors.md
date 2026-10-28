@@ -32,7 +32,7 @@ These are public identifiers. They ship inside the app or the website, or they'r
 | Google web OAuth client ID | `681321857586-j15evloc5hlnaqv81hs47n5nin2gn1k1.apps.googleusercontent.com` | `.env.local`, Convex env `AUTH_GOOGLE_ID` |
 | Convex team / project | `ellen-o-connor` / `domi` | dashboard |
 | Convex dev deployment | `sincere-corgi-37` → `https://sincere-corgi-37.convex.cloud` (HTTP actions: `.convex.site`) | `.env.local`, `web/wrangler.toml` |
-| Convex prod deployment | not created yet | — |
+| Convex prod deployment | `rugged-dragon-667` → `https://rugged-dragon-667.convex.cloud` (HTTP actions: `.convex.site`) | EAS env vars (environment `production`); `web/wrangler.toml` once the first circle moves to TestFlight |
 | Cloudflare account ID | `b0f8e0d4a12ccb67e937209833ae618d` | wrangler (not secret, but no need to publish) |
 | Cloudflare Worker | `domicircles` on `domicircles.com` | `web/wrangler.toml` |
 | Domain | `domicircles.com` | app links, website, terms and privacy pages |
@@ -46,7 +46,7 @@ Names and where each one lives; values stay in those places.
 | Secret | Lives in | Notes |
 | --- | --- | --- |
 | `JWT_PRIVATE_KEY` | Convex env (per deployment) | Signs session tokens. Made by `npm run setup:auth`. (`JWKS` beside it is the public half.) |
-| `AUTH_GOOGLE_SECRET` | Convex env | Google web client secret, if set. |
+| `AUTH_GOOGLE_SECRET` | Convex env (dev only) | Not used by the code (native sign-in only needs `AUTH_GOOGLE_ID`); safe to remove. Not set on prod. |
 | `DEV_PASSWORD_AUTH` | Convex env, dev only | Not a secret, but **must never be `true` on prod**. |
 | Apple distribution certificate, provisioning profiles | EAS (managed credentials) | `npx eas-cli credentials` to view. |
 | APNs key (push) | EAS | Apple allows 2 per account; reuse it. |
