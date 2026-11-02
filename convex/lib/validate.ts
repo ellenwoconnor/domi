@@ -1,4 +1,5 @@
 import { fail } from "./access";
+import { containsBlockedWord } from "./blockedWords";
 
 // Shared input rules. Client ids are never trusted; these only shape text.
 
@@ -27,10 +28,21 @@ export const PHOTO_RETENTION_MS = 30 * DAY_MS;
 /** Uploads not attached to a listing by then are deleted (maintenance.purgeOrphanUploads). */
 export const ORPHAN_UPLOAD_MS = DAY_MS;
 
-export function cleanText(value: string, field: string, max: number, { required = true } = {}): string {
+/**
+ * Trims and checks length. Unless `screen` is false, refuses text with a
+ * blocked word (lib/blockedWords.ts). Report reasons skip the screen, since
+ * people quote what they're reporting.
+ */
+export function cleanText(
+  value: string,
+  field: string,
+  max: number,
+  { required = true, screen = true }: { required?: boolean; screen?: boolean } = {},
+): string {
   const text = value.trim();
   if (required && text.length === 0) fail(`${field} is required`);
   if (text.length > max) fail(`${field} must be ${max} characters or fewer`);
+  if (screen && containsBlockedWord(text)) fail(`${field} has language that isn't allowed on Domi`);
   return text;
 }
 

@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { displayName, fail, getProfile, requireProfile } from "./lib/access";
 import { cleanText, LIMITS } from "./lib/validate";
@@ -6,8 +7,8 @@ import { cleanupBetween } from "./lib/lifecycle";
 import { reportTarget } from "./schema";
 
 // Block and report. Blocking hides everything both ways and quietly undoes
-// requests, offers and threads between the two people. Reports are reviewed
-// by hand in the Convex dashboard.
+// requests, offers and threads between the two people. Each report emails
+// the developer with commands to act on it (convex/moderation.ts).
 
 export const block = mutation({
   args: { userId: v.id("users") },
@@ -65,12 +66,15 @@ export const report = mutation({
       args.targetId,
     );
     if (!targetId || !(await ctx.db.get(targetId))) fail("Nothing to report");
-    return await ctx.db.insert("reports", {
+    const reportId = await ctx.db.insert("reports", {
       reporterId: userId,
       targetType: args.targetType,
       targetId,
-      reason: cleanText(args.reason, "Reason", LIMITS.reportReason),
+      reason: cleanText(args.reason, "Reason", LIMITS.reportReason, { screen: false }),
       status: "open",
     });
+    // Emails the developer (convex/moderation.ts).
+    await ctx.scheduler.runAfter(0, internal.moderation.sendReportAlert, { reportId });
+    return reportId;
   },
 });

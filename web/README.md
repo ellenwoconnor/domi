@@ -14,6 +14,23 @@ A Cloudflare Worker (free plan) that serves:
 
 It reads from the public Convex queries `invites:preview` and `shares:preview`.
 
+`POST /internal/report-alert` (`src/alerts.js`) emails the developer when someone files a report in the app. Convex's `moderation:sendReportAlert` calls it with a shared secret.
+
+## Report alerts setup
+
+1. Cloudflare dashboard → domicircles.com → Email → Email Routing: make sure it's on and the address you want alerts at is a **verified destination address** (it already is if support@ forwards there).
+2. Pick a long random secret (`openssl rand -hex 32`), then:
+   ```sh
+   cd web
+   npx wrangler secret put REPORT_ALERT_SECRET   # paste the secret
+   npx wrangler secret put REPORT_ALERT_TO       # your verified address
+   npx wrangler deploy
+   cd ..
+   npx convex env set --prod REPORT_ALERT_URL https://domicircles.com/internal/report-alert
+   npx convex env set --prod REPORT_ALERT_SECRET <same secret>
+   ```
+3. Test: report something in the app; the email arrives within a minute. If not, check `npx convex logs --prod` for "Report alert failed".
+
 ## One-time setup
 
 1. Add `domicircles.com` to Cloudflare (free plan). Cloudflare shows two nameservers.

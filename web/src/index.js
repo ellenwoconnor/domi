@@ -14,12 +14,15 @@
 // - serves /beta, which explains the TestFlight test version and how to
 //   install it; invite and listing pages show the same steps. The TestFlight
 //   public link comes from the TESTFLIGHT_URL var (wrangler.toml).
+// - emails the developer when someone files a report (POST
+//   /internal/report-alert, called by Convex; see alerts.js).
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
 import { homeHtml } from "./home.js";
 import { OG_IMAGE_BASE64 } from "./og-image.js";
 import { privacyBody, termsBody } from "./legal.js";
 import { supportBody } from "./support.js";
+import { reportAlert } from "./alerts.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
@@ -31,6 +34,8 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+
+    if (path === "/internal/report-alert" && request.method === "POST") return reportAlert(request, env);
 
     if (path === "/.well-known/apple-app-site-association" || path === "/apple-app-site-association") {
       return json({

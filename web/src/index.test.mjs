@@ -182,3 +182,33 @@ test("invite and listing pages show the steps, ask the inviter or owner for the 
   assert.match(listing, /Ask Ellen to send you the Domi test link/);
   assert.match(listing, /href="domi:\/\/i\/AAAABBBB">See it in Domi/);
 });
+
+test("report alert: needs the shared secret, then emails the subject and text", async () => {
+  const { reportAlert } = await import("./alerts.js");
+  const sent = [];
+  class FakeEmailMessage {
+    constructor(from, to, raw) {
+      Object.assign(this, { from, to, raw });
+    }
+  }
+  const env = { REPORT_ALERT_SECRET: "s3cret", REPORT_ALERT_TO: "me@example.com", REPORT_EMAIL: { send: async (m) => sent.push(m) } };
+  const req = (auth) =>
+    new Request("https://domicircles.com/internal/report-alert", {
+      method: "POST",
+      headers: { authorization: auth, "content-type": "application/json" },
+      body: JSON.stringify({ subject: "Domi report: listing (Spam or scam)", text: "Maya reported a listing. ✓" }),
+    });
+
+  assert.equal((await reportAlert(req("Bearer wrong"), env, FakeEmailMessage)).status, 401);
+  assert.equal((await worker.fetch(req("Bearer wrong"), env, {})).status, 401);
+  assert.equal(sent.length, 0);
+
+  const res = await reportAlert(req("Bearer s3cret"), env, FakeEmailMessage);
+  assert.equal(res.status, 200);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].from, "alerts@domicircles.com");
+  assert.equal(sent[0].to, "me@example.com");
+  const [headers, body] = sent[0].raw.split("\r\n\r\n");
+  assert.match(headers, /^Subject: =\?UTF-8\?B\?/m);
+  assert.equal(new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\r\n/g, "")), (c) => c.charCodeAt(0))), "Maya reported a listing. ✓");
+});

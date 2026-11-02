@@ -151,7 +151,7 @@ export const privacyBody = `
 </ul>
 
 <h2>Services that help run Domi</h2>
-<p>We use a few providers to run Domi. They process information only to provide their service to us:</p>
+<p>We use a few providers to run Domi. They process information only to provide their service to us, and they're required to protect it at least as well as this policy does:</p>
 <ul>
 <li><b>Convex</b>: database, file storage for photos, and the app's backend.</li>
 <li><b>Expo</b>: app updates and delivery of push notifications (the notification text passes through Expo and Apple or Google).</li>

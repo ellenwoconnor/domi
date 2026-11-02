@@ -51,6 +51,7 @@ Names and where each one lives; values stay in those places.
 | `DEV_PASSWORD_AUTH` | Convex env, dev only | Not a secret, but **must never be `true` on prod**. |
 | Apple distribution certificate, provisioning profiles | EAS (managed credentials) | `npx eas-cli credentials` to view. |
 | APNs key (push) | EAS | Apple allows 2 per account; reuse it. |
+| `REPORT_ALERT_SECRET` | Convex env (prod) and Worker secret | Same value in both. Lets Convex ask the Worker to email report alerts. Convex also needs `REPORT_ALERT_URL`; the Worker needs `REPORT_ALERT_TO` (your verified Email Routing address). See `web/README.md`. |
 | Sign in with Apple key (.p8) | Convex env, later | Needed to revoke Apple sign-in on account deletion (App Review). |
 | Convex deploy key | Only if CI deploys | Not used yet. |
 | Expo access token (`EXPO_TOKEN`) | Only if CI builds | Not used yet. |
