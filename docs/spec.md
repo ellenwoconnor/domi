@@ -59,9 +59,9 @@ The circle page: emoji, name, description, "8 neighbors · started by Maya", one
 
 User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoch. Status values are typed unions in `convex/schema.ts`.
 
-- `profiles` (userId, displayName, zip, approxLat, approxLng, avatarStorageId?, termsVersion, termsAcceptedAt, bannedAt?)
+- `profiles` (userId, displayName, zip, approxLat, approxLng, avatarStorageId?, termsVersion, termsAcceptedAt, bannedAt?, zipChangedAt?)
   - One per user, created only by `profiles.completeSignup`. A signed-in user without a profile is sent to onboarding.
-  - zip changes only through `profiles.changeZip`.
+  - zip changes only through `profiles.changeZip`, at most once per 30 days. The first change after signup is free; moving the pin within the same zip doesn't count. `zipChangedAt` records the last change; `profiles.me` and `previewZipChange` return `nextZipChangeAt` / `nextChangeAt` so the app can say when.
 - `zipCodes` (zip, city, state, lat, lng): US reference data, loaded once with `scripts/import-zips.mjs`. Signup and zip change reject unknown zips. Zip circles are named "City · 94610".
 - `communities` (name, emoji, description?, kind: 'zip' | 'custom', zip?, createdBy?, memberCount)
   - kind 'zip': one per zip, created on demand, no owner, no invites.
@@ -97,6 +97,7 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
 - `pushTokens` (userId, token, platform)
 - `reports` (reporterId, targetType: 'item' | 'user' | 'message' | 'wishlist_item', targetId, reason, status: 'open' | 'reviewed' | 'dismissed')
 - `blocks` (blockerId, blockedId)
+- `noShows` (requesterId, ownerId, itemId, requestId, at): one row per missed pickup, written when the owner un-picks with `noShow`. Private: nobody sees it in the app. See "Missed pickups".
 
 Location: store only rounded coordinates (3 decimal places), never a street address. The owner shares the exact address in the thread after picking a recipient.
 
@@ -125,6 +126,12 @@ Location: store only rounded coordinates (3 decimal places), never a street addr
 4. Unpost the user's wishes from that circle; a wish left with no circles becomes 'removed'.
 
 Zip change runs this for the old zip circle, then joins the new one and updates the profile. `profiles.previewZipChange` returns the counts first so the app can confirm ("This will cancel 2 listings and 1 request in 94610"). Private offers and share grants are unaffected.
+
+### Missed pickups (`items.unpick` with `noShow: true`)
+
+The owner un-picks with "<name> didn't show" (chat sheet, or the un-pick prompt on the listing). It works like an un-pick (item back to available, line intact, chat closes) and also writes a `noShows` row. The former recipient is told "Ellen said the pickup for the crib didn't happen, so it's available again."
+
+Missed pickups with two or more different owners within 30 days pause that person's new requests and offer picks (`requests.create`, `wishlist.pickOffer`) until 7 days after the latest one. Two different owners, so one unhappy neighbor can't pause someone alone. Pickups already under way are unaffected. Nothing is shown publicly and rows age out on their own. Constants and checks: `convex/lib/noShows.ts`. This is a limit, not karma: no score, no public signal.
 
 ### Account deletion (`profiles.deleteAccount`)
 
@@ -157,6 +164,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | available → pending | owner picks recipient | recipient | "The crib is yours! Message Ellen to plan pickup." |
 | available → pending | owner picks recipient | other open requesters | "The crib is pending with someone else. You're still in line." |
 | pending → available | owner un-picks | former recipient | "Ellen un-picked you for the crib" |
+| pending → available | owner marks a no-show | former recipient | "Ellen said the pickup for the crib didn't happen, so it's available again." |
 | pending → available | recipient withdraws, or leaves/zip change withdraws them | owner | "Maya can't take the crib anymore" |
 | pending → gone | owner taps Mark picked up | recipient | "Hope you enjoy the crib" |
 | pending → gone | owner taps Mark picked up | open requesters | "The crib has been picked up" |
@@ -284,3 +292,4 @@ Recipients aren't told about the one-ask limit up front; only the sharer is. The
 - 2026-10-24 (M4 design review): Copy for the person picked is neutral ("The crib is yours!"), not "Ellen chose you", so not being picked stings less and random selection can come later. Chats stay open after pickup. Ended chats stay readable.
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.
 - 2026-11-02: Share links are single use: one link per person, used up by the first request made through it (not by opening it). The listing stays in its circles and the owner still picks; nothing is reserved. Links die when the item ends (gone, removed, expired) or after 14 days; pending items keep them live. No public or group share links for items; broadcast is for joining Domi (flyers, campaign links), never for single items. Replaces reusable links; `shareGrants` stays as the look-before-requesting access. Considered and rejected: a few claims per link (confusing to explain), tying links to a phone number (too heavy; revisit with phone sign-in).
+- 2026-11-02: Zip changes limited to one per 30 days (first change after signup free), so one zip per account holds without address verification. Missed pickups: owners can mark a no-show; two with different owners in 30 days pause requests for 7 days. Chosen instead of address verification and karma: measure flakiness directly, keep it private.

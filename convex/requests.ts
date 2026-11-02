@@ -4,6 +4,7 @@ import { blockedUserIds, canSeeItem, displayName, fail, requireOwnItem, requireP
 import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { withdrawRequest } from "./lib/lifecycle";
+import { requireNotPaused } from "./lib/noShows";
 import { shareUsedByOther, usableShareFor } from "./lib/shares";
 import { cleanOptionalText, LIMITS } from "./lib/validate";
 
@@ -43,6 +44,7 @@ export const create = mutation({
     }
 
     const now = Date.now();
+    await requireNotPaused(ctx, userId, now);
     // A share link they opened is used up by this request (single use).
     const share = await usableShareFor(ctx, userId, item._id);
     if (share && share.usedBy === undefined) await ctx.db.patch(share._id, { usedBy: userId, usedAt: now });

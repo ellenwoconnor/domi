@@ -52,8 +52,8 @@ export async function openSelection(
 }
 
 /**
- * Ends the current selection: the owner un-picked ("unpicked") or the
- * recipient backed out ("withdrew"). The item goes back to available and the
+ * Ends the current selection: the owner un-picked ("unpicked", optionally
+ * because the recipient didn't show) or the recipient backed out ("withdrew"). The item goes back to available and the
  * other open requests are still in line.
  */
 export async function endSelection(
@@ -62,7 +62,7 @@ export async function endSelection(
   request: Doc<"requests">,
   how: "unpicked" | "withdrew",
   now: number,
-  { notify = true } = {},
+  { notify = true, noShow = false } = {},
 ) {
   await ctx.db.patch(request._id, { status: how === "unpicked" ? "cancelled" : "withdrawn", updatedAt: now });
   await closeConversationsFor(ctx, request._id, now);
@@ -79,8 +79,9 @@ export async function endSelection(
       itemId: item._id,
       requestId: request._id,
       title: t,
-      body:
-        item.visibility === "private"
+      body: noShow
+        ? `${owner} said the pickup for the ${t} didn't happen, so it's available again.`
+        : item.visibility === "private"
           ? `${owner} can't give you the ${t} anymore.`
           : `${owner} un-picked you for the ${t}.`,
     });

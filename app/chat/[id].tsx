@@ -166,6 +166,19 @@ export default function Chat() {
                 )
               }
             />
+            <SheetAction
+              icon={<Ionicons name="time-outline" size={22} color={color.bay} />}
+              label={`${other} didn't show`}
+              detail={`For a missed pickup. The ${thing} is available again.`}
+              onPress={() =>
+                confirm(
+                  `${other} didn't show?`,
+                  `Your chat with ${other} closes and the ${thing} is available again. Missed pickups stay private, but repeat ones pause someone's requests for a while.`,
+                  "Didn't show",
+                  () => unpick({ itemId: item.id, noShow: true }),
+                )
+              }
+            />
           </>
         ) : null}
         {!owner && pending ? (

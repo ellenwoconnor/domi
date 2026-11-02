@@ -8,7 +8,7 @@ import { closeWish, removeItem, withdrawRequest } from "./lib/lifecycle";
 import { deleteFiles, itemFiles } from "./lib/photos";
 import { RATE_LIMITS, type RateLimitName } from "./lib/rateLimit";
 import { redeemInviteCode, redeemShareCode, type RedeemResult } from "./lib/redeem";
-import { checkLatLng, cleanText, cleanZip, LIMITS, roundCoord } from "./lib/validate";
+import { checkLatLng, cleanText, cleanZip, DAY_MS, LIMITS, roundCoord, ZIP_CHANGE_COOLDOWN_MS } from "./lib/validate";
 
 /** The caller's profile; `needsSignup` means signed in but not onboarded yet. */
 export const me = query({
@@ -37,6 +37,7 @@ export const me = query({
         shareIntroSeen: profile.shareIntroSeenAt !== undefined,
         pushAskCount: profile.pushAskCount ?? 0,
         pushAskedAt: profile.pushAskedAt ?? null,
+        nextZipChangeAt: nextZipChangeAt(profile),
       },
     };
   },
@@ -173,6 +174,16 @@ async function zipCircleId(ctx: QueryCtx | MutationCtx, zip: string) {
   return c?._id ?? null;
 }
 
+/** When this person may next change zip, or null if they can now (the first change after signup is free). */
+function nextZipChangeAt(profile: { zipChangedAt?: number }) {
+  return profile.zipChangedAt === undefined ? null : profile.zipChangedAt + ZIP_CHANGE_COOLDOWN_MS;
+}
+
+function zipWaitMessage(nextAt: number, now: number) {
+  const days = Math.ceil((nextAt - now) / DAY_MS);
+  return `You can change your zip once a month. You can change it again in ${days === 1 ? "1 day" : `${days} days`}.`;
+}
+
 /** What a zip change would cancel, for the "Are you sure?" sheet. */
 export const previewZipChange = query({
   args: { zip: v.string() },
@@ -185,7 +196,16 @@ export const previewZipChange = query({
       .unique()) !== null;
     const oldCircle = await zipCircleId(ctx, profile.zip);
     const counts = oldCircle ? await previewLeave(ctx, userId, oldCircle) : { listings: 0, requests: 0, wishes: 0 };
-    return { oldZip: profile.zip, newZip: zip, knownZip: known, sameZip: zip === profile.zip, ...counts };
+    // A timestamp rather than "can change now", so the cached query doesn't depend
+    // on the clock; the app compares it to its own clock, and changeZip enforces it.
+    return {
+      oldZip: profile.zip,
+      newZip: zip,
+      knownZip: known,
+      sameZip: zip === profile.zip,
+      nextChangeAt: nextZipChangeAt(profile),
+      ...counts,
+    };
   },
 });
 
@@ -199,11 +219,14 @@ export const changeZip = mutation({
       await ctx.db.patch(profile._id, location); // just moving the pin
       return null;
     }
+    const now = Date.now();
+    const nextAt = nextZipChangeAt(profile);
+    if (nextAt !== null && nextAt > now) fail(zipWaitMessage(nextAt, now));
     const oldCircle = await zipCircleId(ctx, profile.zip);
     if (oldCircle) await leaveCommunity(ctx, userId, oldCircle);
     const newCircle = await findOrCreateZipCircle(ctx, zip);
     await addMembership(ctx, newCircle, userId);
-    await ctx.db.patch(profile._id, { zip, ...location });
+    await ctx.db.patch(profile._id, { zip, ...location, zipChangedAt: now });
     return newCircle._id;
   },
 });
@@ -314,6 +337,8 @@ export async function deleteUserData(ctx: MutationCtx, userId: Id<"users">) {
   await deleteAll(ctx, await ctx.db.query("blocks").withIndex("by_blocker_blocked", (q) => q.eq("blockerId", userId)).collect());
   await deleteAll(ctx, await ctx.db.query("blocks").withIndex("by_blocked", (q) => q.eq("blockedId", userId)).collect());
   await deleteAll(ctx, await ctx.db.query("reports").withIndex("by_reporter", (q) => q.eq("reporterId", userId)).collect());
+  await deleteAll(ctx, await ctx.db.query("noShows").withIndex("by_requester_at", (q) => q.eq("requesterId", userId)).collect());
+  await deleteAll(ctx, await ctx.db.query("noShows").withIndex("by_owner", (q) => q.eq("ownerId", userId)).collect());
   await deleteAll(ctx, await ctx.db.query("pushTokens").withIndex("by_user", (q) => q.eq("userId", userId)).collect());
   const profile = await getProfile(ctx, userId);
   if (profile) await ctx.db.delete(profile._id);

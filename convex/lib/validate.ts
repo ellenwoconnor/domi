@@ -24,6 +24,8 @@ export const LIMITS = {
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 export const LISTING_LIFETIME_MS = 30 * DAY_MS;
+/** One zip change per this long (the first change after signup is free). */
+export const ZIP_CHANGE_COOLDOWN_MS = 30 * DAY_MS;
 export const PHOTO_RETENTION_MS = 30 * DAY_MS;
 /** Uploads not attached to a listing by then are deleted (maintenance.purgeOrphanUploads). */
 export const ORPHAN_UPLOAD_MS = DAY_MS;

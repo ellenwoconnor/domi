@@ -310,19 +310,19 @@ function ChatLink({ id, name }: { id: string; name: string }) {
 function UnpickLink({ item, name }: { item: ItemView; name: string }) {
   const unpick = useMutation(api.items.unpick);
   const thing = lowerFirst(item.title);
+  const run = (noShow: boolean) => async () => {
+    try {
+      await unpick({ itemId: item.id, noShow });
+    } catch (e) {
+      Alert.alert("Couldn't un-pick", errorMessage(e));
+    }
+  };
   const confirm = () =>
     Alert.alert(`Un-pick ${name}?`, `Your chat with ${name} closes and the ${thing} is available again. Anyone in line can still be picked.`, [
       { text: "Keep", style: "cancel" },
-      {
-        text: "Un-pick",
-        onPress: async () => {
-          try {
-            await unpick({ itemId: item.id });
-          } catch (e) {
-            Alert.alert("Couldn't un-pick", errorMessage(e));
-          }
-        },
-      },
+      { text: "Un-pick", onPress: run(false) },
+      // Missed pickups stay private; repeat ones pause requests (convex/lib/noShows.ts).
+      { text: `${name} didn't show`, onPress: run(true) },
     ]);
   return (
     <Pressable onPress={confirm} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "flex-start", marginTop: -space.sm }}>

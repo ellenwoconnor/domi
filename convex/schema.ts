@@ -87,6 +87,7 @@ export default defineSchema({
     backoffSent: v.optional(v.number()), // back-off pushes since the last open
     pushAskCount: v.optional(v.number()), // our own "turn on notifications?" screen, "Not now" taps
     pushAskedAt: v.optional(v.number()),
+    zipChangedAt: v.optional(v.number()), // last zip change (not signup); limits changes to one per 30 days
   })
     .index("by_userId", ["userId"])
     .index("by_activityDueAt", ["activityDueAt"]),
@@ -295,6 +296,18 @@ export default defineSchema({
     .index("by_blocked", ["blockedId"]),
 
   // Fixed-window counters for convex/lib/rateLimit.ts, one row per user and action.
+  // A missed pickup: the owner un-picked the requester because they didn't show
+  // (items.unpick with noShow). Private; only used to pause requests (lib/noShows.ts).
+  noShows: defineTable({
+    requesterId: v.id("users"),
+    ownerId: v.id("users"),
+    itemId: v.id("items"),
+    requestId: v.id("requests"),
+    at: v.number(),
+  })
+    .index("by_requester_at", ["requesterId", "at"])
+    .index("by_owner", ["ownerId"]),
+
   rateLimits: defineTable({
     key: v.string(), // "<action>:<userId>"
     windowStart: v.number(),

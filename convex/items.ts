@@ -16,6 +16,7 @@ import { itemCard } from "./lib/cards";
 import { noteCircleActivity, notifyWishMatches } from "./lib/circleActivity";
 import { writeEvent } from "./lib/events";
 import { endSelection, markGone, openRequests, openSelection, removeItem, selectedRequest } from "./lib/lifecycle";
+import { recordNoShow } from "./lib/noShows";
 import { checkPhotos, deleteFiles, itemFiles, itemText } from "./lib/photos";
 import { rateLimit } from "./lib/rateLimit";
 import { LISTING_LIFETIME_MS } from "./lib/validate";
@@ -200,15 +201,21 @@ export const selectRecipient = mutation({
   },
 });
 
-/** Owner un-picks the current recipient; the item is available again. */
+/**
+ * Owner un-picks the current recipient; the item is available again. With
+ * noShow, the recipient didn't come for the pickup: it's logged privately and
+ * repeat no-shows pause their requests (lib/noShows.ts).
+ */
 export const unpick = mutation({
-  args: { itemId: v.id("items") },
-  handler: async (ctx, { itemId }) => {
+  args: { itemId: v.id("items"), noShow: v.optional(v.boolean()) },
+  handler: async (ctx, { itemId, noShow = false }) => {
     const { userId } = await requireProfile(ctx);
     const item = await requireOwnItem(ctx, userId, itemId);
     const selected = await selectedRequest(ctx, item._id);
     if (item.status !== "pending" || !selected) fail("Nobody is picked for this item");
-    await endSelection(ctx, item, selected, "unpicked", Date.now());
+    const now = Date.now();
+    await endSelection(ctx, item, selected, "unpicked", now, { noShow });
+    if (noShow) await recordNoShow(ctx, selected, userId, now);
   },
 });
 

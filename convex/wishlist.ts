@@ -15,6 +15,7 @@ import { itemCard } from "./lib/cards";
 import { noteCircleActivity } from "./lib/circleActivity";
 import { writeEvent } from "./lib/events";
 import { closeWish, openSelection } from "./lib/lifecycle";
+import { requireNotPaused } from "./lib/noShows";
 import { checkPhotos, itemText } from "./lib/photos";
 import { cleanOptionalText, cleanText, LIMITS, LISTING_LIFETIME_MS } from "./lib/validate";
 import { rateLimit } from "./lib/rateLimit";
@@ -223,6 +224,7 @@ export const pickOffer = mutation({
     }
 
     const now = Date.now();
+    await requireNotPaused(ctx, userId, now);
     const existing = await ctx.db
       .query("requests")
       .withIndex("by_item_requester", (q) => q.eq("itemId", item._id).eq("requesterId", userId))

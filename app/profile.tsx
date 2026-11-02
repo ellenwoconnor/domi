@@ -55,14 +55,20 @@ export default function EditProfile() {
         setError("We don't recognize that zip code.");
         return;
       }
+      if (preview.nextChangeAt !== null && preview.nextChangeAt > Date.now()) {
+        setError(`You can change your zip once a month. You can change it again on ${shortDate(preview.nextChangeAt)}.`);
+        return;
+      }
       const lost = [
         preview.listings ? plural(preview.listings, "listing") : null,
         preview.requests ? plural(preview.requests, "request") : null,
         preview.wishes ? plural(preview.wishes, "wish", "wishes") : null,
       ].filter(Boolean);
-      const message = lost.length
-        ? `This will cancel ${lost.join(", ")} in ${preview.oldZip}. Your custom circles aren't affected.`
-        : `You'll move from the ${preview.oldZip} circle to the ${preview.newZip} circle. Your custom circles aren't affected.`;
+      const message =
+        (lost.length
+          ? `This will cancel ${lost.join(", ")} in ${preview.oldZip}. Your custom circles aren't affected.`
+          : `You'll move from the ${preview.oldZip} circle to the ${preview.newZip} circle. Your custom circles aren't affected.`) +
+        " You can change your zip once a month.";
       const ok = await new Promise<boolean>((resolve) =>
         Alert.alert("Change your zip code?", message, [
           { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
@@ -96,7 +102,11 @@ export default function EditProfile() {
         <View style={styles.section}>
           <Field
             label="Zip code"
-            hint="Your zip decides your home circle."
+            hint={
+              profile.nextZipChangeAt !== null && profile.nextZipChangeAt > Date.now()
+                ? `Your zip decides your home circle. You can change it again on ${shortDate(profile.nextZipChangeAt)}.`
+                : "Your zip decides your home circle."
+            }
             value={zip}
             onChangeText={(t) => setZip(t.replace(/\D/g, "").slice(0, 5))}
             keyboardType="number-pad"
@@ -118,3 +128,7 @@ const styles = StyleSheet.create({
   body: { padding: space.lg, gap: space.xl, paddingBottom: space.xxl },
   section: { gap: space.md },
 });
+
+function shortDate(ms: number) {
+  return new Date(ms).toLocaleDateString(undefined, { month: "long", day: "numeric" });
+}
