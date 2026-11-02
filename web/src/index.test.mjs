@@ -53,14 +53,20 @@ test("shared listing page shows the photo, or 'found a home' once it's gone", as
     "shares:preview": ({ code }) =>
       code === "AAAABBBB"
         ? { code, available: true, title: "Crib", description: "Oak", status: "available", photoUrl: "https://x/p.jpg", ownerName: "Ellen", circleName: "📍 Berkeley · 94707", postedAt: 1 }
-        : { code, available: false },
+        : code === "EEEEFFFF"
+          ? { code, available: false, reason: "used", ownerName: "Ellen" }
+          : { code, available: false, reason: "gone", ownerName: "Ellen" },
   });
   const html = await (await get("/i/AAAABBBB")).text();
   assert.match(html, /og:image" content="https:\/\/domicircles.com\/p\/AAAABBBB"/); // the cached route, not Convex
   assert.ok(!html.includes("https://x/p.jpg"));
   assert.match(html, /Free: Crib/);
   assert.match(html, /<b>Ellen<\/b> is giving this away on Domi/);
+  assert.match(html, /Ellen picks who gets it/);
   assert.match(await (await get("/i/CCCCDDDD")).text(), /already found a home/);
+  const used = await (await get("/i/EEEEFFFF")).text();
+  assert.match(used, /This link was already used/);
+  assert.match(used, /Ask Ellen to send you a new one/);
 });
 
 test("user text is escaped", async () => {

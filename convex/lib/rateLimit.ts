@@ -19,6 +19,8 @@ export const RATE_LIMITS = {
   wish: { max: 20, windowMs: DAY, message: "You've made a lot of wishes today. Please try again tomorrow." },
   // Chat messages; each one sends a push.
   message: { max: 30, windowMs: MINUTE, message: "You're sending messages very fast. Please wait a moment." },
+  // New share links (each tap of Share outside Domi makes one).
+  share: { max: 30, windowMs: DAY, message: "You've made a lot of links today. Please try again tomorrow." },
   // Invite and share codes typed or opened while signed in.
   redeem: { max: 10, windowMs: HOUR, message: "Too many codes tried. Please wait a bit and try again." },
 } as const;

@@ -17,7 +17,7 @@ export default function Posted() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const itemId = id as Id<"items">;
   const item = useQuery(convexQuery(api.items.get, { itemId })).data;
-  const share = useShareListing();
+  const { share, sheet } = useShareListing();
   const insets = useSafeAreaInsets();
   const askForPush = useAskForPush();
 
@@ -85,6 +85,7 @@ export default function Posted() {
             <Text style={styles.linkText}>Share outside Domi</Text>
           </Pressable>
         ) : null}
+        {sheet}
       </View>
     </View>
   );

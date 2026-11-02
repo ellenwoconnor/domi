@@ -6,6 +6,7 @@ import { Tabs } from "expo-router/js-tabs";
 import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { api } from "../../convex/_generated/api";
+import { takeLandingItem } from "../../src/features/auth/landing";
 import { CirclesTabIcon } from "../../src/features/circles/CirclesTabIcon";
 import { color, font } from "../../src/ui/theme";
 
@@ -17,12 +18,17 @@ export default function TabsLayout() {
   const me = useQuery(convexQuery(api.profiles.me, {}));
   const showIntro = me.data?.profile?.introSeen === false;
   const introOpened = useRef(false);
+  const signedUp = !!me.data?.profile;
   useEffect(() => {
+    if (!signedUp) return;
+    // Signed up from a listing share link: open that listing (under the intro cards).
+    const itemId = takeLandingItem();
+    if (itemId) router.push({ pathname: "/item/[id]", params: { id: itemId } });
     if (showIntro && !introOpened.current) {
       introOpened.current = true;
       router.push("/welcome");
     }
-  }, [showIntro]);
+  }, [showIntro, signedUp]);
 
   return (
     <Tabs

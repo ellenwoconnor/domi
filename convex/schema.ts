@@ -77,6 +77,7 @@ export default defineSchema({
     termsAcceptedAt: v.number(),
     bannedAt: v.optional(v.number()),
     introSeenAt: v.optional(v.number()), // when the "How Domi works" cards were first shown
+    shareIntroSeenAt: v.optional(v.number()), // when the one-time "One link, one person" sheet was shown
     // Push (M5). See docs/m5-requirements.md.
     lastOpenedAt: v.optional(v.number()), // app came to the foreground; "seen" and back-off
     timeZone: v.optional(v.string()), // IANA name from the phone
@@ -173,6 +174,11 @@ export default defineSchema({
     sharerId: v.id("users"),
     code: v.string(),
     revokedAt: v.optional(v.number()),
+    // Single use (2026-11-02): good for one request. Links made before then have no
+    // expiresAt and are treated as closed.
+    expiresAt: v.optional(v.number()),
+    usedBy: v.optional(v.id("users")),
+    usedAt: v.optional(v.number()),
   })
     .index("by_code", ["code"])
     .index("by_item", ["itemId"])
@@ -208,6 +214,7 @@ export default defineSchema({
     note: v.optional(v.string()),
     status: requestStatus,
     updatedAt: v.number(),
+    viaShareId: v.optional(v.id("itemShares")), // made through a share link (the owner sees "via your link")
   })
     .index("by_item", ["itemId"])
     .index("by_item_status", ["itemId", "status"])

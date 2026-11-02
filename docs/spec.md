@@ -15,7 +15,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Accounts | Sign up with Apple or Google. Accept the terms of service. Provide display name, zip code, and optional coarse location (zip centroid if skipped). Placed in the default circle for the zip, plus any custom circles from invite links. In-app account deletion. |
 | Circles | Create a custom circle with a name, an emoji, and an optional description. Any member can invite by sharing their own link. The creator is the circle's owner (admin): can remove members and delete the circle. Members can leave a custom circle. No invites into zip circles. |
 | Listings | Camera-first posting: title, optional description, one to three photos. Post to several circles. Edit or remove. See requests with notes, pick a recipient, un-pick, mark picked up. Repost an expired listing. |
-| Share outside Domi | The owner can share a link to a listing (e.g. in a Buy Nothing group). The link opens a read-only page; someone who installs Domi from it can request that listing even if they are not in its circles. |
+| Share outside Domi | The owner can send a single-use link for a listing to one person (e.g. a friend, or someone answering a wish on Buy Nothing). The link opens a read-only page; one person can request the listing through it, even if they share no circle with the owner. The listing stays posted to its circles and the owner picks the recipient as usual. |
 | Browse | Items and wishes in all my circles or one circle. Item detail. Keyword search. |
 | Wishes | Post a wish to circles I'm in. Neighbors offer items for it (private listings). Offers accumulate; the wisher picks one. |
 | Request | Request an item with an optional note (up to 140 characters). Requests are allowed while an item is pending: they wait in line and the app shows the item is pending. |
@@ -78,8 +78,10 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
   - Photos of items that ended (gone, removed, or expired and not reposted) are deleted 30 days later by a cron job, thumbnails included.
   - Uploads must be images, at most 2 MB (thumbnails 300 KB). Upload URLs are limited to 60 per person per hour. Uploads not attached to a listing within a day are deleted by a daily cron job.
 - `itemCommunities` (itemId, communityId): public items only.
-- `itemShares` (itemId, sharerId, code, revokedAt?): owner only; one active link per item.
-- `shareGrants` (shareId, itemId, userId): written when someone redeems a share link (at signup or later). Lets that user see and request that one item.
+- `itemShares` (itemId, sharerId, code, expiresAt, usedBy?, usedAt?, revokedAt?): owner only. Single use: good for one request. Several active links per item (cap 5), one per person the owner sends it to.
+- `shareGrants` (shareId, itemId, userId): written when someone opens a share link (at signup or later). Gives a look at that one item while the link is unused; the first request through it uses the link up (`itemShares.usedBy`), after which only that person keeps access through it.
+- `requests.viaShareId?`: set when a request was made through a share link; the owner sees "via your link".
+- `profiles.shareIntroSeenAt?`: the one-time "One link, one person" sheet was shown.
 - `wishlistItems` (userId, title, description?, status: 'open' | 'fulfilled' | 'removed')
 - `wishlistCommunities` (wishlistItemId, communityId)
 - `requests` (itemId, requesterId, note?, status: 'open' | 'selected' | 'withdrawn' | 'cancelled' | 'closed', updatedAt)
@@ -133,7 +135,7 @@ Runs "leaving a circle" for every circle, removes the user's remaining items and
 Enforced at the top of every public function (helpers in `convex/lib/access.ts`):
 
 - A user sees circles they belong to.
-- A user sees a public item when it is posted to a circle they belong to, or they hold a share grant for it. The owner always sees their own items. A removed item stays visible to its owner and to people who requested it.
+- A user sees a public item when it is posted to a circle they belong to, or they opened a share link for it that is still unused, or used it themselves (`lib/shares.ts`). The owner always sees their own items. A removed item stays visible to its owner and to people who requested it.
 - A private item (offer) is visible only to its owner and the wisher.
 - Only the item owner edits, removes, picks, un-picks, marks picked up, reposts or shares an item.
 - A user sees wishes posted to circles they belong to, and always their own.
@@ -179,8 +181,19 @@ Push sending (M5, details in `docs/m5-requirements.md`): only events with an act
 
 ## Listing share links
 
-- URL: `https://<domain>/i/<code>`, same code format. Owner only.
-- The read-only page shows the listing while it is available or pending. If the visitor installs Domi, the app saves the code before signup and redeems it at signup, granting access to that listing so they can request it.
+Decided 2026-11-02. A share link lets exactly one person request a listing, even if they share no circle with the owner. It is for one person the owner has in mind (a friend, someone answering a wish on Buy Nothing), not for posting to a group.
+
+- URL: `https://<domain>/i/<code>`, same code format. Owner only, on public listings that are available or pending.
+- **One link per person.** "Share outside Domi" makes a new link each time (a few active per item, cap 5). Links are not reused.
+- **The request uses up the link, not the visit.** Anyone with the link can see the read-only page. The first person to request through it uses it; the request records `viaShareId`. After that the page says "This link was already used. Ask <owner> for a new one."
+- **Nothing is reserved.** The listing stays in its circles, circle members can still request, and the owner picks the recipient as usual. The link only lets one more person into the line.
+- **Owner sees where requests came from:** "Maya · via your link". A request from a stranger who got hold of the link is harmless: the owner doesn't pick them. The owner can make a new link in one tap.
+- **Links die** when the item is gone, removed or expired, or 14 days after creation, whichever is first. A pending item keeps its links live, since requests wait in line while an item is pending.
+- **Share copy invites without promising:** "I'm giving away a table. Request it on Domi with this link and I'll see it." The existing page keeps its "<owner> is giving this away on Domi" intro and adds one line, "<owner> picks who gets it." A used link shows the existing missing-page card with "This link was already used. Ask <owner> to send you a new one."
+- **Newcomers:** the app saves the code before signup and, after signup, opens the listing so they can request it (not Browse). They join their own zip circle as usual (waitlist if outside launch zips); the listing stays requestable to them through the code.
+- **Explaining the limit:** the sharer learns it, the recipient doesn't need to. The first time someone shares, a one-time sheet says each link lets one person ask, to send each friend their own link, and that they still choose; after that, Share opens the phone's share sheet directly. Links carry no recipient name; requests show "Via your link". The recipient's page says only "<owner> will choose who it goes to"; they meet the one-ask limit only on the "already used" page.
+- **Circle nudge after pickup, not at sharing:** when an item that went through a link is picked up, a "Swap with <name> often?" card appears at the bottom of the giver's existing listing page (below "Picked up by <name>"), with Invite to a circle and Not now. No new screen. Newcomers who asked through a link see the existing "Request sent" state; no extra UI (Browse already shows their zip circle).
+- Someone already in one of the listing's circles can use the link too; their request is simply marked "via your link".
 
 ## Decisions log
 
@@ -223,3 +236,4 @@ Push sending (M5, details in `docs/m5-requirements.md`): only events with an act
 - 2026-10-24: The owner's listing has Edit and Share outside Domi in the action bar, Remove below, and copy saying they'll pick one person. Item photos swipe, with dots.
 - 2026-10-24 (M4 design review): Copy for the person picked is neutral ("The crib is yours!"), not "Ellen chose you", so not being picked stings less and random selection can come later. Chats stay open after pickup. Ended chats stay readable.
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.
+- 2026-11-02: Share links are single use: one link per person, used up by the first request made through it (not by opening it). The listing stays in its circles and the owner still picks; nothing is reserved. Links die when the item ends (gone, removed, expired) or after 14 days; pending items keep them live. No public or group share links for items; broadcast is for joining Domi (flyers, campaign links), never for single items. Replaces reusable links; `shareGrants` stays as the look-before-requesting access. Considered and rejected: a few claims per link (confusing to explain), tying links to a phone number (too heavy; revisit with phone sign-in).
