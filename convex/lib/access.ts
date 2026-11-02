@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { usableShareFor } from "./shares";
 
 // Access checks that replace row-level security. Every public function calls
 // one of the require* helpers first. See "Access rules" in docs/spec.md.
@@ -137,11 +138,8 @@ export async function canSeeItem(
     if (await getMembership(ctx, link.communityId, userId)) return true;
   }
 
-  const grant = await ctx.db
-    .query("shareGrants")
-    .withIndex("by_user_item", (q) => q.eq("userId", userId).eq("itemId", item._id))
-    .first();
-  return grant !== null;
+  // A share link: one they opened that nobody has used yet, or one they used.
+  return (await usableShareFor(ctx, userId, item._id)) !== null;
 }
 
 export async function requireVisibleItem(ctx: Ctx, userId: Id<"users">, itemId: Id<"items">) {

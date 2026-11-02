@@ -70,6 +70,12 @@ export default {
       }
       const share = await convexQuery(env, "shares:preview", { code: clean });
       if (!share) return html(missingPage("This link isn't working", "The listing may have been taken down."), 404);
+      if (!share.available && share.reason === "used") {
+        return html(missingPage("This link was already used", `Ask ${share.ownerName} to send you a new one.`));
+      }
+      if (!share.available && share.reason === "expired") {
+        return html(missingPage("This link has expired", `Ask ${share.ownerName} to send you a new one.`));
+      }
       if (!share.available) return html(missingPage("This one has already found a home", "Things go fast on Domi. Join your neighbors to catch the next one."));
       return html(sharePage(share, clean, url.origin, env));
     }
@@ -228,6 +234,7 @@ function sharePage(p, code, origin, env) {
         <h1>${esc(p.title)}</h1>
         <p class="body">${esc(p.description)}</p>
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
+        <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
       </div>
       ${installSteps(env, { openUrl: `domi://i/${code}`, code, join: "See it in Domi", askWho: p.ownerName })}`,
   });

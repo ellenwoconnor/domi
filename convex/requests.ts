@@ -1,9 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { blockedUserIds, displayName, fail, requireOwnItem, requireProfile, requireVisibleItem } from "./lib/access";
+import { blockedUserIds, canSeeItem, displayName, fail, requireOwnItem, requireProfile, requireVisibleItem } from "./lib/access";
 import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { withdrawRequest } from "./lib/lifecycle";
+import { shareUsedByOther, usableShareFor } from "./lib/shares";
 import { cleanOptionalText, LIMITS } from "./lib/validate";
 
 /** Request a public listing, with an optional note. Allowed while pending (you wait in line). */
@@ -11,6 +12,10 @@ export const create = mutation({
   args: { itemId: v.id("items"), note: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const { userId } = await requireProfile(ctx);
+    const found = await ctx.db.get(args.itemId);
+    if (found && !(await canSeeItem(ctx, userId, found)) && (await shareUsedByOther(ctx, userId, found._id))) {
+      fail(`This link was already used. Ask ${await displayName(ctx, found.ownerId)} to send you a new one.`);
+    }
     const item = await requireVisibleItem(ctx, userId, args.itemId);
     if (item.ownerId === userId) fail("You can't request your own item");
     if (item.visibility !== "public") fail("Pick this offer from your wish instead");
@@ -38,9 +43,20 @@ export const create = mutation({
     }
 
     const now = Date.now();
+    // A share link they opened is used up by this request (single use).
+    const share = await usableShareFor(ctx, userId, item._id);
+    if (share && share.usedBy === undefined) await ctx.db.patch(share._id, { usedBy: userId, usedAt: now });
+    const viaShareId = share?._id ?? existing?.viaShareId;
     const requestId = existing
-      ? (await ctx.db.patch(existing._id, { status: "open", note, updatedAt: now }), existing._id)
-      : await ctx.db.insert("requests", { itemId: item._id, requesterId: userId, note, status: "open", updatedAt: now });
+      ? (await ctx.db.patch(existing._id, { status: "open", note, updatedAt: now, viaShareId }), existing._id)
+      : await ctx.db.insert("requests", {
+          itemId: item._id,
+          requesterId: userId,
+          note,
+          status: "open",
+          updatedAt: now,
+          ...(viaShareId ? { viaShareId } : {}),
+        });
 
     const who = await displayName(ctx, userId);
     await writeEvent(ctx, {
@@ -89,6 +105,7 @@ export const forItem = query({
         note: r.note ?? null,
         status: r.status,
         createdAt: r._creationTime,
+        viaLink: r.viaShareId !== undefined,
       });
     }
     return out.sort((a, b) => a.createdAt - b.createdAt);

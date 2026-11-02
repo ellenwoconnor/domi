@@ -34,6 +34,7 @@ export const me = query({
         currentTermsVersion: terms,
         banned: profile.bannedAt !== undefined,
         introSeen: profile.introSeenAt !== undefined,
+        shareIntroSeen: profile.shareIntroSeenAt !== undefined,
         pushAskCount: profile.pushAskCount ?? 0,
         pushAskedAt: profile.pushAskedAt ?? null,
       },

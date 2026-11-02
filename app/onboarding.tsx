@@ -7,6 +7,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
 import { clearPendingCodes, getPendingCodes, type PendingCodes } from "../src/features/auth/pendingCodes";
+import { setLandingItem } from "../src/features/auth/landing";
 import { openLegal } from "../src/features/legal";
 import { errorMessage } from "../src/lib/errors";
 import { ErrorNote, Field, PrimaryButton, TextButton } from "../src/ui/Form";
@@ -59,6 +60,8 @@ export default function Onboarding() {
         shareCodes: pending.shares,
       });
       await clearPendingCodes();
+      const shared = result.shares.find((s) => s.result.ok && s.result.itemId)?.result;
+      setLandingItem(shared?.ok && shared.itemId ? shared.itemId : null);
       const failed =
         result.invites.filter((i) => !i.result.ok).length + result.shares.filter((s) => !s.result.ok).length;
       if (failed > 0) {

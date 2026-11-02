@@ -42,7 +42,7 @@ describe("circles and invites (M2)", () => {
     const shower = await circle(ellen);
     const code = await ellen.as.mutation(api.invites.getOrCreate, { communityId: shower });
     const itemId = await post(t, ellen, [ellen.zipCircle], "Lamp");
-    const shareCode = await ellen.as.mutation(api.shares.getOrCreate, { itemId });
+    const shareCode = await ellen.as.mutation(api.shares.create, { itemId });
 
     const result = await maya.as.mutation(api.profiles.redeemSavedCodes, {
       inviteCodes: [code.toLowerCase(), "NOPENOPE"],

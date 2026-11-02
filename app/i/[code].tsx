@@ -1,6 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image } from "expo-image";
@@ -16,8 +17,9 @@ import { color, radius, space, type } from "../../src/ui/theme";
 
 /**
  * Opened by https://domicircles.com/i/<code>: a listing someone shared outside
- * Domi. Signed-up people get access and go to the listing; others have the
- * code saved for signup, which grants access to request it.
+ * Domi. Links are single use: opening one lets you see the listing, and the
+ * first request made through it uses it up. Signed-up people go to the
+ * listing; others have the code saved for signup.
  */
 export default function SharedListingLink() {
   const { code: raw } = useLocalSearchParams<{ code: string }>();
@@ -33,7 +35,7 @@ export default function SharedListingLink() {
     redeem({ code })
       .then((r) => {
         if (r.ok && r.itemId) router.replace(`/item/${r.itemId}`);
-        else setError("This listing is no longer available.");
+        else setError(redeemMessage(r.ok ? "invalid" : r.reason, preview.data?.ownerName));
       })
       .catch((e) => setError(errorMessage(e)));
   }, [state, code]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -51,7 +53,7 @@ export default function SharedListingLink() {
         {state === "loading" || hasProfile(state) || preview.isPending ? (
           error ? <ErrorNote message={error} /> : <ActivityIndicator color={color.bay} />
         ) : !p || !p.available ? (
-          <Text style={type.title}>This one has already found a home.</Text>
+          <Text style={type.title}>{unavailableMessage(p)}</Text>
         ) : (
           <View style={styles.card}>
             {p.photoUrl ? <Image source={{ uri: p.photoUrl }} style={styles.photo} /> : null}
@@ -64,6 +66,7 @@ export default function SharedListingLink() {
               From {p.ownerName}
               {p.circleName ? ` in ${p.circleName}` : ""}
             </Text>
+            <Text style={type.label}>{p.ownerName} picks who gets it.</Text>
             <PrimaryButton
               title={state === "signedOut" ? "Sign in to request it" : "Finish signing up to request it"}
               onPress={() => router.replace(state === "signedOut" ? "/sign-in" : "/onboarding")}
@@ -73,6 +76,21 @@ export default function SharedListingLink() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+type Preview = FunctionReturnType<typeof api.shares.preview>;
+
+function unavailableMessage(p: Preview | undefined) {
+  if (p && !p.available && p.reason === "used") return `This link was already used. Ask ${p.ownerName} to send you a new one.`;
+  if (p && !p.available && p.reason === "expired") return `This link has expired. Ask ${p.ownerName} to send you a new one.`;
+  return "This one has already found a home.";
+}
+
+function redeemMessage(reason: string, ownerName: string | undefined) {
+  const who = ownerName ?? "them";
+  if (reason === "used") return `This link was already used. Ask ${who} to send you a new one.`;
+  if (reason === "expired") return `This link has expired. Ask ${who} to send you a new one.`;
+  return "This listing is no longer available.";
 }
 
 const styles = StyleSheet.create({

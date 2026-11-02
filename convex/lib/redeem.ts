@@ -4,12 +4,13 @@ import { displayName, getMembership, isBlockedEitherWay } from "./access";
 import { addMembership, customCircleCount, MAX_CIRCLES } from "./circles";
 import { isWellFormedCode, normalizeCode } from "./codes";
 import { writeEvent } from "./events";
+import { shareIsOpen } from "./shares";
 
 // Redeeming invite and share codes, at signup or later.
 
 export type RedeemResult =
   | { ok: true; communityId?: Id<"communities">; itemId?: Id<"items"> }
-  | { ok: false; reason: "invalid" | "revoked" | "banned" | "unavailable" | "too_many_circles" };
+  | { ok: false; reason: "invalid" | "revoked" | "banned" | "unavailable" | "too_many_circles" | "used" | "expired" };
 
 export async function redeemInviteCode(ctx: MutationCtx, userId: Id<"users">, rawCode: string): Promise<RedeemResult> {
   const code = normalizeCode(rawCode);
@@ -58,6 +59,9 @@ export async function redeemShareCode(ctx: MutationCtx, userId: Id<"users">, raw
   if (item.status !== "available" && item.status !== "pending") return { ok: false, reason: "unavailable" };
   if (item.ownerId === userId) return { ok: true, itemId: item._id };
   if (await isBlockedEitherWay(ctx, userId, item.ownerId)) return { ok: false, reason: "unavailable" };
+  // Single use: opening grants a look; the first request through the link uses it up.
+  if (share.usedBy !== undefined && share.usedBy !== userId) return { ok: false, reason: "used" };
+  if (share.usedBy === undefined && !shareIsOpen(share, Date.now())) return { ok: false, reason: "expired" };
 
   const existing = await ctx.db
     .query("shareGrants")

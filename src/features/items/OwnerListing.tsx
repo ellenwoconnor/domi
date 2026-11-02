@@ -44,7 +44,7 @@ function namesInLine(names: string[]) {
 
 /** Edit and Share as small buttons on the photo. */
 export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }) {
-  const share = useShareListing();
+  const { share, sheet } = useShareListing();
   const canEdit = item.status === "available" || item.status === "pending" || item.status === "expired";
   const canShare = item.status === "available" && item.visibility === "public";
   if (!canEdit && !canShare) return null;
@@ -64,6 +64,7 @@ export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }
           <Ionicons name="share-outline" size={19} color={color.ink} />
         </Pressable>
       ) : null}
+      {sheet}
     </View>
   );
 }
@@ -153,7 +154,11 @@ export function OwnerSection({
                 <Avatar name={a.requester.displayName} size={44} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.askName}>
-                    {a.requester.displayName} <Text style={type.meta}>· {shortAgo(a.createdAt)}</Text>
+                    {a.requester.displayName}{" "}
+                    <Text style={type.meta}>
+                      · {shortAgo(a.createdAt)}
+                      {a.viaLink ? " · via your link" : ""}
+                    </Text>
                   </Text>
                   {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
                 </View>
@@ -191,7 +196,11 @@ export function OwnerSection({
                 <Avatar name={a.requester.displayName} size={44} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.askName}>
-                    {a.requester.displayName} <Text style={type.meta}>· {shortAgo(a.createdAt)}</Text>
+                    {a.requester.displayName}{" "}
+                    <Text style={type.meta}>
+                      · {shortAgo(a.createdAt)}
+                      {a.viaLink ? " · via your link" : ""}
+                    </Text>
                   </Text>
                   {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
                 </View>
@@ -210,6 +219,7 @@ export function OwnerSection({
           warm
         />
         {item.chat ? <ChatLink id={item.chat.id} name={item.chat.other.displayName} /> : null}
+        <CircleNudge item={item} />
       </View>
     );
   } else if (item.status === "expired") {
@@ -338,6 +348,38 @@ function WaitingForWisher({ wish }: { wish: NonNullable<ItemView["wish"]> }) {
           </Text>
           {wish.description ? <Text style={styles.askNote}>“{wish.description}”</Text> : null}
         </View>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * After pickup, when the item went to someone through a share link and you share
+ * no custom circle with them: offer to bring them into one (shares.circleNudge).
+ */
+function CircleNudge({ item }: { item: ItemView }) {
+  const nudge = useQuery(convexQuery(api.shares.circleNudge, { itemId: item.id })).data;
+  const [dismissed, setDismissed] = useState(false);
+  if (!nudge || dismissed) return null;
+  return (
+    <View style={styles.card}>
+      <Text style={styles.cardHead}>Swap with {nudge.name} often?</Text>
+      <Text style={type.meta}>
+        {nudge.hasCustomCircle
+          ? "You don't share a circle yet. Circles can include people outside your zip."
+          : "Start a circle for friends and family. Circles can include people outside your zip."}
+      </Text>
+      <View style={[styles.row, { marginTop: space.sm, alignItems: "center" }]}>
+        <Pressable
+          onPress={() => router.push(nudge.hasCustomCircle ? "/(tabs)/circles" : "/circle/form")}
+          accessibilityRole="button"
+          style={[styles.button, styles.primaryFlex]}
+        >
+          <Text style={type.button}>{nudge.hasCustomCircle ? "Invite to a circle" : "Start a circle"}</Text>
+        </Pressable>
+        <Pressable onPress={() => setDismissed(true)} accessibilityRole="button" hitSlop={8} style={{ padding: space.sm }}>
+          <Text style={styles.quiet}>Not now</Text>
+        </Pressable>
       </View>
     </View>
   );
