@@ -25,7 +25,7 @@ import { chatRows, type ChatRow } from "../../src/features/chat/rows";
 import { lowerFirst } from "../../src/features/items/format";
 import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockSheet";
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
-import { ThanksCard } from "../../src/features/thanks/ThanksCard";
+import { AfterPickupCard, FlowerInThread, FlowerSheet, FlowerStrip } from "../../src/features/thanks/ThanksCard";
 import { errorMessage } from "../../src/lib/errors";
 import { PoppyMark } from "../../src/ui/Logo";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
@@ -51,6 +51,11 @@ export default function Chat() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
+  // The domi flower: its sheet, and what the person hid for now (comes back next visit).
+  const [flowerOpen, setFlowerOpen] = useState(false);
+  const [flowerJustSent, setFlowerJustSent] = useState(false);
+  const [stripHidden, setStripHidden] = useState(false);
+  const [afterHidden, setAfterHidden] = useState(false);
 
   const conv = convQ.data;
   const messages = msgsQ.data;
@@ -69,7 +74,8 @@ export default function Chat() {
     if (unread) markRead({ conversationId }).catch(() => {});
   }, [unread, conversationId, markRead]);
 
-  const rows = useMemo(() => (messages ? chatRows(messages).reverse() : []), [messages]);
+  const flowerAt = convQ.data?.thanks?.at;
+  const rows = useMemo(() => (messages ? chatRows(messages, Date.now(), flowerAt).reverse() : []), [messages, flowerAt]);
 
   if (convQ.isPending) {
     return (
@@ -104,17 +110,19 @@ export default function Chat() {
         ? `Going to ${other}`
         : "Going to you";
 
-  // The thank-you poppy sits at the bottom of the thread (the list is inverted, so it's the header).
-  const thanksCard = (
-    <ThanksCard
-      conversationId={conversationId}
-      role={conv.role}
-      other={other}
-      thing={thing}
-      pickedUp={item?.status === "gone"}
-      thanks={conv.thanks}
-    />
-  );
+  // The domi flower (docs/spec.md). The person who got the item can send it from pickup time on.
+  const iSpoke = messages?.some((m) => m.mine) ?? false;
+  // Quiet, and only once they've been chatting.
+  const showStrip = !owner && pending && !conv.thanks && iSpoke && !stripHidden;
+  const afterPickupCard =
+    !owner && item?.status === "gone" && !conv.thanks && !afterHidden && !conv.closed ? (
+      <AfterPickupCard
+        other={other}
+        thing={thing}
+        onOpen={() => setFlowerOpen(true)}
+        onDismiss={() => setAfterHidden(true)}
+      />
+    ) : null;
 
   const submit = async () => {
     const body = draft.trim();
@@ -234,6 +242,30 @@ export default function Chat() {
 
   const renderRow = ({ item: row }: { item: ChatRow }) => {
     if (row.kind === "day") return <Text style={styles.day}>{row.label}</Text>;
+    if (row.kind === "flower") {
+      if (!conv.thanks) return null;
+      return (
+        <FlowerInThread
+          role={conv.role}
+          other={other}
+          thing={thing}
+          thanks={conv.thanks}
+          // Blooms for the sender as it goes, and for the giver when it has just arrived.
+          bloom={owner ? Date.now() - conv.thanks.at < 2 * 60 * 1000 : flowerJustSent}
+          onMarkPickedUp={
+            owner && pending && item
+              ? () =>
+                  confirm(
+                    `Mark the ${thing} picked up?`,
+                    "The listing ends and everyone in line is told. Your chat stays open.",
+                    "Picked up",
+                    () => markPickedUp({ itemId: item.id }),
+                  )
+              : undefined
+          }
+        />
+      );
+    }
     const m = row.message;
     return (
       <View style={{ alignItems: m.mine ? "flex-end" : "flex-start", marginTop: row.firstInGroup ? space.sm : 2 }}>
@@ -314,7 +346,7 @@ export default function Chat() {
           data={rows}
           keyExtractor={(r) => r.key}
           renderItem={renderRow}
-          ListHeaderComponent={thanksCard}
+          ListHeaderComponent={afterPickupCard}
           contentContainerStyle={styles.list}
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
@@ -331,29 +363,48 @@ export default function Chat() {
           </View>
         </View>
       ) : (
-        <View style={[styles.composer, { paddingBottom: insets.bottom + space.sm }]}>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={`Message ${other}`}
-            placeholderTextColor={color.inkSoft}
-            multiline
-            maxLength={MESSAGE_MAX}
-            style={styles.input}
-            accessibilityLabel="Message"
-          />
-          <Pressable
-            onPress={submit}
-            disabled={!draft.trim() || sending}
-            accessibilityLabel="Send"
-            style={[styles.send, (!draft.trim() || sending) && { opacity: 0.35 }]}
-          >
-            <Ionicons name="arrow-up" size={20} color={color.white} />
-          </Pressable>
-        </View>
+        <>
+          {showStrip ? (
+            <FlowerStrip other={other} onOpen={() => setFlowerOpen(true)} onDismiss={() => setStripHidden(true)} />
+          ) : null}
+          <View style={[styles.composer, { paddingBottom: insets.bottom + space.sm }]}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={`Message ${other}`}
+              placeholderTextColor={color.inkSoft}
+              multiline
+              maxLength={MESSAGE_MAX}
+              style={styles.input}
+              accessibilityLabel="Message"
+            />
+            <Pressable
+              onPress={submit}
+              disabled={!draft.trim() || sending}
+              accessibilityLabel="Send"
+              style={[styles.send, (!draft.trim() || sending) && { opacity: 0.35 }]}
+            >
+              <Ionicons name="arrow-up" size={20} color={color.white} />
+            </Pressable>
+          </View>
+        </>
       )}
 
       {menu}
+      {!owner ? (
+        <FlowerSheet
+          visible={flowerOpen}
+          onClose={() => setFlowerOpen(false)}
+          onSent={() => {
+            setFlowerOpen(false);
+            setFlowerJustSent(true);
+          }}
+          conversationId={conversationId}
+          other={other}
+          thing={thing}
+          pickedUp={item?.status === "gone"}
+        />
+      ) : null}
       <ReportSheet target={report} onClose={() => setReport(null)} />
       <BlockSheet target={block} onClose={() => setBlock(null)} onBlocked={() => router.back()} />
     </KeyboardAvoidingView>

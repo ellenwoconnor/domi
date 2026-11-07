@@ -24,7 +24,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Lifecycle | Available → Pending → Gone, or Expired after 30 days, or Removed. |
 | Notifications | Push, fed by `events`, only when there's something to do. In the app, the My stuff tab shows what needs you (see "My stuff"). At most one circle activity push per day. |
 | Growth | Invite links that land people in the right circle, with a web landing page for people without the app. Listing share links (above). |
-| Thanks | After pickup, the person who got the item can send the giver one thank-you poppy, with an optional note. Private to the two of them; never counted. See "Thank-you poppy". |
+| Thanks | From pickup time on, the person who got the item can send the giver one domi flower (a thank-you poppy), with an optional note. Private to the two of them; never counted. See "Domi flower". |
 | Safety | Report and block. Block hides each person's items, wishes and messages from the other. Manual review in the Convex dashboard. Cap of 5 open requests per user. `bannedAt` on profiles to suspend. |
 
 ## Out of scope for MVP
@@ -72,7 +72,7 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
   - If a custom circle's owner leaves or deletes their account, ownership passes to the longest-standing member; a circle with no members is deleted.
 - `communityBans` (communityId, userId): written when the owner removes a member, so the person cannot rejoin through an invite.
 - `invites` (code, communityId, inviterId, revokedAt?): one active link per member per custom circle. Regenerate revokes the old one.
-- `items` (ownerId, title, description, photos: storage ids (full size, item detail only), thumbs?: storage ids (~600 px, same order, for feeds and lists; missing on older listings, which fall back to the full photo), approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?, thankedAt?, thankNote? (the thank-you poppy, see below))
+- `items` (ownerId, title, description, photos: storage ids (full size, item detail only), thumbs?: storage ids (~600 px, same order, for feeds and lists; missing on older listings, which fall back to the full photo), approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?, thankedAt?, thankNote? (unused: the first domi flower version; dev data only))
   - visibility is 'private' if and only if wishlistItemId is set; private items are offers to a wish and are not posted to circles.
   - approxLat/approxLng are copied from the owner's profile when posting.
   - 'removed' is a soft delete so requests, threads and events stay intact. Account deletion hard-deletes.
@@ -134,11 +134,15 @@ The owner un-picks with "<name> didn't show" (chat sheet, or the un-pick prompt 
 
 Missed pickups with two or more different owners within 30 days pause that person's new requests and offer picks (`requests.create`, `wishlist.pickOffer`) until 7 days after the latest one. Two different owners, so one unhappy neighbor can't pause someone alone. Pickups already under way are unaffected. Nothing is shown publicly and rows age out on their own. Constants and checks: `convex/lib/noShows.ts`. This is a limit, not karma: no score, no public signal.
 
-### Thank-you poppy (`thanks.send`, one mutation)
+### Domi flower (`thanks.send`, one mutation)
 
-After the owner marks an item picked up, the person who got it sees a Blush card at the bottom of the chat: "Send Ellen a poppy?", an optional note (140 characters, screened like other text) and "Not now". Sending sets `items.thankedAt` and `thankNote` and writes a `thanked` event to the owner, which pushes and opens the chat. The poppy blooms open once as it sends; the chat then shows "Sent to Ellen" and, later, a small "You sent Ellen a poppy". The owner sees it large in the chat ("Maya sent you a poppy", the note, "for the crib"); My stuff shows "Maya sent you a poppy" on the Giving side and "Picked up. Send Ellen a poppy?" / "Picked up. You sent a poppy." on the Getting side, with no "needs you" dot.
+A thank-you from the person who got an item to the person who gave it: the poppy on a stem, called a "domi flower" in the app. It belongs to the pickup itself, not to the start of the chat, and it's always optional.
 
-Rules: only the recipient of that handoff (the conversation's selected request), only once the item is gone, only once per item, not after a block. "Not now" just hides the card; My stuff still offers it until the row drops off after 3 days. No counts anywhere, no profile badges; a collective "bloom" per domi may come later.
+- **"I just picked this up, thank you so much":** while the item is pending, once the recipient has sent at least one message, a quiet Blush strip sits above the message box ("Picked it up? Send Ellen a thank-you.", with × to hide it for now). It opens a sheet with the flower, an optional note (140 characters, screened like other text) and "Send a domi flower".
+- **"I appreciate this":** when the owner marks it picked up, the recipient gets an informational push ("Enjoy the crib!" / "Ellen marked it picked up.") that opens the chat. If no flower has been sent, the chat shows an "Enjoy the crib!" card with "Send a domi flower" and "Not now". My stuff shows "Picked up. Send Ellen a domi flower?" with no "needs you" dot.
+- **Sent:** the flower blooms open once and stays in the thread at the time it was sent ("Sent to Ellen", later "You sent Ellen a domi flower"). The owner gets a `thanked` push ("Maya sent you a domi flower" / the note) and sees the flower large in the thread; while the item is still pending it also offers "Maya has it? Mark it picked up". My stuff (Giving) shows "Maya sent you a domi flower. Picked up?" while pending, then "Maya sent you a domi flower".
+
+Stored on the conversation (`conversations.thankedAt`, `thankNote`), so it's one per handoff even if the item is later picked for someone else. Rules: only the conversation's recipient, only while the item is pending or gone with that conversation's request still selected, only while the conversation is open, only once, not after a block. Hiding the strip or card lasts for that visit. No counts anywhere, no profile badges; a collective "bloom" per domi may come later.
 
 ### Account deletion (`profiles.deleteAccount`)
 
@@ -173,7 +177,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | pending → available | owner un-picks | former recipient | "Ellen un-picked you for the crib" |
 | pending → available | owner marks a no-show | former recipient | "Ellen said the pickup for the crib didn't happen, so it's available again." |
 | pending → available | recipient withdraws, or leaves/zip change withdraws them | owner | "Maya can't take the crib anymore" |
-| pending → gone | owner taps Mark picked up | recipient | "Hope you enjoy the crib" |
+| pending → gone | owner taps Mark picked up | recipient (pushes, opens the chat) | "Enjoy the crib!" / "Ellen marked it picked up." |
 | pending → gone | owner taps Mark picked up | open requesters | "The crib has been picked up" |
 | any → removed | owner removes, or a circle change leaves it with no circles | open and selected requesters | "The crib is no longer available" |
 | available → expired | 30 days, cron | owner | "Your crib listing expired. Repost?" |
@@ -184,7 +188,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | offer un-picked | wisher withdraws | offerer | "Maya can't take the stroller anymore" |
 | wish fulfilled elsewhere / wish removed | another offer picked up, or wish removed | other offerers | "Maya's wish was fulfilled" / "Maya removed the wish" |
 | joined via invite | invite redeemed | inviter | "Sam joined 🍼 Baby Shower" |
-| thank-you poppy | recipient sends a poppy after pickup | owner | "Maya sent you a poppy" / the note, or "A thank-you for the crib." |
+| domi flower | recipient sends a thank-you (pending or picked up) | owner | "Maya sent you a domi flower" / the note, or "A thank-you for the crib." |
 
 Push sending (M5, details in `docs/m5-requirements.md`): only events with an action push. Inserting one sets `pushDueAt` and schedules `push.flush`, which claims due events, sends through the Expo push API in batches and sets `pushedAt`. Chat messages merge. Circle activity (new listings and wishes) pushes as `circle_activity` events: 5 welcome pushes per circle joined, then back-off; per-circle mute applies only to these.
 
@@ -301,4 +305,4 @@ Recipients aren't told about the one-ask limit up front; only the sharer is. The
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.
 - 2026-11-02: Share links are single use: one link per person, used up by the first request made through it (not by opening it). The listing stays in its circles and the owner still picks; nothing is reserved. Links die when the item ends (gone, removed, expired) or after 14 days; pending items keep them live. No public or group share links for items; broadcast is for joining Domi (flyers, campaign links), never for single items. Replaces reusable links; `shareGrants` stays as the look-before-requesting access. Considered and rejected: a few claims per link (confusing to explain), tying links to a phone number (too heavy; revisit with phone sign-in).
 - 2026-11-02: Zip changes limited to one per 30 days (first change after signup free), so one zip per account holds without address verification. Missed pickups: owners can mark a no-show; two with different owners in 30 days pause requests for 7 days. Chosen instead of address verification and karma: measure flakiness directly, keep it private.
-- 2026-11-06: Thank-you poppy: one per handoff, sent by the person who got the item, note optional, private to the two of them. Domi's brand moves from the ring to the leaning poppy, and user-facing copy says "neighborhood" and "domi" instead of "circle" (`docs/brand-strategy.md`).
+- 2026-11-06: Domi flower (thank-you poppy): one per handoff, sent by the person who got the item from pickup time on (before or after it's marked picked up), note optional, private to the two of them. "Picked up" now pushes to the recipient, informational only, so the flower is one tap away without being asked for. Domi's brand moves from the ring to the leaning poppy, and user-facing copy says "neighborhood" and "domi" instead of "circle" (`docs/brand-strategy.md`).

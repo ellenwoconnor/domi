@@ -49,7 +49,7 @@ export const eventType = v.union(
   v.literal("joined_via_invite"),
   v.literal("wish_match"), // a new listing matches your open wish (M5)
   v.literal("circle_activity"), // new listings/wishes in your circles (M5, replaces the digest)
-  v.literal("thanked"), // the person who got your item sent you a poppy
+  v.literal("thanked"), // the person who got your item sent you a domi flower
 );
 export const pushResult = v.union(
   v.literal("sent"),
@@ -155,7 +155,8 @@ export default defineSchema({
     updatedAt: v.number(),
     searchText: v.string(), // title + description, for the search index
     photosPurgedAt: v.optional(v.number()),
-    // The thank-you poppy: sent once by the person who got the item, after pickup (thanks.send).
+    // Unused: the first version of the domi flower kept it here (dev test data only).
+    // The flower now lives on conversations. Safe to drop once dev data is cleared.
     thankedAt: v.optional(v.number()),
     thankNote: v.optional(v.string()),
   })
@@ -233,6 +234,9 @@ export default defineSchema({
     recipientId: v.id("users"),
     closedAt: v.optional(v.number()),
     lastMessageAt: v.optional(v.number()),
+    // The domi flower: the recipient's thank-you, once per handoff (thanks.send).
+    thankedAt: v.optional(v.number()),
+    thankNote: v.optional(v.string()),
   })
     .index("by_request", ["requestId"])
     .index("by_item", ["itemId"])

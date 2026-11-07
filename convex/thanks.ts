@@ -5,9 +5,11 @@ import { writeEvent } from "./lib/events";
 import { selectedRequest } from "./lib/lifecycle";
 import { cleanText, LIMITS } from "./lib/validate";
 
-// The thank-you poppy (docs/spec.md, "Thank-you poppy"). After a pickup, the
-// person who got the item can send the giver one poppy, with an optional note.
-// It's private to the two of them and never counted anywhere.
+// The domi flower (docs/spec.md, "Domi flower"): the thank-you the person who
+// got an item can send the giver, once per handoff, with an optional note.
+// Sendable from pickup time on: while the item is still pending ("I just
+// picked it up") or after the giver marks it picked up. Private to the two of
+// them and never counted anywhere.
 
 export const send = mutation({
   args: { conversationId: v.id("conversations"), note: v.optional(v.string()) },
@@ -17,17 +19,22 @@ export const send = mutation({
     // Only the person who got the item; the giver gets "not found" like anyone else.
     if (!c || c.recipientId !== userId) fail("Conversation not found");
     if (await isBlockedEitherWay(ctx, userId, c.ownerId)) fail("Conversation not found");
+    if (c.closedAt !== undefined) fail("This conversation is closed");
     const item = await ctx.db.get(c.itemId);
     if (!item) fail("Item not found");
-    // This chat must be the handoff that happened, not an earlier pick.
+    // This chat must be the current handoff (an un-pick closes the chat anyway).
     const selected = await selectedRequest(ctx, item._id);
-    if (item.status !== "gone" || !selected || selected._id !== c.requestId) {
-      fail("You can send a poppy once it's picked up");
+    if ((item.status !== "pending" && item.status !== "gone") || !selected || selected._id !== c.requestId) {
+      fail("This isn't yours to thank for");
     }
-    if (item.thankedAt !== undefined) fail("You already sent a poppy");
-    const note = cleanText(args.note ?? "", "Note", LIMITS.thankNote, { required: false });
-    const now = Date.now();
-    await ctx.db.patch(item._id, { thankedAt: now, ...(note ? { thankNote: note } : {}) });
+    if (c.thankedAt !== undefined) fail("You already sent a domi flower");
+    const note = cleanText(args.note ?? "", "Note", LIMITS.thankNote, {
+      required: false,
+    });
+    await ctx.db.patch(c._id, {
+      thankedAt: Date.now(),
+      ...(note ? { thankNote: note } : {}),
+    });
     await writeEvent(ctx, {
       recipientId: c.ownerId,
       type: "thanked",
@@ -35,7 +42,7 @@ export const send = mutation({
       itemId: item._id,
       requestId: c.requestId,
       conversationId: c._id,
-      title: `${profile.displayName} sent you a poppy`,
+      title: `${profile.displayName} sent you a domi flower`,
       body: note ? `“${note}”` : `A thank-you for the ${item.title}.`,
     });
   },

@@ -2,17 +2,10 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { color } from "../../ui/theme";
-import {
-  THANKS_ASPECT,
-  THANKS_CALYX,
-  THANKS_ORIGIN,
-  THANKS_PETALS,
-  THANKS_STEM,
-  THANKS_VIEWBOX,
-} from "./thanksPaths";
+import { THANKS_ASPECT, THANKS_CALYX, THANKS_ORIGIN, THANKS_PETALS, THANKS_STEM, THANKS_VIEWBOX } from "./thanksPaths";
 
 /**
- * The thank-you poppy. With `bloom`, the petals open from a bud when it first
+ * The domi flower (the thank-you poppy). With `bloom`, the petals open from a bud when it first
  * appears (under a second, once). The stem and calyx stay still.
  */
 export function ThankYouPoppy({ height, bloom = false }: { height: number; bloom?: boolean }) {
@@ -30,16 +23,26 @@ export function ThankYouPoppy({ height, bloom = false }: { height: number; bloom
   }, [bloom, open]);
 
   const petals = {
-    opacity: open.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 1, 1] }),
+    opacity: open.interpolate({
+      inputRange: [0, 0.3, 1],
+      outputRange: [0, 1, 1],
+    }),
     transform: [
-      { scale: open.interpolate({ inputRange: [0, 1], outputRange: [0.15, 1] }) },
-      { rotate: open.interpolate({ inputRange: [0, 1], outputRange: ["-18deg", "0deg"] }) },
+      {
+        scale: open.interpolate({ inputRange: [0, 1], outputRange: [0.15, 1] }),
+      },
+      {
+        rotate: open.interpolate({
+          inputRange: [0, 1],
+          outputRange: ["-18deg", "0deg"],
+        }),
+      },
     ],
     transformOrigin: THANKS_ORIGIN,
   };
 
   return (
-    <View style={{ width, height }} accessibilityRole="image" accessibilityLabel="A poppy">
+    <View style={{ width, height }} accessibilityRole="image" accessibilityLabel="A domi flower">
       <Svg width={width} height={height} viewBox={THANKS_VIEWBOX} style={StyleSheet.absoluteFill}>
         <Path d={THANKS_STEM} stroke={color.bay} strokeWidth={4} strokeLinecap="round" fill="none" />
       </Svg>

@@ -42,8 +42,8 @@ async function summary(ctx: QueryCtx, c: Doc<"conversations">, userId: Id<"users
       ? { id: item._id, title: item.title, status: item.status, photoUrl: await firstThumbUrl(ctx, item) }
       : null,
     closed: c.closedAt !== undefined,
-    // The thank-you poppy, once the person who got the item has sent it.
-    thanks: item?.thankedAt !== undefined ? { at: item.thankedAt, note: item.thankNote ?? null } : null,
+    // The domi flower, once the person who got the item has sent it.
+    thanks: c.thankedAt !== undefined ? { at: c.thankedAt, note: c.thankNote ?? null } : null,
     lastMessage: last ? { body: last.body, senderId: last.senderId, at: last._creationTime } : null,
     unread,
     updatedAt: c.lastMessageAt ?? c._creationTime,

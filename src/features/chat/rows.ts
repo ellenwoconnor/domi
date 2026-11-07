@@ -6,7 +6,8 @@ export type ChatMessage = { id: string; body: string; mine: boolean; at: number 
 
 export type ChatRow =
   | { kind: "day"; key: string; label: string }
-  | { kind: "message"; key: string; message: ChatMessage; firstInGroup: boolean; lastInGroup: boolean; time: string };
+  | { kind: "message"; key: string; message: ChatMessage; firstInGroup: boolean; lastInGroup: boolean; time: string }
+  | { kind: "flower"; key: string; at: number };
 
 const GROUP_GAP_MS = 10 * 60 * 1000;
 
@@ -32,10 +33,15 @@ function together(a: ChatMessage, b: ChatMessage) {
   return a.mine === b.mine && sameDay(a.at, b.at) && Math.abs(b.at - a.at) < GROUP_GAP_MS;
 }
 
-/** Rows oldest first. */
-export function chatRows(messages: ChatMessage[], now = Date.now()): ChatRow[] {
+/** Rows oldest first. `flowerAt`: when a domi flower was sent; it sits among the messages by time. */
+export function chatRows(messages: ChatMessage[], now = Date.now(), flowerAt?: number): ChatRow[] {
   const rows: ChatRow[] = [];
+  let flowerPlaced = flowerAt === undefined;
   messages.forEach((m, i) => {
+    if (!flowerPlaced && m.at > flowerAt!) {
+      rows.push({ kind: "flower", key: "flower", at: flowerAt! });
+      flowerPlaced = true;
+    }
     const prev = messages[i - 1];
     const next = messages[i + 1];
     if (!prev || !sameDay(prev.at, m.at)) rows.push({ kind: "day", key: `day:${m.id}`, label: dayLabel(m.at, now) });
@@ -48,5 +54,6 @@ export function chatRows(messages: ChatMessage[], now = Date.now()): ChatRow[] {
       time: timeLabel(m.at),
     });
   });
+  if (!flowerPlaced) rows.push({ kind: "flower", key: "flower", at: flowerAt! });
   return rows;
 }

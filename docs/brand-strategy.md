@@ -20,7 +20,7 @@ Five product facts shape the brand most:
 - **No comment threads.** Neighbors request with one tap and an optional note; the giver picks someone; a private chat opens for pickup. The brand should feel calm and orderly.
 - **Wishes run the other way.** Post what you need; neighbors offer; you pick the one that works. Giving can be an answer, not just a broadcast.
 - **Reliability without a score.** There is no karma. Missed pickups are tracked privately and only pause repeat no-shows. The brand makes showing up feel like pride, never policing.
-- **Thanks closes the loop.** After a handoff, the person who got the item can send the giver a poppy (see "The thank-you poppy").
+- **Thanks closes the loop.** At pickup, the person who got the item can send the giver a domi flower, a thank-you poppy (see "The domi flower").
 
 Later, not now: selling, price drops, bidding and escrow from the original white paper. They are out of scope for the MVP and the brand shouldn't promise them.
 
@@ -102,10 +102,10 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 - **How we got here:** a four-petal top-down poppy read as a toy or a button; tall side views as a tulip or torch; a detailed traced poppy was lovely but fussy at small sizes; abstract shapes (sunrise, cupped hands, a single petal) drifted into clichés. The simplified leaning poppy kept the warmth and survives at 16 px.
 - **Files** in `docs/brand/`: `domi-mark.svg` (light backgrounds), `domi-mark-on-blue.svg` (white stem), `domi-app-icon.svg` (1024 px, Bay Blue), `domi-app-icon-white.svg` (alternate), `domi-thanks.svg`. In the app the mark is drawn by `PoppyMark` in `src/ui/Logo.tsx`.
 
-### The thank-you poppy
+### The domi flower (thank-you poppy)
 
-- After a pickup, the person who got the item can send the giver a poppy, with an optional short note. One per handoff.
-- It's the same poppy leaning further, 46°, on a thin Bay Blue stem that follows the lean and then curves down, like a picked flower being handed over (`domi-thanks.svg`). Shown on a Blush card ("Maya sent you a poppy"). No words on the graphic itself.
+- Called a **domi flower** in the app. From pickup time on, the person who got the item can send the giver one, with an optional short note. One per handoff, always optional, never the first thing asked for.
+- It's the same poppy leaning further, 46°, on a thin Bay Blue stem that follows the lean and then curves down, like a picked flower being handed over (`domi-thanks.svg`). Shown on a Blush card ("Maya sent you a domi flower"). No words on the graphic itself.
 - **Poppies count for the domi, not the person.** No totals on profiles, no leaderboards. A domi can show its collective bloom ("Elm Street domi: 48 poppies this fall"). Pride in the group, never a score.
 - Motion: one gentle bloom when it arrives. No confetti.
 - Not yet in `docs/spec.md`; it needs a spec entry and a place in the build plan before it's built.
@@ -184,8 +184,8 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 - ☐ Pronunciation of "domi"
 - ☐ Domain and handles: keep domicircles.com / @domicircles, or find one without "circles"?
 - ☐ Is the eco-minded East Bay parent the right primary audience for launch, or students (move-out swaps)?
-- ☐ Thank-you poppy: who can send it (recipient only, or both sides), and add it to the spec and build plan
+- ☒ Domi flower: sent by the person who got the item, from pickup time on, note optional (built Nov 6; spec in `docs/spec.md`)
 - ☐ Functional colors for item states, success and errors
 - ☐ Trademark search on "Domi"
 
-Next steps: the thank-you poppy spec, and a pronunciation for "domi".
+Next steps: a pronunciation for "domi", and later a collective "bloom" per domi.

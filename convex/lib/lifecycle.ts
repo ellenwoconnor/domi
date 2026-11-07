@@ -156,14 +156,20 @@ export async function markGone(ctx: Ctx, item: Doc<"items">, now: number) {
   const selected = await selectedRequest(ctx, item._id);
   await ctx.db.patch(item._id, { status: "gone", updatedAt: now });
   if (selected) {
+    // Informational (no ask): it opens the chat, where the domi flower is offered.
+    const chat = await ctx.db
+      .query("conversations")
+      .withIndex("by_request", (q) => q.eq("requestId", selected._id))
+      .first();
     await writeEvent(ctx, {
       recipientId: selected.requesterId,
       type: "picked_up",
       actorId: item.ownerId,
       itemId: item._id,
       requestId: selected._id,
-      title: item.title,
-      body: `Hope you enjoy the ${item.title}!`,
+      conversationId: chat?._id,
+      title: `Enjoy the ${item.title}!`,
+      body: `${await displayName(ctx, item.ownerId)} marked it picked up.`,
     });
   }
   for (const r of await openRequests(ctx, item._id)) {

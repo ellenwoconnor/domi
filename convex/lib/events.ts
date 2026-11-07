@@ -25,6 +25,7 @@ export const PUSH_TYPES: ReadonlySet<EventType> = new Set<EventType>([
   "offer_unpicked",
   "wish_match",
   "circle_activity",
+  "picked_up", // informational; opens the chat, where the domi flower is offered
   "thanked",
 ]);
 

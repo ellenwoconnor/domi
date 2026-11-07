@@ -23,7 +23,7 @@ export type StuffRow = {
   itemId: Id<"items"> | null;
   wishId: Id<"wishlistItems"> | null;
   conversationId: Id<"conversations"> | null;
-  poppy: boolean; // show the thank-you poppy beside the status line
+  poppy: boolean; // show the domi flower beside the status line
   at: number;
 };
 
@@ -116,13 +116,14 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
       if (chat.unread > 0) {
         status = `New message from ${recipient}`;
         needsYou = true;
-      } else status = `Going to ${recipient}`;
+      } else if (conv?.thankedAt !== undefined) status = `${recipient} sent you a domi flower. Picked up?`;
+      else status = `Going to ${recipient}`;
     } else if (item.status === "expired") {
       status = "Expired. Tap to post again.";
     } else {
       status =
-        item.thankedAt !== undefined && recipient
-          ? `${recipient} sent you a poppy`
+        conv?.thankedAt !== undefined && recipient
+          ? `${recipient} sent you a domi flower`
           : recipient
             ? `Picked up by ${recipient}`
             : "Picked up";
@@ -141,7 +142,7 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
       itemId: item._id,
       wishId: null,
       conversationId: conv?._id ?? null,
-      poppy: item.status === "gone" && item.thankedAt !== undefined,
+      poppy: (item.status === "gone" || item.status === "pending") && conv?.thankedAt !== undefined,
       at: item.updatedAt,
     });
   }
@@ -172,7 +173,8 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         if (item.status === "gone") {
           if (now - item.updatedAt > RECENT_MS) continue;
           conv = await openConversation(ctx, r._id); // the chat stays open after pickup
-          line = item.thankedAt !== undefined ? "Picked up. You sent a poppy." : `Picked up. Send ${owner} a poppy?`;
+          line =
+            conv?.thankedAt !== undefined ? "Picked up. You sent a domi flower." : `Picked up. Send ${owner} a domi flower?`;
           ended = true;
         } else {
           conv = await openConversation(ctx, r._id);
@@ -209,7 +211,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         itemId: item._id,
         wishId: null,
         conversationId: conv?._id ?? null,
-        poppy: status === "selected" && item.status === "gone" && item.thankedAt !== undefined,
+        poppy: status === "selected" && item.status === "gone",
         at: r.updatedAt,
       });
     }

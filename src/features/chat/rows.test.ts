@@ -16,7 +16,7 @@ describe("chat rows", () => {
       ],
       now,
     );
-    expect(rows.map((r) => (r.kind === "day" ? r.label : `${r.key}:${r.firstInGroup ? "F" : ""}${r.lastInGroup ? "L" : ""}`))).toEqual([
+    expect(rows.map((r) => (r.kind === "day" ? r.label : r.kind === "flower" ? "flower" : `${r.key}:${r.firstInGroup ? "F" : ""}${r.lastInGroup ? "L" : ""}`))).toEqual([
       "Yesterday",
       "a:FL",
       "b:F",
@@ -28,5 +28,14 @@ describe("chat rows", () => {
 
   test("older days show the date", () => {
     expect(dayLabel(new Date(2026, 9, 20).getTime(), now)).not.toMatch(/Today|Yesterday/);
+  });
+
+  test("a domi flower sits among the messages by when it was sent", () => {
+    const now = new Date(2026, 10, 7, 12, 0).getTime();
+    const m = (id: string, at: number) => ({ id, body: id, mine: true, at });
+    const keys = (flowerAt?: number) => chatRows([m("a", now - 30), m("b", now - 10)], now, flowerAt).map((r) => r.key);
+    expect(keys(now - 20)).toEqual(["day:a", "a", "flower", "b"]);
+    expect(keys(now - 5)).toEqual(["day:a", "a", "b", "flower"]);
+    expect(keys()).toEqual(["day:a", "a", "b"]);
   });
 });

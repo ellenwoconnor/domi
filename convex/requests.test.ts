@@ -91,7 +91,7 @@ describe("requests and the item lifecycle (M4)", () => {
     await ellen.as.mutation(api.items.markPickedUp, { itemId });
     expect((await doc(t, itemId))?.status).toBe("gone");
     expect((await doc(t, rSam))?.status).toBe("closed");
-    expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe("Hope you enjoy the Crib!");
+    expect((await eventsFor(t, maya.userId)).at(-1)).toMatchObject({ title: "Enjoy the Crib!", body: "Ellen marked it picked up." });
     expect((await eventsFor(t, sam.userId)).at(-1)?.type).toBe("picked_up_elsewhere");
     expect(await ellen.as.query(api.items.browse, {})).toEqual([]);
   });
