@@ -61,35 +61,171 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 ## M6. Expiry, caps, and launch readiness
 - Convex cron jobs (`convex/crons.ts`) for listing expiry; open-request cap per user, per-circle mute. (Done. The digest became M5's circle activity pushes.)
 - Terms of Service and Privacy Policy (done 2026-10-24): text in `web/src/legal.js`, served at domicircles.com/terms and /privacy, linked from sign-in, onboarding and You. `terms_version` is 2026-10-25. support@domicircles.com is set up.
+- Rate limits, the circle cap and the terms re-acceptance screen (done 2026-10-27). App Review fixes (done 2026-11-02, `docs/app-review.md`).
+- The rest of launch readiness is the launch plan below (replaces the 2026-10-27 M6 checklist).
 - Done when: the app passes an internal test with real users from the first circle.
 
-Checklist (agreed 2026-10-27; Android/Play closed test and in-app feedback still to decide):
+## Launch plan (2026-11-03)
 
-1. Abuse and cost limits
-   - [x] Rate limits (`convex/lib/rateLimit.ts`): posting (listings, reposts, offers) 20/day, wishes 20/day, chat messages 30/minute, invite and share code redemption 10/hour. Tests in `convex/limits.test.ts`.
-   - [x] At most 10 invite-only circles per person (`MAX_CIRCLES` in `convex/lib/circles.ts`; the home circle doesn't count). Redeeming at the cap returns `too_many_circles`.
-   - [ ] Website: Cloudflare rate-limiting rule on `/c/*` and `/i/*`, and short caching of the "link not working" pages (Cloudflare dashboard).
-2. Terms re-acceptance
-   - [x] When `terms_version` changes, people who accepted an older version see `app/terms.tsx` (agree, sign out, or delete account) before the app. `profiles.acceptTerms`.
-3. Production backend
-   - [ ] Create the Convex prod deployment; `setup:auth`, env vars, seed.
-   - [ ] Load the full US zip table into prod (`scripts/import-zips.mjs`, `--prod`).
-   - [ ] Confirm `DEV_PASSWORD_AUTH` is not set on prod.
-   - [ ] Point the `production` EAS profile and the website at prod; update `docs/vendors.md` and `CLAUDE.md`.
-   - [ ] Move Convex to Starter (pay as you go) before sending the TestFlight link to the circle; set a spending alert if offered. Until then the free plan is fine.
-4. TestFlight
-   - [ ] App Store Connect app record.
-   - [ ] `ITSAppUsesNonExemptEncryption: false` in `app.json`.
-   - [ ] Production build and `eas submit` to TestFlight.
-   - [ ] App privacy details, description, support URL.
-   - [ ] External tester group with a public link; Beta App Review (reviewer notes plus a test-circle invite code).
-   - [ ] Optional: "Get Domi" button on the invite and listing pages linking to TestFlight.
-5. Internal test with the first circle
-   - [ ] Test script: invite signup, post, request, pick, chat, pickup, wish and fulfill, push.
-   - [ ] Feedback channel (TestFlight's built-in feedback, or a "Send feedback" item in You).
-   - [ ] Run the test; triage and fix.
+**This is the one to-do list for launch.** Tick items here. It replaces the M6 checklist, the open "Cost controls" items and the "To do" list (2026-10-25), which are all folded in below.
+
+**Rule for scope:** an item goes in a phase only if that phase's goal fails without it. Everything else waits in "Later".
+
+**Target dates (set 2026-11-03):**
+
+| Phase | Target | Gating item |
+| --- | --- | --- |
+| 1. Friends and family | **Mon Nov 9** | Beta App Review takes about a day: submit by Thu Nov 5 |
+| 2. Buy Nothing beta | **Mon Nov 23** | Meta app setup and the Android build; start them first |
+| 3. Public launch | **Mon Dec 7** (assumed same 2-week pace; tentative) | Play production access needs the closed test to run 14 days first, so start it by Mon Nov 16 |
+
+### Phase 1: Friends and family (now, target Mon Nov 9)
+
+**Goal:** a stable build with the MVP features, where joining is just: get a link → TestFlight → Domi.
+
+#### 1a. Switch to an external TestFlight group with a public link
+Internal testing makes each person accept two emails in order (App Store Connect, then TestFlight). An external group with a public link needs neither: tap link → install TestFlight → install Domi.
+- [ ] Seed the App Review circle on prod and make the review account (steps in `docs/app-review.md`, "Before submitting" step 2).
+- [ ] App Store Connect: App Privacy answers, description, support URL (domicircles.com/support), privacy URL (`docs/app-review.md` steps 3 and 4).
+- [ ] Create the external group, turn on the public link, add the build, and submit for Beta App Review with the review notes (`docs/app-review.md` step 5). Usually takes about a day. Later builds of the same version often skip review.
+- [ ] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml` so the "Get Domi" step on invite, listing and /beta pages works.
+- [ ] Move current internal testers over: send them the public link. Keep the internal group for yourself, since internal builds skip review.
+
+#### 1b. Production backend and website
+Prod (`rugged-dragon-667`) exists and `wrangler.toml` already points at it (not committed yet).
+- [ ] Check prod: full zip table loaded, `DEV_PASSWORD_AUTH` not set, report alerts sent and received (`web/README.md`).
+- [ ] Commit `web/wrangler.toml` and `convex/_generated`, then `cd web && npx wrangler deploy`.
+- [ ] Move Convex to Starter (pay as you go, $0 base) **before** sending the public link. On the free plan, a hit cap breaks the app for everyone.
+- [ ] Merge branch `zip-limit-no-shows` (zip change limit, mark missed pickup) once tests pass, and ship it with `npm run update:production`.
+
+#### 1c. Stability: one full run on real phones
+Several milestones were built and tested in code, but their checks on a real device are still open.
+- [ ] Write the test script: invite link → install → sign up → post → request → pick → chat → pickup → wish and fulfill → push.
+- [ ] Run it on two iPhones using the TestFlight build on prod. It covers the open device checks: an invite link opens the installed app (M2), the code works on a fresh install (M2), chat and block (M4), wishes (M4b), every push type (M5), and the Circles tab.
+- [ ] Fix anything that blocks the script. Write everything else down for phase 2.
+
+#### 1d. Easy onboarding
+- [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most.
+- [ ] Show the invite on the sign-in screen ("Ellen invited you to …") when a code is saved. Small, JS only.
+
+#### 1e. Finalize brand details
+Settle what testers see first: the app icon, the TestFlight description, the website and the invite pages. Open questions come from "Domi Circles — Brand Strategy (Draft)" in Drive.
+- [ ] Decide the launch audience and lead message. Recommendation: the East Bay parent first (not students), gifting first. That matches what's built, since everything on Domi is free for now.
+- [ ] Pick the tagline ("Pass it on, close to home." / "Good things stay in the neighborhood." / "Give it a new home nearby.") and use it on the home page, the TestFlight and App Store description, and invite pages.
+- [ ] Replace or keep the home page headline "Outgrown, not outrun." (`web/src/home.js`). It reads as confusing.
+- [ ] Lock the logo and app icon for the TestFlight build (icon changes need a new build). A designer's pass on the logo can come later.
+- [ ] Functional colors for success, errors and item states, so they never borrow Poppy. Add them to `src/ui/theme.ts`.
+- [ ] Trademark search on "Domi" and "Domi Circles" (USPTO), plus a short backup domain. Do it before paying for more brand assets.
+- [ ] Update the Brand Strategy doc to match the MVP: mark the decisions above, and drop selling, bids, price drops and karma, which aren't in the launch build. Retire "Corcles" in the product doc and white paper.
+
+#### 1f. Feedback for this phase
+- **Decision:** don't build anything. Use TestFlight's built-in feedback (screenshot, then Share Beta Feedback) plus a group text. Tell testers how in the invite message.
+
+**Not in phase 1:** renaming karma (karma isn't in the MVP), instrumentation, the in-app feedback button, Facebook login, Android, location picker, QR invites.
+
+---
+
+### Phase 2: Beta with Buy Nothing superusers (target Mon Nov 23)
+
+**Goal:** learn whether strangers who already give things away keep using Domi, and why. That needs numbers (instrumentation) and their words (feedback).
+
+#### 2a. Instrumentation
+- [ ] **First, write down 5–8 questions**, for example: share of invitees who finish signup; first post within 7 days; requests per listing; time to first request; share of listings picked up; weekly return; who invites whom.
+- [ ] **Decision to make (recommendation):** answer most of these from data Convex already has (the `events` table, items, requests, memberships) with one `analytics` query you run with `npx convex run`. No new vendor. Add PostHog (free tier, Expo SDK) only for what Convex can't see: screen views and where people drop off in onboarding. Adding a vendor needs your OK, and the privacy policy and App Privacy answers would need updating.
+- [ ] Crash reporting: TestFlight already collects crash reports. Check them weekly. Add Sentry only if crashes are hard to diagnose from those.
+
+#### 2b. Feedback mechanisms
+- [ ] "Send feedback" item in You: a text box that saves to Convex and emails you, reusing the report-alert path (`convex/moderation.ts` → Worker email). Include app version and user ID automatically.
+- [ ] Run the support agent in shadow mode on support@domicircles.com: it drafts, you send. Track accept rate (`support-agent/README.md`).
+- [ ] A short check-in with each superuser after 2 weeks (a call or 3 questions). Keep this manual.
+
+#### 2c. Fixes needed before strangers join
+Superusers will post share links in Buy Nothing groups, so links will reach people outside any circle.
+- [ ] Leave out `approxLat`/`approxLng` (`convex/lib/cards.ts`) for people who reached the listing only through a share link.
+- [ ] "Stop sharing" on the owner's listing, calling the existing `shares.revoke`.
+- [ ] Mark requests that came in through a link ("via your link") so owners can favor neighbors.
+
+#### 2d. Sign in with Facebook
+Buy Nothing superusers mostly live on Facebook, so this cuts signup friction for them. It's a new dependency and native code, so it needs a new build and the Meta setup takes a while: start it early in phase 2.
+- [ ] Meta developer app for Domi (app ID and client token; both are public IDs). Add the bundle ID `com.ellenwoconnor.domi`.
+- [ ] Add `react-native-fbsdk-next` (native, so a new `build:dev:ios` and prod build). Approved here as an exception to "ask before adding a dependency".
+- [ ] Use Facebook **Limited Login** on iOS. It returns an OpenID ID token, so it fits the existing `signIn(provider, { idToken })` path: add a `facebook` case to `convex/lib/idTokens.ts` that checks the token against Facebook's published keys, with tests. Confirm the current Limited Login details in Meta's docs first.
+- [ ] Ask only for the basic profile (name). Don't request friends, email or any permission that needs Meta App Review.
+- [ ] Account linking: decide what happens when someone who signed up with Google or Apple later taps Facebook. Recommendation: no automatic merging by email; it's a new account unless they're signed in.
+- [ ] Meta requires a data deletion URL or instructions: point it at the in-app delete account steps on domicircles.com/support.
+- [ ] Update the Privacy Policy (Facebook as a sign-in provider), bump `terms_version` only if the Terms change, and update the App Privacy answers in App Store Connect.
+- [ ] Add a "Continue with Facebook" button to sign-in, under Apple and Google. Sign in with Apple stays, which Apple requires when other social logins are offered.
+- [ ] Add Meta to `docs/vendors.md`.
+
+#### 2e. Android (Google Play closed test)
+Many Buy Nothing members use Android, and Google requires a closed test (currently 12 testers opted in for 14 days on new personal accounts; confirm in Play Console) before the app can go to production. So the closed test also unlocks the Play launch in phase 3. Nothing is set up yet beyond the package name `com.ellenwoconnor.domi` and icons in `app.json`.
+- [ ] Google Play Console account ($25 one-time) and the Domi app record.
+- [ ] Android scripts in `package.json`: `build:dev:android`, `build:prod:android`, `submit:android`, and `--platform all` (or an Android twin) for `update:production`.
+- [ ] Push: Firebase project and FCM credentials uploaded to EAS (`google-services.json` in `app.json`), carried over from M5.
+- [ ] Google sign-in: an Android OAuth client in Google Cloud with the signing certificate's SHA-1 (EAS credentials show it).
+- [ ] App Links: put the signing certificate's SHA-256 in `ANDROID_SHA256` in `web/wrangler.toml` and deploy, so invite links open the app.
+- [ ] Sign in with Facebook on Android: add the key hash to the Meta app (2d).
+- [ ] Play Console forms: Data safety, content rating (match the 18+ Terms), target audience, US only, privacy URL.
+- [ ] Closed test track with an opt-in link; make the "Get Domi" button send Android phones there.
+- [ ] Optional: read the invite code from the Play install referrer on first launch, so Android users skip the code box.
+- [ ] Run the phase 1 test script on an Android phone.
+
+#### 2f. Growth features the superusers will use
+- [ ] Invite QR code (plan in `docs/build-plan.md`, "To do"). Superusers invite in person, and it ships without a new build. Needs a small QR library: ask first.
+- [ ] End the create-circle flow on an "Invite your first members" step (share, copy link, QR).
+- [ ] **Decision to make:** a wait before picking ("You can pick tomorrow at 6:30 pm"; mocked 2026-10-25, not built). Buy Nothing people care about fairness ("simmer"). Recommendation: build it if the first ~5 popular listings in phase 2 go to whoever was fastest.
+
+#### 2g. Neighbor card and thank-you tokens
+Strangers arrive in phase 2, and the giver picks who gets each item, so "who is this person?" needs an answer. The thank-you token is the handoff celebration from the Buy Nothing research (2026-11-03): the most-loved part of Buy Nothing was gratitude. Scope change: the spec lists "karma/points" as out of scope. Tokens are thanks you can't lose, not a score, so they're allowed; update `docs/spec.md` (scope line and decision log) when this is built.
+- [ ] **Pick the token** with a quick mock at real size: poppy (bouquet that fills in), cookie (with ripples on the profile) or marble jar. Working name below: "poppies".
+- [ ] **Send a poppy** after a handoff, in both directions ("Maya sent you a poppy for the crib"), from the picked-up screen and the chat. One per person per handoff. Writes an event and pushes per the events rules.
+- [ ] **Handoff moment**: the short "The crib is home." screen for both people when an item is marked picked up, leading into Send a poppy. Decide whether the recipient confirms with a "Home!" tap.
+- [ ] **Neighbor card**: tap a name to open it. Shows name and initial avatar (no photo uploads), the circles you share ("You're both in Rose St Parents"), member since, and their poppies as the filled-in display, never a number to rank by. No pickup history, nothing that hints at where they live.
+- [ ] Only people who share a circle with them can open it, plus the owner of a listing they requested through a share link. Access checks and allowed/denied tests in `convex/`.
+- [ ] Open it from: the owner's list of people who asked (most important), the chat header, item detail, and Browse cards once cards show the giver.
+- [ ] Nothing negative ever shows: missed pickups stay private (`convex/lib/noShows.ts`).
+
+**Not in phase 2:** location picker (in one or two zips the zip center is close enough), referral links.
+
+---
+
+### Phase 3: Public launch (App Store and Google Play, tentative Mon Dec 7)
+
+**Goal:** strangers at any volume can't run up a bill or break the app.
+
+#### 3a. Cost and abuse limits
+- [x] Rate limits on posting, wishes, chat and code redemption; cap of 10 circles per person (done 2026-10-27).
+- [x] Photo thumbnails, disk caching, upload limits, daily cleanup of unused uploads (done 2026-10-24).
+- [ ] Cloudflare rate-limiting rule on `/c/*` and `/i/*`, plus short caching of the "link not working" pages (Cloudflare dashboard, free plan).
+- [ ] Convex spending alert or cap in billing. Check the usage page weekly for the first month.
+- [ ] Watch `browse` function calls. Switch to a paginated feed only if calls or database bandwidth climb.
+- [ ] Habit: ship JS-only changes with `update:production`, not a new build (15 free iOS builds a month).
+
+#### 3b. App Store and Google Play submission
+- [ ] Age rating questionnaire, with the override set to 18+. Availability: United States (`docs/app-review.md` step 3).
+- [ ] Screenshots, App Store description, keywords.
+- [ ] Revoke the Apple sign-in token on account deletion (needs the Sign in with Apple key in Convex env).
+- [ ] Website: App Store and Google Play badges and Apple's Smart App Banner, replacing the TestFlight and closed-test steps.
+- [ ] Google Play: apply for production access once the closed test has run its 14 days, then release.
+- [ ] iPhone install match (the code applies itself on first launch) if phase 2 shows people dropping off at the code box.
+
+#### 3c. Support at volume
+- [ ] Support agent auto-sends only non-urgent emails the FAQ fully covers, with ~10% spot checks. Only after accept rate is high in phase 2.
+
+---
+
+### Later (decided: not before launch)
+
+- Location picker (map pin). The zip center is the fallback and fine for a launch in one or two zips. Revisit when distance matters ("12 mi from you").
+- Referral links for zip circles, crediting sharers, distance on listings, direct invites from your circles.
+- Paste button on the code field, "Add another code" copy, "Sent to you" in My stuff.
+
+### Launch work already done
+Circles tab (2026-10-25). Terms re-acceptance screen. Content filter, report emails, iPhone only (App Review fixes). Single-use share links. `ITSAppUsesNonExemptEncryption` set. Prod Convex deployment and App Store Connect app record exist.
 
 ## Cost controls (noted 2026-10-24)
+
+History. Open items here are tracked in the launch plan (phase 1b and 3a).
 
 From a cost review of the code against `docs/vendors.md`. Today every vendor stops at a hard free-tier cap; once Convex moves to pay-as-you-go Starter, abuse or waste becomes a bill instead of an outage. So the "before launch" items land before that switch. Rate limits use `convex/lib/rateLimit.ts` (a fixed window per user and action).
 
@@ -123,19 +259,9 @@ As usage grows (not urgent):
 
 Already fine: search is debounced, open requests are capped at 5, `browse` returns at most 100, and all text fields have length limits.
 
-## To do (added 2026-10-25)
-
-Not yet scheduled into a milestone.
-
-- [ ] Add the location picker.
-- [ ] Add a way for users to give feedback.
-- [ ] Add instrumentation. Pick the approach first; ask before adding a new vendor or library.
-- [ ] Move circles to a tab (today they live under You). This changes the tab bar, so it gets a design check first.
-- [ ] Invite QR code, for inviting in person without a contact or phone number. The circle page gets two buttons: **Show QR code** (full-screen card with the circle name, "Point your phone's camera here", the QR, and the typed code as a backup) and **Send invite link** (today's share sheet). The QR opens the same `/c/<code>` link. Plan: the Worker serves `/c/<code>/qr.svg` from a small pure-JS QR library (ask before adding it) and the app shows that image, so no native library and it ships with `npm run update:preview`; the computer version of the invite page uses the same image.
-
 ## Possible follow-ups: invites and installs (noted 2026-10-24)
 
-Not scheduled. Ideas from reviewing the invite flow end to end; pick up when they become useful or possible. Already done: returning users who sign in from a link get their saved codes redeemed (`profiles.redeemSavedCodes`), and the invite and listing pages say what Domi is.
+Not scheduled; the ones that are scheduled now appear in the launch plan. Ideas from reviewing the invite flow end to end; pick up when they become useful or possible. Already done: returning users who sign in from a link get their saved codes redeemed (`profiles.redeemSavedCodes`), and the invite and listing pages say what Domi is.
 
 Small, possible any time:
 - Land where the link pointed: after signup or sign-in from an invite, open that circle (or the shared listing) instead of Browse.

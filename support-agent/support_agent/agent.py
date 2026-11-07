@@ -13,6 +13,7 @@ Flow:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -61,6 +62,7 @@ class TriageResult:
     tool_calls: list[str] = field(default_factory=list)
     turns: int = 0
     model: str = ""
+    prompt_version: str = ""  # first 8 hex chars of sha256(system prompt), so runs can be compared by prompt
     latency_s: float = 0.0
     input_tokens: int = 0
     output_tokens: int = 0
@@ -82,10 +84,18 @@ def triage(
         result = _triage(email, model=model, system_prompt=system_prompt, client=client, send_alerts=send_alerts)
         s.set_attribute("output.value", json.dumps(result.to_dict()))
         s.set_attribute("output.mime_type", "application/json")
-        s.set_attribute("metadata", json.dumps({"category": result.category, "urgency": result.urgency, "model": result.model}))
-        # Flat fields for evals: the reply to check, and the reference text it should be grounded in.
+        s.set_attribute("metadata", json.dumps({"category": result.category, "urgency": result.urgency, "model": result.model, "prompt_version": result.prompt_version}))
+        # Flat fields for evals (online evaluators map their variables to these):
+        # the reply to check, the reference text it should be grounded in, and the decisions.
         s.set_attribute("support.draft_reply", result.draft_reply)
         s.set_attribute("support.retrieved_context", result.retrieved_context or "(nothing retrieved)")
+        s.set_attribute("support.category", result.category)
+        s.set_attribute("support.urgency", result.urgency)
+        s.set_attribute("support.model_urgency", result.model_urgency)
+        s.set_attribute("support.needs_human", result.needs_human)
+        s.set_attribute("support.sources", json.dumps(result.sources))
+        s.set_attribute("support.retrieved_ids", json.dumps(result.retrieved))
+        s.set_attribute("support.prompt_version", result.prompt_version)
         return result
 
 
@@ -153,7 +163,13 @@ def _triage(
     if final is None:  # shouldn't happen given the forced last turn, but never drop an email
         final = {"category": "feedback", "urgency": "normal", "summary": "Agent did not finish triage", "needs_human": True, "findings": "", "draft_reply": "", "sources": []}
 
-    return _finish(email, final, state, model, turn, usage, time.monotonic() - started, send_alerts)
+    result = _finish(email, final, state, model, turn, usage, time.monotonic() - started, send_alerts)
+    result.prompt_version = prompt_version(system)
+    return result
+
+
+def prompt_version(system_prompt: str) -> str:
+    return hashlib.sha256(system_prompt.encode()).hexdigest()[:8]
 
 
 def _finish(email: Email, final: dict, state: dict, model: str, turns: int, usage: dict, latency: float, send_alerts: bool | None) -> TriageResult:

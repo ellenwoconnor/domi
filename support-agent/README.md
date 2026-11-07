@@ -78,8 +78,14 @@ keyword rules over-fire. The `notes` column says what each row tests.
 
 ## Arize AX (to do)
 
-Left for hands-on exploration. See `support_agent/tracing.py` for a starting
-point.
+`scripts/setup_arize.py` creates what the repo can fill in: the dataset, the
+past local runs as scored experiments, the prompt, annotation configs and a
+review queue, code and LLM-judge evaluators, and online eval tasks. It's safe
+to re-run, and `--check` shows the plan without creating anything. LLM judges
+need `--anthropic-integration` (stores your Anthropic key in Arize). Online
+tasks need traces first, so run the dataset once with tracing on, then re-run
+the script. `setup_arize.py experiment --name <name> [--model ...] [--prompt ...]`
+runs a new scored experiment. See `support_agent/tracing.py` for the spans.
 
 **Development workflow**
 - [ ] Upload `data/dataset.csv` as a dataset
