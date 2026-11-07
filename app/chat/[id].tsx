@@ -26,7 +26,7 @@ import { lowerFirst } from "../../src/features/items/format";
 import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockSheet";
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { errorMessage } from "../../src/lib/errors";
-import { CircleMark } from "../../src/ui/Logo";
+import { PoppyMark } from "../../src/ui/Logo";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -285,7 +285,7 @@ export default function Chat() {
             </View>
           ) : (
             <View style={[styles.prompt, { backgroundColor: color.blush }]}>
-              <CircleMark size={44} />
+              <PoppyMark size={44} />
               <Text style={[type.display, { fontSize: 28, lineHeight: 34, textAlign: "center" }]}>
                 The {thing} is yours!
               </Text>

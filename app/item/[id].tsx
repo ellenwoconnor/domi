@@ -37,7 +37,7 @@ import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockShe
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { errorMessage } from "../../src/lib/errors";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
-import { CircleMark } from "../../src/ui/Logo";
+import { PoppyMark } from "../../src/ui/Logo";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 const NOTE_MAX = 140;
@@ -179,7 +179,7 @@ export default function ItemDetail() {
 
           {yours ? (
             <View style={styles.yours}>
-              <CircleMark size={40} />
+              <PoppyMark size={40} />
               <Text style={[type.display, { fontSize: 28, lineHeight: 34, textAlign: "center" }]}>
                 {item.status === "gone" ? `Enjoy the ${shortTitle}!` : `The ${shortTitle} is yours!`}
               </Text>
@@ -202,7 +202,7 @@ export default function ItemDetail() {
               <View style={styles.circleRow}>
                 {item.circles.map((c) => (
                   <View key={c.id} style={styles.circleChip}>
-                    {c.emoji ? null : <CircleMark size={13} />}
+                    {c.emoji ? null : <PoppyMark size={13} />}
                     <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
                   </View>
                 ))}

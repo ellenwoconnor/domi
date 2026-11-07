@@ -2,7 +2,7 @@
  * Domi design tokens, from "Domi Circles — Brand Strategy" (Oct 2026):
  * Neighborhood Modern on clean white, in Fog & Poppy.
  *
- * - Poppy means generosity: free items, thank-yous, the logo dot. Never warnings.
+ * - Poppy means generosity: free items, thank-yous, the logo. Never warnings.
  * - Text on Poppy is always Ink (white on Poppy fails contrast).
  * - Keep the blue deep and muted. No bright blue anywhere.
  */
@@ -10,6 +10,8 @@ export const color = {
   white: "#FFFFFF",
   bay: "#1F4E79", // primary: wordmark, buttons, navigation, selected states
   poppy: "#F2652B", // accent: giving moments only
+  poppyDeep: "#D9501C", // logo only: the poppy's back petal. Never in the interface
+  poppyLight: "#F7894F", // logo only: the poppy's front petal. Never in the interface
   blush: "#FDE8DE", // warm tint: highlights, celebrations, empty states
   fog: "#EAF0F4", // cool tint: photo backgrounds, chips, search
   ink: "#18222E", // text and icons

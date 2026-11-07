@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { color } from "../../ui/theme";
 
 /**
@@ -24,7 +24,7 @@ export function CircleBadge({
         { width: size, height: size, borderRadius: size / 2, backgroundColor: onFog ? color.white : color.fog },
       ]}
     >
-      {kind === "zip" ? <CircleMark size={size * 0.5} /> : <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>}
+      {kind === "zip" ? <PoppyMark size={size * 0.5} /> : <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>}
     </View>
   );
 }

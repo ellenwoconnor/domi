@@ -15,7 +15,7 @@ import { ReportSheet, type ReportTarget } from "../../src/features/safety/Report
 import { WishSafetySheet, type WishSafetyTarget } from "../../src/features/wishlist/WishSafetySheet";
 import { errorMessage } from "../../src/lib/errors";
 import { Avatar } from "../../src/ui/Avatar";
-import { CircleMark } from "../../src/ui/Logo";
+import { PoppyMark } from "../../src/ui/Logo";
 import { PhotoTile } from "../../src/ui/PhotoTile";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -334,7 +334,7 @@ function PickedHero({ offer, top }: { offer: Offer; top: number }) {
         <View style={styles.pickedPhotoWrap}>
           <PhotoTile uri={offer.thumbUrls[0]} style={styles.pickedPhoto} />
           <View style={styles.pickedMark}>
-            <CircleMark size={30} />
+            <PoppyMark size={30} />
           </View>
         </View>
         <Text style={[type.display, { fontSize: 30, lineHeight: 36, textAlign: "center" }]}>

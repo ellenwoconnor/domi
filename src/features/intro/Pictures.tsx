@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { GiveButton } from "../../ui/GiveButton";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { color, font, radius, space } from "../../ui/theme";
 
 // The pictures on the "How Domi works" cards, drawn from the app's own shapes
@@ -41,7 +41,7 @@ export function CirclesPicture({ width, height }: Size) {
         />
         <View style={{ position: "absolute", left: cx - ring / 2, top: cy - ring / 2, width: ring, height: ring }}>
           <View style={[StyleSheet.absoluteFill, { borderRadius: ring / 2, backgroundColor: color.white }]} />
-          <CircleMark size={ring} />
+          <PoppyMark size={ring} />
         </View>
         {neighbors.map((n) => {
           const a = (n.angle * Math.PI) / 180;
@@ -57,7 +57,7 @@ export function CirclesPicture({ width, height }: Size) {
         })}
         <View style={styles.chips}>
           <View style={[styles.chip, { backgroundColor: color.bay }]}>
-            <CircleMark size={12} tone="white" />
+            <PoppyMark size={12} tone="white" />
             <Text style={[styles.chipText, { color: color.white }]}>Kensington</Text>
           </View>
           <View style={[styles.chip, { backgroundColor: color.white }]}>

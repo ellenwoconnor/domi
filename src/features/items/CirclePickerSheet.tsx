@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { color, font, radius, space, type } from "../../ui/theme";
 import type { CircleView } from "./format";
 
@@ -52,7 +52,7 @@ export function CirclePickerSheet({
                 >
                   <View style={[styles.mark, c.kind === "custom" && { backgroundColor: color.blush }]}>
                     {c.kind === "zip" ? (
-                      <CircleMark size={20} />
+                      <PoppyMark size={20} />
                     ) : (
                       <Text style={styles.markText}>{c.emoji ?? c.name.charAt(0)}</Text>
                     )}

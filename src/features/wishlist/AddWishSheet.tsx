@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { errorMessage } from "../../lib/errors";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { color, font, radius, space, type } from "../../ui/theme";
 import { circleLabel } from "../items/format";
 
@@ -98,7 +98,7 @@ export function AddWishSheet({
                   accessibilityState={{ checked: on }}
                   style={[styles.chip, on && styles.chipOn]}
                 >
-                  {c.kind === "zip" ? <CircleMark size={13} tone={on ? "white" : "bay"} /> : null}
+                  {c.kind === "zip" ? <PoppyMark size={13} tone={on ? "white" : "bay"} /> : null}
                   <Text style={[styles.chipText, on && { color: color.white }]}>{circleLabel(c)}</Text>
                 </Pressable>
               );

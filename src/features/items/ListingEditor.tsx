@@ -18,7 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MAX_PHOTOS, pickPhotos, takePhoto } from "../give/photos";
 import { Avatar } from "../../ui/Avatar";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { PhotoTile } from "../../ui/PhotoTile";
 import { color, font, radius, space, type } from "../../ui/theme";
 import { CirclePickerSheet } from "./CirclePickerSheet";
@@ -230,7 +230,7 @@ export function ListingEditor({
             <View style={styles.circleRow}>
               {chosen.map((c) => (
                 <View key={c.id} style={styles.circleChip}>
-                  {c.kind === "zip" ? <CircleMark size={13} /> : null}
+                  {c.kind === "zip" ? <PoppyMark size={13} /> : null}
                   <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
                 </View>
               ))}

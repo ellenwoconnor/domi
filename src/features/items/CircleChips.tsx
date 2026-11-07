@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { CircleMark } from "../../ui/Logo";
+import { PoppyMark } from "../../ui/Logo";
 import { color, font, radius, space } from "../../ui/theme";
 import { circleLabel } from "./format";
 
@@ -31,7 +31,7 @@ export function CircleChips<C extends Circle>({
             accessibilityState={{ selected: on }}
             style={[styles.chip, on && styles.chipOn]}
           >
-            {o.mark ? <CircleMark size={14} tone={on ? "white" : "bay"} /> : null}
+            {o.mark ? <PoppyMark size={14} tone={on ? "white" : "bay"} /> : null}
             <Text style={[styles.label, on && styles.labelOn]}>{o.label}</Text>
           </Pressable>
         );
