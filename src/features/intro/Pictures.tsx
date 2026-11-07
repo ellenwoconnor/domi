@@ -29,7 +29,7 @@ export function CirclesPicture({ width, height }: Size) {
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel="You, in the middle of your circle of neighbors"
+      accessibilityLabel="You, in the middle of your neighbors"
       style={[styles.panel, { width, height, backgroundColor: color.fog }]}
     >
       <View {...hide} style={StyleSheet.absoluteFill}>

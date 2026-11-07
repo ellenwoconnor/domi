@@ -12,7 +12,7 @@ describe("circles and invites (M2)", () => {
       role: "owner",
       memberCount: 1,
     });
-    await expect(sam.as.query(api.communities.get, { communityId: shower })).rejects.toThrow("not in this circle");
+    await expect(sam.as.query(api.communities.get, { communityId: shower })).rejects.toThrow("not in this domi");
     await expect(sam.as.query(api.communities.members, { communityId: shower })).rejects.toThrow();
   });
 
@@ -88,7 +88,7 @@ describe("circles and invites (M2)", () => {
     const t = await setup();
     const maya = await newUser(t, "Maya");
     await expect(maya.as.mutation(api.invites.getOrCreate, { communityId: maya.zipCircle })).rejects.toThrow(
-      "Zip circles",
+      "Your neighborhood doesn't have an invite link",
     );
     await expect(maya.as.mutation(api.communities.leave, { communityId: maya.zipCircle })).rejects.toThrow(
       "zip code",
@@ -129,7 +129,7 @@ describe("circles and invites (M2)", () => {
     await invite(ellen, maya, shower);
     await expect(
       sam.as.mutation(api.communities.removeMember, { communityId: shower, userId: maya.userId }),
-    ).rejects.toThrow("owner");
+    ).rejects.toThrow("started this domi");
     await ellen.as.mutation(api.communities.removeMember, { communityId: shower, userId: sam.userId });
     const code = await maya.as.mutation(api.invites.getOrCreate, { communityId: shower });
     expect(await sam.as.mutation(api.invites.redeem, { code })).toEqual({ ok: false, reason: "banned" });
@@ -142,7 +142,7 @@ describe("circles and invites (M2)", () => {
     const shower = await circle(ellen);
     await invite(ellen, sam, shower);
     const samsItem = await post(t, sam, [shower], "Onesies");
-    await expect(sam.as.mutation(api.communities.deleteCircle, { communityId: shower })).rejects.toThrow("owner");
+    await expect(sam.as.mutation(api.communities.deleteCircle, { communityId: shower })).rejects.toThrow("started this domi");
     await ellen.as.mutation(api.communities.deleteCircle, { communityId: shower });
     expect((await doc(t, samsItem))?.status).toBe("removed");
     expect(await t.run((ctx) => ctx.db.get(shower))).toBeNull();

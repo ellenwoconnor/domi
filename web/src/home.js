@@ -18,8 +18,8 @@ const neighbors = [
   .join("");
 
 const steps = [
-  ["fog", poppy("poppy"), "Join local circles", "Share with others in your area. Want to share stuff in your building? A group of friends? Collect items for a friend's new baby? Create your own circle and invite others into it."],
-  ["blush", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v4H4z"/><path d="M6 12v8h12v-8"/><path d="M12 8v12"/><path d="M12 8c-1.5-3-5-3.5-5-1.2C7 8 9 8 12 8z"/><path d="M12 8c1.5-3 5-3.5 5-1.2C17 8 15 8 12 8z"/></svg>`, "Give things away", "Snap a photo and post it to your circles. Neighbors ask for it, you pick who gets it, and you set up pickup in chat."],
+  ["fog", poppy("poppy"), "Find your domi", "Share with your neighborhood. Want to share stuff in your building? A group of friends? Collect things for a friend's new baby? Start your own domi and invite others into it."],
+  ["blush", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v4H4z"/><path d="M6 12v8h12v-8"/><path d="M12 8v12"/><path d="M12 8c-1.5-3-5-3.5-5-1.2C7 8 9 8 12 8z"/><path d="M12 8c1.5-3 5-3.5 5-1.2C17 8 15 8 12 8z"/></svg>`, "Give things away", "Snap a photo and post it for your neighbors and friends. Neighbors ask for it, you pick who gets it, and you set up pickup in chat."],
   ["fog", heart, "Share a wish", "Need a cup of sugar? Ski clothes for a weekend trip? Post a wish, and a neighbor can offer it to you."],
 ]
   .map(
@@ -38,7 +38,7 @@ export const homeHtml = `<!doctype html>
 <meta name="description" content="Domi is a free app for exchanging things locally. Post what you don't need, ask for what you don't have, and connect to your village.">
 <meta property="og:site_name" content="Domi">
 <meta property="og:title" content="Domi: good things find a new home nearby">
-<meta property="og:description" content="A free app for exchanging things locally, in circles you choose.">
+<meta property="og:description" content="A free app for exchanging things locally, with your neighbors and the people you choose.">
 <meta property="og:url" content="https://domicircles.com/">
 <meta property="og:image" content="https://domicircles.com/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
@@ -168,7 +168,7 @@ footer nav a{color:var(--soft)}
 <a class="logo" href="/" aria-label="Domi home">${wordmark("poppy")}</a>
 <nav class="main" aria-label="Main">
 <a href="#how">How it works</a>
-<a href="#circles">Circles</a>
+<a href="#circles">Domis</a>
 <a class="button" href="#invite">Get Domi</a>
 </nav>
 </header>
@@ -181,11 +181,11 @@ footer nav a{color:var(--soft)}
 <p class="hero-text">Help your stuff find its next owner. <b>Domi</b> is a free app for exchanging things locally. Post what you don't need, ask for what you don't have, and connect to your village.</p>
 <div class="ctas">
 <div class="cta-row"><a class="button" href="#invite">I have an invite</a><a class="link" href="#how">See how it works</a></div>
-<p class="note">Domi is in private testing. Circles open by invite.</p>
+<p class="note">Domi is in private testing. Join by invite.</p>
 </div>
 </div>
 <div class="art-col">
-<div class="art" role="img" aria-label="You in the middle of your circle of neighbors, with a free wooden high chair posted">
+<div class="art" role="img" aria-label="You in the middle of your neighbors, with a free wooden high chair posted">
 <div class="orbit"></div>
 <div class="you">${poppy("poppy")}</div>
 ${neighbors}
@@ -227,8 +227,8 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 <section class="wrap row circles" id="circles" aria-labelledby="circles-title">
 <div class="col">
 <h2 id="circles-title">Your neighborhood, and the people you choose.</h2>
-<p class="lead">Your village isn't just the people who live next door. Organize as many local sharing circles as you want and invite friends in easily with a link.</p>
-<ul class="chips" aria-label="Example circles">
+<p class="lead">Your village isn't just the people who live next door. Start as many domis as you want and invite friends in easily with a link.</p>
+<ul class="chips" aria-label="Examples">
 <li class="on">${poppy("chip-poppy", "white")}Kensington</li>
 <li>Maya's baby shower</li>
 <li>Cedar St. building</li>
@@ -239,7 +239,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 <div class="invite">
 <div class="faces" aria-hidden="true"><span style="background:var(--bay);color:#fff">M</span><span style="background:#fff;color:var(--bay)">J</span><span style="background:var(--fog);color:var(--bay)">A</span></div>
 <p class="invite-title">Maya invited you to<br>Maya's baby shower</p>
-<p class="invite-meta">14 people · a circle on Domi</p>
+<p class="invite-meta">14 people · invite only</p>
 <div class="code-box"><span class="code">K7Q2-M9</span><span class="code-label">Invite code</span></div>
 </div>
 </div>
@@ -249,7 +249,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 <div class="band">
 <div>
 <h2 id="invite-title">Outgrown, not outrun.</h2>
-<p>Domi is in private testing. Got an invite link from a neighbor? Open it on your phone to join their circle.</p>
+<p>Domi is in private testing. Got an invite link from a neighbor? Open it on your phone to join their domi.</p>
 </div>
 <a class="button" href="mailto:support@domicircles.com?subject=Domi%20invite">Ask for an invite</a>
 </div>

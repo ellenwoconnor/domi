@@ -38,7 +38,7 @@ export function CirclePickerSheet({
         <View style={[styles.sheet, { paddingBottom: insets.bottom + space.lg }]}>
           <View style={styles.grabber} />
           <Text style={type.title}>Who should see it?</Text>
-          <Text style={type.meta}>Your home circle is on to start. Add any others.</Text>
+          <Text style={type.meta}>Your neighborhood is on to start. Add any others.</Text>
           <ScrollView style={{ maxHeight: 360, marginTop: space.sm }}>
             {circles.map((c) => {
               const on = picked.includes(c.id);
@@ -60,7 +60,7 @@ export function CirclePickerSheet({
                   <View style={{ flex: 1 }}>
                     <Text style={styles.name}>{c.name}</Text>
                     <Text style={type.meta}>
-                      {c.kind === "zip" ? "Home circle · " : ""}
+                      {c.kind === "zip" ? "Neighborhood · " : ""}
                       {c.memberCount} {c.memberCount === 1 ? "neighbor" : "neighbors"}
                     </Text>
                   </View>

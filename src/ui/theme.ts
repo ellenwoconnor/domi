@@ -1,5 +1,5 @@
 /**
- * Domi design tokens, from "Domi Circles — Brand Strategy" (Oct 2026):
+ * Domi design tokens, from "docs/brand-strategy.md":
  * Neighborhood Modern on clean white, in Fog & Poppy.
  *
  * - Poppy means generosity: free items, thank-yous, the logo. Never warnings.

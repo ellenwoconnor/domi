@@ -169,12 +169,12 @@ function betaPage(env) {
 
 function invitePage(p, code, env) {
   const title = `${p.invitedBy} invited you to ${p.emoji} ${p.name}`;
-  const desc = p.description || `An invite-only circle on Domi, where neighbors give things away for free. ${plural(p.memberCount, "member")}.`;
+  const desc = p.description || `An invite-only domi, where neighbors give things away for free. ${plural(p.memberCount, "member")}.`;
   return layout({
     title,
     desc,
     body: `
-      <p class="intro">${esc(p.invitedBy)} invited you to join <b>${esc(p.name)}</b>, a circle on Domi. Domi is an app for sharing things with the people near you.</p>
+      <p class="intro">${esc(p.invitedBy)} invited you to join <b>${esc(p.name)}</b> on Domi. A domi is the people near you who share what they have.</p>
       <div class="card">
         <div class="disc">${esc(p.emoji)}</div>
         <h1>${esc(p.name)}</h1>

@@ -50,10 +50,10 @@ export const supportBody = `
 <nav class="toc" aria-label="Topics">${toc}</nav>
 
 <h2>Domi in a minute</h2>
-<p>Domi is a free app for giving things away to people near you. Everyone starts in a <b>home circle</b> for their zip code, and you can start or join <b>invite-only circles</b> with people you choose, like friends, your building or a school group.</p>
+<p>Domi is a free app for giving things away to people near you. Everyone starts in their <b>neighborhood</b>, by zip code, and you can start or join a <b>domi</b>: an invite-only group with people you choose, like friends, your building or a school group.</p>
 <ul>
 <li><b>Give.</b> Post something with a photo. Neighbors tap Request, you pick one person, and Domi opens a private chat to plan pickup.</li>
-<li><b>Get.</b> Request things posted in your circles, or post a <b>wish</b> for something you need and let neighbors offer one.</li>
+<li><b>Get.</b> Request things your neighbors and friends post, or post a <b>wish</b> for something you need and let neighbors offer one.</li>
 <li><b>My stuff.</b> Everything you're giving or getting, with a dot on anything that needs you.</li>
 </ul>
 

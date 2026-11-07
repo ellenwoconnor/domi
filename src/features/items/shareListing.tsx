@@ -57,12 +57,12 @@ export function useShareListing() {
     <Sheet visible={pending !== null} onClose={() => setPending(null)} title="One link, one person">
       <View style={{ gap: space.md, marginTop: space.sm, marginBottom: space.lg }}>
         <Text style={type.body}>
-          Each link lets one person ask for your {pending ? lowerFirst(pending.title) : "listing"}, even if you don't
-          share a circle.
+          Each link lets one person ask for your {pending ? lowerFirst(pending.title) : "listing"}, even if they're not
+          nearby.
         </Text>
         <Text style={type.body}>
-          Sharing with a few friends? Send each one their own link. Your circle can still ask too, and you choose who
-          gets it.
+          Sharing with a few friends? Send each one their own link. Everyone who can already see it can still ask
+          too, and you choose who gets it.
         </Text>
       </View>
       <PrimaryButton title="Got it, share" onPress={confirm} />

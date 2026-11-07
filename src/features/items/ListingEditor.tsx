@@ -83,7 +83,7 @@ export function ListingEditor({
     photos.length !== initial.photos.length ||
     circleIds.join() !== initial.circleIds.join();
   const chosen = circles.filter((c) => circleIds.includes(c.id));
-  const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick a circle" : null;
+  const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick who sees it" : null;
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
     setPage(Math.round(e.nativeEvent.contentOffset.x / width));
@@ -226,7 +226,7 @@ export function ListingEditor({
             </View>
           ) : (
           <View style={{ gap: space.sm }}>
-            <Text style={type.label}>In your circles</Text>
+            <Text style={type.label}>Shared with</Text>
             <View style={styles.circleRow}>
               {chosen.map((c) => (
                 <View key={c.id} style={styles.circleChip}>
@@ -238,9 +238,9 @@ export function ListingEditor({
                 onPress={() => setPicking(true)}
                 style={styles.changeChip}
                 accessibilityRole="button"
-                accessibilityLabel="Change circles"
+                accessibilityLabel="Change who sees it"
               >
-                <Text style={styles.changeText}>{chosen.length ? "Change" : "Pick circles"}</Text>
+                <Text style={styles.changeText}>{chosen.length ? "Change" : "Choose who sees it"}</Text>
               </Pressable>
             </View>
           </View>

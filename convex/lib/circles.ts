@@ -29,7 +29,7 @@ export async function addMembership(
 
 /** Most invite-only circles one person can be in (the home zip circle doesn't count). Bounds the feed's cost. */
 export const MAX_CIRCLES = 10;
-export const TOO_MANY_CIRCLES = `You're in ${MAX_CIRCLES} circles, the most for now. Leave one to join or start another.`;
+export const TOO_MANY_CIRCLES = `You're in ${MAX_CIRCLES} domis, the most for now. Leave one to join or start another.`;
 
 export async function customCircleCount(ctx: QueryCtx | MutationCtx, userId: Id<"users">) {
   const memberships = await ctx.db

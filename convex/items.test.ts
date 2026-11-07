@@ -47,7 +47,7 @@ describe("post and browse (M3)", () => {
     const t = await setup();
     const a = await newUser(t, "Ana");
     const b = await newUser(t, "Ben", { zip: "94110" });
-    await expect(post(t, a, [b.zipCircle])).rejects.toThrow("not in this circle");
+    await expect(post(t, a, [b.zipCircle])).rejects.toThrow("not in this domi");
     await expect(
       a.as.mutation(api.items.create, { title: "X", description: "Y", photos: [], communityIds: [a.zipCircle] }),
     ).rejects.toThrow("photo");
@@ -75,7 +75,7 @@ describe("post and browse (M3)", () => {
     await b.as.mutation(api.requests.create, { itemId });
     await expect(
       a.as.mutation(api.items.update, { itemId, communityIds: [shower] }),
-    ).rejects.toThrow("requested");
+    ).rejects.toThrow("asked for it");
     await a.as.mutation(api.items.update, { itemId, title: "Wooden crib", photos: [await photo(t)] });
     expect((await doc(t, itemId))?.title).toBe("Wooden crib");
   });

@@ -53,15 +53,15 @@ export async function getMembership(ctx: Ctx, communityId: Id<"communities">, us
 
 export async function requireMember(ctx: Ctx, communityId: Id<"communities">, userId: Id<"users">) {
   const membership = await getMembership(ctx, communityId, userId);
-  if (!membership) fail("You're not in this circle");
+  if (!membership) fail("You're not in this domi");
   return membership;
 }
 
 export async function requireCircleOwner(ctx: Ctx, communityId: Id<"communities">, userId: Id<"users">) {
   const membership = await requireMember(ctx, communityId, userId);
-  if (membership.role !== "owner") fail("Only the circle's owner can do that");
+  if (membership.role !== "owner") fail("Only the person who started this domi can do that");
   const community = await ctx.db.get(communityId);
-  if (!community) fail("Circle not found");
+  if (!community) fail("That domi wasn't found");
   return { membership, community };
 }
 

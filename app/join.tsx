@@ -13,7 +13,7 @@ export default function Join() {
   const code = typed.toUpperCase().replace(/[\s-]/g, "");
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
-      <ScreenHeader title="Join a circle" close />
+      <ScreenHeader title="Join a domi" close />
       <FormScroll>
         <Text style={type.caption}>Got an invite link or code from a neighbor? Enter the code here.</Text>
         <Field

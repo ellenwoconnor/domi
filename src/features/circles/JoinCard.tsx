@@ -15,9 +15,9 @@ import { CircleBadge } from "./CircleBadge";
 const REASONS: Record<string, string> = {
   invalid: "That invite code doesn't exist. Check it and try again.",
   revoked: "That invite link has been replaced. Ask for a new one.",
-  banned: "You can't rejoin this circle.",
+  banned: "You can't rejoin this domi.",
   unavailable: "That invite isn't available.",
-  too_many_circles: "You're in 10 circles, the most for now. Leave one to join this one.",
+  too_many_circles: "You're in 10 domis, the most for now. Leave one to join this one.",
 };
 
 /**
@@ -71,7 +71,7 @@ export function JoinCard({ code, mode }: { code: string; mode: "member" | "signI
       <ErrorNote message={error} />
       <View style={styles.button}>
         {mode === "member" ? (
-          <PrimaryButton title="Join circle" onPress={join} busy={busy} />
+          <PrimaryButton title="Join this domi" onPress={join} busy={busy} />
         ) : (
           <PrimaryButton
             title={mode === "signIn" ? "Sign in to join" : "Finish signing up to join"}

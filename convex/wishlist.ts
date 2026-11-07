@@ -67,7 +67,7 @@ export const create = mutation({
     const { userId } = await requireProfile(ctx);
     await rateLimit(ctx, "wish", userId);
     const circles = [...new Set(args.communityIds)];
-    if (circles.length === 0) fail("Pick at least one circle");
+    if (circles.length === 0) fail("Pick who sees it");
     for (const c of circles) await requireMember(ctx, c, userId);
     const wishId = await ctx.db.insert("wishlistItems", {
       userId,

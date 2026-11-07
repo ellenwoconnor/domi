@@ -99,7 +99,7 @@ export default function Welcome() {
         <Card
           width={width}
           title="Good things find a new home nearby."
-          body="Domi circles are sharing groups. We've added you to your neighborhood circle. You can create other circles and invite others into them."
+          body="A domi is the people near you who share what they have. We've added you to your neighborhood. You can start your own domi and invite people into it."
         >
           <CirclesPicture width={pictureW} height={pictureH} />
         </Card>
@@ -113,7 +113,7 @@ export default function Welcome() {
         <Card
           width={width}
           title="Share a wish"
-          body="Request items posted in your circles, or post a wish for a neighbor to see and fulfill."
+          body="Ask for things your neighbors and friends post, or post a wish for a neighbor to see and fulfill."
         >
           <WishPicture width={pictureW} height={pictureH} />
         </Card>

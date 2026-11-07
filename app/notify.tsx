@@ -19,12 +19,12 @@ function copy(reason: AskReason, circle?: string) {
   switch (reason) {
     case "welcome":
       return {
-        title: `${circle ?? "Your circle"} is just getting started`,
+        title: `${circle ?? "Your domi"} is just getting started`,
         body: "Get a heads-up when neighbors post something or someone wants your stuff.",
       };
     case "join":
       return {
-        title: `You're in ${circle ?? "the circle"}`,
+        title: `You're in ${circle ?? "your new domi"}`,
         body: "Get a heads-up when neighbors here post something, and when someone wants your stuff.",
       };
     case "request":
@@ -45,7 +45,7 @@ function copy(reason: AskReason, circle?: string) {
     default:
       return {
         title: "Turn on notifications",
-        body: "Only when there's something to do: someone wants your stuff, picks you, or messages you. And a heads-up when your circles have something new.",
+        body: "Only when there's something to do: someone wants your stuff, picks you, or messages you. And a heads-up when there's something new nearby.",
       };
   }
 }

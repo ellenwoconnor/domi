@@ -65,9 +65,9 @@ export default function Browse() {
   const heading = circle ? circleLabel(circle) : "Close to home";
   const sub =
     circle?.kind === "zip"
-      ? "Your home circle"
+      ? "Your neighborhood"
       : circle
-        ? "An invite-only circle"
+        ? "Invite only"
         : mode === "free"
           ? browse.isSuccess
             ? offered === 0
@@ -148,7 +148,7 @@ export default function Browse() {
               </Text>
               <Text style={[type.body, { color: color.inkSoft }]}>
                 {query
-                  ? "Add it to your wishes and your circles will know you're looking."
+                  ? "Add it to your wishes and your neighbors and friends will know you're looking."
                   : "Be the first to give something. Tap Give to post a photo."}
               </Text>
               {query ? (
@@ -177,7 +177,7 @@ export default function Browse() {
                 {query ? `No one is wishing for “${query.trim()}”.` : "No wishes here yet."}
               </Text>
               <Text style={[type.body, { color: color.inkSoft }]}>
-                {query ? "Add it as your own wish and your circles will know you're looking." : "Looking for something? Add a wish and your circles will see it."}
+                {query ? "Add it as your own wish and your neighbors and friends will know you're looking." : "Looking for something? Add a wish and your neighbors and friends will see it."}
               </Text>
               <Pressable onPress={() => openAdd(query.trim())} style={styles.pillButton}>
                 <Ionicons name="add" size={18} color={color.white} />

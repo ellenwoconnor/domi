@@ -46,7 +46,7 @@ export default function CircleDetail() {
       <SafeAreaView style={styles.screen}>
         <ScreenHeader />
         <View style={styles.body}>
-          <Text style={type.title}>You're not in this circle anymore.</Text>
+          <Text style={type.title}>You're not in this domi anymore.</Text>
         </View>
       </SafeAreaView>
     );
@@ -82,8 +82,8 @@ export default function CircleDetail() {
         p.wishes ? plural(p.wishes, "wish", "wishes") : null,
       ].filter(Boolean);
       const message =
-        (lost.length ? `This will cancel ${lost.join(", ")} that only live in this circle. ` : "") +
-        (isOwner ? "Someone else will become the circle's owner." : "You can rejoin with an invite.");
+        (lost.length ? `This will cancel ${lost.join(", ")} that only live in this domi. ` : "") +
+        (isOwner ? "Someone else will take over this domi." : "You can rejoin with an invite.");
       if (!(await confirm(`Leave ${c.name}?`, message, "Leave", true))) return;
       await leave({ communityId: c.id });
       router.back();
@@ -94,7 +94,7 @@ export default function CircleDetail() {
       const ok = await confirm(
         `Delete ${c.name}?`,
         "Everyone is removed and listings that only live here are taken down. This can't be undone.",
-        "Delete circle",
+        "Delete this domi",
         true,
       );
       if (!ok) return;
@@ -139,7 +139,7 @@ export default function CircleDetail() {
           <PrimaryButton title="Invite a neighbor" onPress={invite} busy={busy} />
         ) : (
           <Text style={[type.meta, styles.note]}>
-            Everyone in your zip code is here. To change your home circle, edit the zip in your profile.
+            Everyone in your zip code is here. To change your neighborhood, edit the zip in your profile.
           </Text>
         )}
 
@@ -153,7 +153,7 @@ export default function CircleDetail() {
               disabled={!canRemove || m.isMe}
               onPress={() => doRemove(m)}
               style={styles.member}
-              accessibilityHint={canRemove && !m.isMe ? "Remove from circle" : undefined}
+              accessibilityHint={canRemove && !m.isMe ? "Remove from this domi" : undefined}
             >
               <Avatar name={m.displayName} />
               <Text style={[type.body, { flex: 1 }]}>{m.isMe ? "You" : m.displayName}</Text>
@@ -167,8 +167,8 @@ export default function CircleDetail() {
 
         {custom ? (
           <View style={styles.danger}>
-            <Quiet label="Leave this circle" onPress={doLeave} />
-            {isOwner ? <Quiet label="Delete this circle" onPress={doDelete} /> : null}
+            <Quiet label="Leave this domi" onPress={doLeave} />
+            {isOwner ? <Quiet label="Delete this domi" onPress={doDelete} /> : null}
           </View>
         ) : null}
       </ScrollView>

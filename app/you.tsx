@@ -48,7 +48,7 @@ export default function You() {
             </Text>
             <Text style={styles.soft}>
               {home?.name.replace(" · ", " ") ?? p?.zip ?? ""}
-              {circles ? ` · in ${circles.length} ${circles.length === 1 ? "circle" : "circles"}` : ""}
+              {circles ? ` · in ${circles.length} ${circles.length === 1 ? "domi" : "domis"}` : ""}
             </Text>
           </View>
           <Link label="Edit" onPress={() => router.push("/profile")} />

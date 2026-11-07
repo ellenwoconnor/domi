@@ -42,7 +42,7 @@ export default function SignIn() {
             <Logo size={40} />
             <Text style={[type.display, styles.headline]}>Good things, close to home.</Text>
             <Text style={[type.body, { color: color.inkSoft }]}>
-              Give and get secondhand with your neighbors. Your circles see what you post; nobody else does.
+              Give and get secondhand with your neighbors. Only the people you share with see what you post.
             </Text>
           </View>
 

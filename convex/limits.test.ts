@@ -97,7 +97,7 @@ describe("circles per person", () => {
     const circles = [];
     for (let i = 0; i < MAX_CIRCLES; i++) circles.push(await circle(ana, `Circle ${i}`));
 
-    await expect(circle(ana, "One more")).rejects.toThrow(`You're in ${MAX_CIRCLES} circles`);
+    await expect(circle(ana, "One more")).rejects.toThrow(`You're in ${MAX_CIRCLES} domis`);
 
     const bens = await circle(ben, "Ben's circle");
     const code = await ben.as.mutation(api.invites.getOrCreate, { communityId: bens });

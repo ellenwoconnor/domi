@@ -175,7 +175,7 @@ function YourWish({ wish }: { wish: Wish }) {
             <Text style={picked ? type.title : type.display}>{wish.title}</Text>
             <Text style={type.meta}>
               {picked
-                ? "Shows as pending in your circles until you've picked it up."
+                ? "Shows as pending to others until you've picked it up."
                 : `Your wish${circles ? ` · in ${circles}` : ""}`}
             </Text>
             {wish.description && !picked ? <Text style={type.body}>“{wish.description}”</Text> : null}
@@ -439,7 +439,7 @@ function RemoveWish({ wish, offers }: { wish: Wish; offers: Offer[] }) {
           ? `${names[0]} and ${names[1]} offered.`
           : `${names.length} neighbors offered.`;
   const confirm = () =>
-    Alert.alert("Remove your wish?", who ? `${who} We'll let them know you don't need one anymore.` : "Your circles won't see it anymore.", [
+    Alert.alert("Remove your wish?", who ? `${who} We'll let them know you don't need one anymore.` : "Nobody else will see it anymore.", [
       { text: "Keep it", style: "cancel" },
       {
         text: "Remove wish",

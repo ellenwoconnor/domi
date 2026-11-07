@@ -190,7 +190,7 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const { userId } = await requireProfile(ctx);
     const { community } = await requireCircleOwner(ctx, args.communityId, userId);
-    if (community.kind !== "custom") fail("Zip circles can't be edited");
+    if (community.kind !== "custom") fail("Your neighborhood can't be edited");
     await ctx.db.patch(community._id, {
       ...(args.name !== undefined ? { name: cleanText(args.name, "Name", LIMITS.circleName) } : {}),
       ...(args.emoji !== undefined ? { emoji: cleanEmoji(args.emoji) } : {}),
@@ -226,7 +226,7 @@ export const leave = mutation({
     const { userId } = await requireProfile(ctx);
     await requireMember(ctx, communityId, userId);
     const c = (await ctx.db.get(communityId))!;
-    if (c.kind === "zip") fail("To leave your zip circle, change your zip code");
+    if (c.kind === "zip") fail("To leave your neighborhood, change your zip code");
     await leaveCommunity(ctx, userId, communityId);
   },
 });
@@ -237,8 +237,8 @@ export const removeMember = mutation({
   handler: async (ctx, args) => {
     const { userId } = await requireProfile(ctx);
     const { community } = await requireCircleOwner(ctx, args.communityId, userId);
-    if (community.kind !== "custom") fail("Zip circles have no owner");
-    if (args.userId === userId) fail("Use Leave to leave your own circle");
+    if (community.kind !== "custom") fail("Your neighborhood has no owner");
+    if (args.userId === userId) fail("Use Leave to leave a domi you started");
     await requireMember(ctx, args.communityId, args.userId);
     await leaveCommunity(ctx, args.userId, args.communityId);
     await ctx.db.insert("communityBans", { communityId: args.communityId, userId: args.userId });
@@ -251,7 +251,7 @@ export const deleteCircle = mutation({
   handler: async (ctx, { communityId }) => {
     const { userId } = await requireProfile(ctx);
     const { community } = await requireCircleOwner(ctx, communityId, userId);
-    if (community.kind !== "custom") fail("Zip circles can't be deleted");
+    if (community.kind !== "custom") fail("Your neighborhood can't be deleted");
     const members = await ctx.db
       .query("memberships")
       .withIndex("by_community_joinedAt", (q) => q.eq("communityId", communityId))

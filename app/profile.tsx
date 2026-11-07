@@ -66,8 +66,8 @@ export default function EditProfile() {
       ].filter(Boolean);
       const message =
         (lost.length
-          ? `This will cancel ${lost.join(", ")} in ${preview.oldZip}. Your custom circles aren't affected.`
-          : `You'll move from the ${preview.oldZip} circle to the ${preview.newZip} circle. Your custom circles aren't affected.`) +
+          ? `This will cancel ${lost.join(", ")} in ${preview.oldZip}. Domis you've joined aren't affected.`
+          : `You'll move from the ${preview.oldZip} neighborhood to ${preview.newZip}. Domis you've joined aren't affected.`) +
         " You can change your zip once a month.";
       const ok = await new Promise<boolean>((resolve) =>
         Alert.alert("Change your zip code?", message, [
@@ -104,8 +104,8 @@ export default function EditProfile() {
             label="Zip code"
             hint={
               profile.nextZipChangeAt !== null && profile.nextZipChangeAt > Date.now()
-                ? `Your zip decides your home circle. You can change it again on ${shortDate(profile.nextZipChangeAt)}.`
-                : "Your zip decides your home circle."
+                ? `Your zip decides your neighborhood. You can change it again on ${shortDate(profile.nextZipChangeAt)}.`
+                : "Your zip decides your neighborhood."
             }
             value={zip}
             onChangeText={(t) => setZip(t.replace(/\D/g, "").slice(0, 5))}

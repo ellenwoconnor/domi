@@ -51,13 +51,13 @@ export default function Circles() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TabHeader title="Your circles" subtitle="Where you share things with neighbors" />
+        <TabHeader title="Your domis" subtitle="Where you share things with neighbors" />
         <View style={styles.content}>
           {home ? (
             <Pressable
               onPress={() => openCircle(home.id)}
               accessibilityRole="button"
-              accessibilityLabel={`${home.name}, your home circle, ${neighbors(home.memberCount)}`}
+              accessibilityLabel={`${home.name}, your neighborhood, ${neighbors(home.memberCount)}`}
               style={({ pressed }) => [styles.homeCard, pressed && { opacity: 0.7 }]}
             >
               <View style={styles.row}>
@@ -66,7 +66,7 @@ export default function Circles() {
                   <Text style={styles.homeName} numberOfLines={1}>
                     {home.name}
                   </Text>
-                  <Text style={styles.meta}>Your home circle · {neighbors(home.memberCount)}</Text>
+                  <Text style={styles.meta}>Your neighborhood · {neighbors(home.memberCount)}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={color.inkSoft} />
               </View>
@@ -100,14 +100,14 @@ export default function Circles() {
                 <View style={styles.pictureDot} />
               </View>
               <Text style={styles.panelTitle}>Share with people you already know</Text>
-              <Text style={styles.panelBody}>Start a new circle. Only people you invite can see what’s shared there.</Text>
+              <Text style={styles.panelBody}>Start a domi. Only people you invite can see what’s shared there.</Text>
               <View style={styles.ideas}>
                 {IDEAS.map((idea) => (
                   <Pressable
                     key={idea.name}
                     onPress={() => startCircle(idea)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Start a circle: ${idea.name}`}
+                    accessibilityLabel={`Start a domi: ${idea.name}`}
                     style={({ pressed }) => [styles.idea, pressed && { opacity: 0.7 }]}
                   >
                     <Text style={{ fontSize: 14 }}>{idea.emoji}</Text>
@@ -116,7 +116,7 @@ export default function Circles() {
                 ))}
               </View>
               <View style={styles.buttons}>
-                <PillButton label="Start a circle" onPress={() => startCircle()} solid />
+                <PillButton label="Start a domi" onPress={() => startCircle()} solid />
                 <PillButton label="I have a code" onPress={joinWithCode} onBlush />
               </View>
             </View>
@@ -155,7 +155,7 @@ export default function Circles() {
                 })}
               </View>
               <View style={styles.buttons}>
-                <PillButton label="Start a circle" onPress={() => startCircle()} solid icon />
+                <PillButton label="Start a domi" onPress={() => startCircle()} solid icon />
                 <PillButton label="Join with a code" onPress={joinWithCode} />
               </View>
             </>

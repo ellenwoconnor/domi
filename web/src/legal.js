@@ -15,7 +15,7 @@ export const termsBody = `
 <h1>Terms of Service</h1>
 <p class="meta">Effective ${TERMS_EFFECTIVE}</p>
 
-<p>Domi is an app for giving things away to people near you, in circles you choose. These Terms of Service ("Terms") cover the Domi app and domicircles.com (together, "Domi", "we" or "us"). By creating an account or using Domi, you agree to these Terms and to our <a href="/privacy">Privacy Policy</a>. If you don't agree, please don't use Domi.</p>
+<p>Domi is an app for giving things away to people near you: your neighborhood and the groups (domis) you choose. These Terms of Service ("Terms") cover the Domi app and domicircles.com (together, "Domi", "we" or "us"). By creating an account or using Domi, you agree to these Terms and to our <a href="/privacy">Privacy Policy</a>. If you don't agree, please don't use Domi.</p>
 
 <h2>1. Who can use Domi</h2>
 <ul>
@@ -27,11 +27,11 @@ export const termsBody = `
 
 <h2>2. How Domi works</h2>
 <ul>
-<li><b>Circles.</b> You're placed in a circle for your zip code. You can also start or join invite-only circles, like a group of friends or a baby-shower circle.</li>
-<li><b>Listings.</b> You post something you're giving away to one or more of your circles. People ask for it, you pick one person, and you arrange pickup in a chat. Listings end after 30 days unless you repost them.</li>
-<li><b>Wishes.</b> You can post something you're looking for. People in your circles can offer you something, and you choose an offer.</li>
+<li><b>Neighborhood and domis.</b> You're placed in your neighborhood by zip code. You can also start or join invite-only groups called domis, like a group of friends or a baby shower.</li>
+<li><b>Listings.</b> You post something you're giving away to your neighborhood, one or more of your domis, or both. People ask for it, you pick one person, and you arrange pickup in a chat. Listings end after 30 days unless you repost them.</li>
+<li><b>Wishes.</b> You can post something you're looking for. People you share it with can offer you something, and you choose an offer.</li>
 <li><b>Location.</b> Listings show an approximate area, never your address. You decide what to share, like a pickup address, in the chat with the person you picked.</li>
-<li><b>Share links.</b> If you share a listing outside Domi, anyone with the link can see its title, description, first photo, your display name and the circle's name while it's available.</li>
+<li><b>Share links.</b> If you share a listing outside Domi, anyone with the link can see its title, description, first photo, your display name and the name of the neighborhood or domi it's in, while it's available.</li>
 </ul>
 
 <h2>3. Domi is free, for now</h2>
@@ -71,8 +71,8 @@ export const termsBody = `
 <p>Be honest about what you're giving, show up when you say you will, and follow local laws.</p>
 <p><b>Report and block.</b> You can report a listing, wish, message or person, and block anyone. Blocking works both ways: neither of you sees the other's listings or wishes, and you can't message each other. We review reports within 24 hours and remove content, and accounts, that break these Terms.</p>
 
-<h2>7. Circles</h2>
-<p>The person who starts an invite-only circle can remove members, and a removed member can't rejoin through an invite. Circle names and descriptions follow the same rules as everything else on Domi. We can remove any circle that breaks these Terms.</p>
+<h2>7. Domis</h2>
+<p>The person who starts a domi can remove members, and a removed member can't rejoin through an invite. Domi names and descriptions follow the same rules as everything else on Domi. We can remove any domi that breaks these Terms.</p>
 
 <h2>8. Your content</h2>
 <p>You own what you post: photos, listings, wishes and messages. You give Domi a non-exclusive, royalty-free license to store, copy (for example, to make smaller versions of photos), display and send your content to the people who can see it, only to run Domi. The license ends when your content is deleted, except for copies we keep as described in the <a href="/privacy">Privacy Policy</a>. You confirm you have the right to post what you post.</p>
@@ -129,24 +129,24 @@ export const privacyBody = `
 <ul>
 <li><b>Sign-in.</b> When you sign in with Apple or Google, we receive an account identifier and, if you share it, your email address (Apple may give us a private relay address) and name.</li>
 <li><b>Profile.</b> The display name you choose, your zip code, and an approximate location: the center of your zip code, rounded to about 100 meters. We never ask for or store your street address or your phone's precise location.</li>
-<li><b>What you post and send.</b> Listings and their photos, wishes, offers, requests and the notes on them, chat messages, circles you start or join, invite and share links, reports you make, and people you block.</li>
+<li><b>What you post and send.</b> Listings and their photos, wishes, offers, requests and the notes on them, chat messages, domis you start or join, invite and share links, reports you make, and people you block.</li>
 <li><b>Notifications.</b> If you allow notifications, a push token for your device.</li>
 <li><b>Records.</b> When you accepted these Terms, and routine technical records (like error logs and request logs) kept by the services that run Domi.</li>
 </ul>
 
 <h2>How we use it</h2>
 <ul>
-<li>To run Domi: show your listings and wishes to your circles, connect you with the people you pick, and deliver messages and notifications.</li>
+<li>To run Domi: show your listings and wishes to the people you share them with, connect you with the people you pick, and deliver messages and notifications.</li>
 <li>To keep Domi safe: review reports, enforce the <a href="/terms">Terms</a>, and prevent spam and abuse (for example, limiting how often photos can be uploaded).</li>
 <li>To answer you when you contact us, and to meet legal obligations.</li>
 </ul>
 
 <h2>Who can see what</h2>
 <ul>
-<li><b>People in your circles</b> see your display name, the listings and wishes you post to those circles (with an approximate area, never your address), and that you're a member.</li>
+<li><b>People you share with</b> (your neighborhood and your domis) see your display name, the listings and wishes you post to them (with an approximate area, never your address), and that you're a member.</li>
 <li><b>The person you pick, or who picks you,</b> sees your chat messages and whatever you choose to share in them, like a pickup address.</li>
 <li><b>The giver</b> sees requests on their listings, including any note you add. A wisher sees the offers made for their wish.</li>
-<li><b>Anyone with a share link</b> you send sees that listing's title, description, first photo, your display name and the circle's name while it's available.</li>
+<li><b>Anyone with a share link</b> you send sees that listing's title, description, first photo, your display name and the name of the neighborhood or domi it's in, while it's available.</li>
 <li><b>People you block</b> can't see your listings or wishes, and you can't see theirs.</li>
 </ul>
 

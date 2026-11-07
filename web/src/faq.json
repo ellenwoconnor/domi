@@ -7,7 +7,7 @@
       "items": [
         {
           "q": "How do I get Domi?",
-          "a": "Domi is in private testing on iPhone, and circles open by invite. If a friend or neighbor sent you an invite link, open it on your iPhone. If you don't have one, email support@domicircles.com to ask."
+          "a": "Domi is in private testing on iPhone, and you join by invite. If a friend or neighbor sent you an invite link, open it on your iPhone. If you don't have one, email support@domicircles.com to ask."
         },
         {
           "q": "Is there an Android app?",
@@ -27,7 +27,7 @@
         },
         {
           "q": "Why does Domi ask for my zip code?",
-          "a": "Your zip code puts you in your home circle, so you see things your neighbors are giving away. Domi only stores an approximate location (about the center of your zip code), never your street address."
+          "a": "Your zip code decides your neighborhood, so you see things your neighbors are giving away. Domi only stores an approximate location (about the center of your zip code), never your street address."
         },
         {
           "q": "How do I see the intro again?",
@@ -41,7 +41,7 @@
       "items": [
         {
           "q": "How do I give something away?",
-          "a": "Go to the Give tab, take or choose one to three photos, add a title (and a description if you like), and pick which of your circles to post it to."
+          "a": "Go to the Give tab (the camera), take or choose one to three photos, add a title (and a description if you like), and choose who sees it: your neighborhood, your domis, or both."
         },
         {
           "q": "How do I choose who gets it?",
@@ -65,7 +65,7 @@
         },
         {
           "q": "Can I share a listing outside Domi?",
-          "a": "Yes. On your listing, tap Share outside Domi to get a link you can post anywhere, like a Buy Nothing group or a group chat. Anyone with the link sees the title, description, first photo, your display name and the circle's name while it's available. Someone who joins Domi from the link can request that listing even if they're not in your circles."
+          "a": "Yes. On your listing, tap Share outside Domi to get a link you can post anywhere, like a Buy Nothing group or a group chat. Anyone with the link sees the title, description, first photo, your display name and the name of the neighborhood or domi it's in, while it's available. Someone who joins Domi from the link can request that listing even if they're not nearby."
         },
         {
           "q": "What can't I give away?",
@@ -95,37 +95,37 @@
         },
         {
           "q": "What's a wish?",
-          "a": "A wish is something you're looking for, like a kids' bike or a moving box. Post it to your circles, and neighbors who have one can offer it. Offers are private: only you and the person offering see them. Pick the offer that works best, and Domi opens a chat to plan pickup."
+          "a": "A wish is something you're looking for, like a kids' bike or a moving box. Post it, and neighbors and friends who have one can offer it. Offers are private: only you and the person offering see them. Pick the offer that works best, and Domi opens a chat to plan pickup."
         }
       ]
     },
     {
       "id": "circles",
-      "title": "Circles",
+      "title": "Neighborhood and domis",
       "items": [
         {
-          "q": "What's the difference between my home circle and other circles?",
-          "a": "Your home circle is everyone on Domi in your zip code. You're added automatically, and it changes if you change your zip code. Invite-only circles are groups anyone can start, and people join by invite link or code."
+          "q": "What's a domi, and how is it different from my neighborhood?",
+          "a": "Your neighborhood is everyone on Domi in your zip code. You're added automatically, and it changes if you change your zip code. A domi is a group of people near you who share what they have, like your building, a group of friends or a baby shower. Anyone can start one, and people join by invite link or code."
         },
         {
-          "q": "How do I start a circle?",
-          "a": "Go to the Circles tab and tap Start a circle. Give it a name and an emoji, and a description if you like. Then tap Invite to share your link."
+          "q": "How do I start a domi?",
+          "a": "Go to the Domis tab (the poppy) and tap Start a domi. Give it a name and an emoji, and a description if you like. Then tap Invite to share your link."
         },
         {
-          "q": "How do I join a circle?",
-          "a": "Open the invite link someone sent you. Or go to the Circles tab, tap Join with a code, and type in the code from the invite."
+          "q": "How do I join a domi?",
+          "a": "Open the invite link someone sent you. Or go to the Domis tab (the poppy), tap Join with a code, and type in the code from the invite."
         },
         {
           "q": "My invite link isn't working.",
-          "a": "Each member has their own invite link, and it stops working if they make a new one. Ask the person who sent it for a fresh link. If you were removed from a circle, you can't rejoin it by invite."
+          "a": "Each member has their own invite link, and it stops working if they make a new one. Ask the person who sent it for a fresh link. If you were removed from a domi, you can't rejoin it by invite."
         },
         {
-          "q": "How do I leave a circle?",
-          "a": "Open the circle and tap Leave this circle. Your listings and wishes are taken out of that circle, and requests you made there are withdrawn. You can't leave your home circle, but you can change your zip code."
+          "q": "How do I leave a domi?",
+          "a": "Open the domi and tap Leave this domi. Your listings and wishes are taken out of it, and requests you made there are withdrawn. You can't leave your neighborhood, but you can change your zip code."
         },
         {
-          "q": "I started a circle. What can I do?",
-          "a": "You can remove members (tap someone in the member list) and delete the circle. If you leave, the longest-standing member takes over."
+          "q": "I started a domi. What can I do?",
+          "a": "You can remove members (tap someone in the member list) and delete the domi. If you leave, the longest-standing member takes over."
         }
       ]
     },
@@ -157,15 +157,15 @@
       "items": [
         {
           "q": "How do I change my name or zip code?",
-          "a": "Tap your initial, then Edit. If you change your zip code, Domi first shows what will be cancelled in your old home circle (like listings and requests there), so you can decide."
+          "a": "Tap your initial, then Edit. If you change your zip code, Domi first shows what will be cancelled in your old neighborhood (like listings and requests there), so you can decide."
         },
         {
           "q": "How do I turn notifications on or off?",
-          "a": "Tap your initial, then Notifications. Domi only notifies you when there's something to do, like someone picking you or a new message, plus at most one update a day about new things in your circles."
+          "a": "Tap your initial, then Notifications. Domi only notifies you when there's something to do, like someone picking you or a new message, plus at most one update a day about new things nearby."
         },
         {
           "q": "Who can see my information?",
-          "a": "People in your circles see your display name and what you post there, with an approximate area, never your address. Only the person you pick (or who picks you) sees your chat. The full details are in the [Privacy Policy](/privacy)."
+          "a": "People you share with (your neighborhood and your domis) see your display name and what you post to them, with an approximate area, never your address. Only the person you pick (or who picks you) sees your chat. The full details are in the [Privacy Policy](/privacy)."
         },
         {
           "q": "How do I delete my account?",

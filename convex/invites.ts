@@ -31,7 +31,7 @@ async function uniqueInviteCode(ctx: MutationCtx) {
 async function requireCustomMember(ctx: QueryCtx | MutationCtx, communityId: Id<"communities">, userId: Id<"users">) {
   await requireMember(ctx, communityId, userId);
   const c = await ctx.db.get(communityId);
-  if (!c || c.kind !== "custom") fail("Zip circles don't have invite links");
+  if (!c || c.kind !== "custom") fail("Your neighborhood doesn't have an invite link");
   return c;
 }
 

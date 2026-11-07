@@ -49,7 +49,7 @@ export const create = mutation({
     const text = itemText(args.title, args.description);
     await checkPhotos(ctx, args.photos, args.thumbs);
     const circles = [...new Set(args.communityIds)];
-    if (circles.length === 0) fail("Pick at least one circle");
+    if (circles.length === 0) fail("Pick who sees it");
     for (const c of circles) await requireMember(ctx, c, userId);
 
     const now = Date.now();
@@ -105,9 +105,9 @@ export const update = mutation({
     }
 
     if (args.communityIds) {
-      if (item.visibility === "private") fail("Offers aren't posted to circles");
+      if (item.visibility === "private") fail("Offers go only to the person who made the wish");
       const wanted = new Set(args.communityIds);
-      if (wanted.size === 0) fail("Pick at least one circle");
+      if (wanted.size === 0) fail("Pick who sees it");
       for (const c of wanted) await requireMember(ctx, c, userId);
       const links = await ctx.db
         .query("itemCommunities")
@@ -116,7 +116,7 @@ export const update = mutation({
       const removing = links.filter((l) => !wanted.has(l.communityId));
       if (removing.length > 0) {
         const active = (await openRequests(ctx, item._id)).length + ((await selectedRequest(ctx, item._id)) ? 1 : 0);
-        if (active > 0) fail("You can't take a listing out of a circle once people have requested it");
+        if (active > 0) fail("You can't stop sharing with a group once someone there has asked for it");
       }
       for (const l of removing) await ctx.db.delete(l._id);
       for (const c of wanted) {
@@ -151,7 +151,7 @@ export const repost = mutation({
         .query("itemCommunities")
         .withIndex("by_item", (q) => q.eq("itemId", item._id))
         .first();
-      if (!link) fail("Pick a circle to post to");
+      if (!link) fail("Pick who sees it");
     } else {
       const wish = item.wishlistItemId ? await ctx.db.get(item.wishlistItemId) : null;
       if (!wish || wish.status !== "open") fail("That wish is closed");

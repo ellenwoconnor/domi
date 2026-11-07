@@ -366,8 +366,8 @@ function CircleNudge({ item }: { item: ItemView }) {
       <Text style={styles.cardHead}>Swap with {nudge.name} often?</Text>
       <Text style={type.meta}>
         {nudge.hasCustomCircle
-          ? "You don't share a circle yet. Circles can include people outside your zip."
-          : "Start a circle for friends and family. Circles can include people outside your zip."}
+          ? "You're not in a domi together yet. A domi can include people outside your zip."
+          : "Start a domi for friends and family. It can include people outside your zip."}
       </Text>
       <View style={[styles.row, { marginTop: space.sm, alignItems: "center" }]}>
         <Pressable
@@ -375,7 +375,7 @@ function CircleNudge({ item }: { item: ItemView }) {
           accessibilityRole="button"
           style={[styles.button, styles.primaryFlex]}
         >
-          <Text style={type.button}>{nudge.hasCustomCircle ? "Invite to a circle" : "Start a circle"}</Text>
+          <Text style={type.button}>{nudge.hasCustomCircle ? "Invite to a domi" : "Start a domi"}</Text>
         </Pressable>
         <Pressable onPress={() => setDismissed(true)} accessibilityRole="button" hitSlop={8} style={{ padding: space.sm }}>
           <Text style={styles.quiet}>Not now</Text>

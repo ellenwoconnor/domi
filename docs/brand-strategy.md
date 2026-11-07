@@ -16,7 +16,7 @@ Domi is an app for giving things away for free, within a neighborhood or a group
 
 Five product facts shape the brand most:
 
-- **The domi is the core unit.** Everyone is in their neighborhood domi (by zip code). Anyone can start an invite-only domi and share its link. The poppy, the group around a center, is the visual motif.
+- **Neighborhoods and domis are the core units.** Everyone is in their neighborhood (by zip code). Anyone can start a domi, an invite-only group, and share its link. The poppy, the group around a center, is the visual motif.
 - **No comment threads.** Neighbors request with one tap and an optional note; the giver picks someone; a private chat opens for pickup. The brand should feel calm and orderly.
 - **Wishes run the other way.** Post what you need; neighbors offer; you pick the one that works. Giving can be an answer, not just a broadcast.
 - **Reliability without a score.** There is no karma. Missed pickups are tracked privately and only pause repeat no-shows. The brand makes showing up feel like pride, never policing.
@@ -155,10 +155,12 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 **Decided (Nov 6): Domi is the brand, and "domi" is also the word for a community in the app. "Circles" is retired from all user-facing copy.**
 
 - **Definition:** **domi** (n.), *pl.* **domis**: the people near you who share what they have. Use the same line on the website, the App Store page, the intro cards and every invite page.
-- **Two kinds:** your **neighborhood domi** (by zip, named after the area, e.g. "Kensington domi") and **invite-only domis** that people start and name ("Elm Street domi," "Sam's domi").
+- **Two kinds, two words:** your **neighborhood** (by zip; just "your neighborhood", never "neighborhood domi") and **domis**, the invite-only groups people start and name ("Elm Street," "Sam's baby shower").
 - **Copy rules:**
   - Inside the app, don't refer to the app by name; there, "domi" always means a community. "Domi" as the product name lives outside: the store, the website, push sender names.
-  - Never use "domi" alone in copy. Always attach a name or an owner: "Sam's domi," "your domis," "the Kensington domi."
+  - Never use "domi" alone in copy. Attach an article, a name or an owner: "Start a domi," "Leave this domi," "Sam's domi."
+  - Keep "domis" rare. Where a line means the people who'll see something, name the people: "Your friends are looking for," "your neighbors and friends will see it," "Only the people you share with see what you post." Use "domis" only for a count or a list of groups ("in 3 domis," "Your domis").
+  - The app's tabs show icons only; the Domis tab is the poppy.
   - Coin one word only. No "domi-mates," no "to domi."
 - **Pronunciation:** to decide (DOH-mee?) and state once in the intro and on the site.
 - **Code:** the database keeps `communities`. Only the copy changes.
@@ -177,7 +179,7 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 ## Open questions for your review
 
 - ☒ Visual direction: Neighborhood Modern on white, Fog & Poppy
-- ☒ Name: Domi; "domi"/"domis" for communities; neighborhood domi
+- ☒ Name: Domi; "your neighborhood" for the zip group, "domi" for invite-only groups (copy changed Nov 6)
 - ☒ Logo: the leaning poppy, beside the wordmark (approved Nov 6)
 - ☐ Pronunciation of "domi"
 - ☐ Domain and handles: keep domicircles.com / @domicircles, or find one without "circles"?
@@ -186,4 +188,4 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 - ☐ Functional colors for item states, success and errors
 - ☐ Trademark search on "Domi"
 
-Next steps: a splash screen with the poppy (needs `expo-splash-screen` configured), the circle-to-domi copy pass, and the thank-you poppy spec.
+Next steps: the thank-you poppy spec, and a pronunciation for "domi".

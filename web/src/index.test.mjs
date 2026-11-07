@@ -32,7 +32,7 @@ test("assetlinks is empty until a fingerprint is configured", async () => {
   assert.equal((await res.json())[0].target.sha256_cert_fingerprints[0], "AA:BB");
 });
 
-test("invite page shows the circle, the code, and a link preview", async () => {
+test("invite page shows the domi, the code, and a link preview", async () => {
   mockConvex({
     "invites:preview": ({ code }) =>
       code === "7K2MQX9P" ? { code, name: "Baby Shower", emoji: "🍼", description: null, memberCount: 12, invitedBy: "Sam" } : null,
@@ -44,7 +44,7 @@ test("invite page shows the circle, the code, and a link preview", async () => {
   assert.match(html, /7K2M-QX9P/);
   assert.match(html, /domi:\/\/c\/7K2MQX9P/);
   assert.match(html, /12 members/);
-  assert.match(html, /Sam invited you to join <b>Baby Shower<\/b>, a circle on Domi\. Domi is an app for sharing things with the people near you\./);
+  assert.match(html, /Sam invited you to join <b>Baby Shower<\/b> on Domi\. A domi is the people near you who share what they have\./);
   assert.equal((await get("/c/NOPENOPE")).status, 404);
 });
 

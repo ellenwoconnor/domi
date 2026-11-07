@@ -198,7 +198,7 @@ export default function ItemDetail() {
           {/* Offers for a wish go to one person, not to circles. */}
           {item.circles.length > 0 ? (
             <View style={{ gap: space.sm }}>
-              <Text style={type.label}>{item.isOwner ? "Posted in" : "In your circles"}</Text>
+              <Text style={type.label}>{item.isOwner ? "Posted in" : "Shared with"}</Text>
               <View style={styles.circleRow}>
                 {item.circles.map((c) => (
                   <View key={c.id} style={styles.circleChip}>

@@ -16,7 +16,7 @@ export function CircleChips<C extends Circle>({
   onSelect: (id: C["id"] | null) => void;
 }) {
   const options: { id: C["id"] | null; label: string; mark: boolean }[] = [
-    { id: null, label: "All circles", mark: false },
+    { id: null, label: "Everyone", mark: false },
     ...circles.map((c) => ({ id: c.id, label: circleLabel(c), mark: c.kind === "zip" })),
   ];
   return (

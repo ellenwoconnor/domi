@@ -55,7 +55,7 @@ export default function Give() {
 
       {wanted.length > 0 && (
         <View style={styles.strip}>
-          <Text style={[type.label, styles.pad]}>Your circles are looking for</Text>
+          <Text style={[type.label, styles.pad]}>Your friends are looking for</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cards}>
             {wanted.map((w) => (
               <Pressable

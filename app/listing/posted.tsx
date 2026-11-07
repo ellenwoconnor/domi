@@ -29,7 +29,7 @@ export default function Posted() {
 
   const names = item?.circles.map((c) => c.name) ?? [];
   const where =
-    names.length === 0 ? "Your circles" : names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+    names.length === 0 ? "Your neighbors" : names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
   const shortTitle = item ? item.title.charAt(0).toLowerCase() + item.title.slice(1) : "listing";
 
   // Leave this modal, then go somewhere in the app.

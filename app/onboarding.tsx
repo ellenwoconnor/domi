@@ -90,8 +90,8 @@ export default function Onboarding() {
             <Text style={type.display}>Welcome, neighbor.</Text>
             <Text style={type.caption}>
               {fromInvite
-                ? "You'll join the circle you were invited to, plus the circle for your zip code."
-                : "We'll put you in the circle for your zip code. You can join others by invite."}
+                ? "You'll join the domi you were invited to, plus your neighborhood."
+                : "We'll add you to your neighborhood. You can join a domi by invite."}
             </Text>
           </View>
 

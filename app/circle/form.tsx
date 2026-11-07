@@ -64,7 +64,7 @@ export default function CircleForm() {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
-      <ScreenHeader title={editing ? "Edit circle" : "Start a circle"} close />
+      <ScreenHeader title={editing ? "Edit domi" : "Start a domi"} close />
       <FormScroll>
         <Field
           label="Name"
@@ -95,7 +95,7 @@ export default function CircleForm() {
         />
         <ErrorNote message={error} />
         <PrimaryButton
-          title={editing ? "Save" : "Start circle"}
+          title={editing ? "Save" : "Start domi"}
           onPress={save}
           busy={busy}
           disabled={!name.trim() || !emoji}
