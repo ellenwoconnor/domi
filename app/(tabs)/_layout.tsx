@@ -7,8 +7,8 @@ import { useEffect, useRef } from "react";
 import { View } from "react-native";
 import { api } from "../../convex/_generated/api";
 import { takeLandingItem } from "../../src/features/auth/landing";
-import { CirclesTabIcon } from "../../src/features/circles/CirclesTabIcon";
-import { color, font } from "../../src/ui/theme";
+import { PoppyTabIcon } from "../../src/ui/Logo";
+import { color } from "../../src/ui/theme";
 
 export default function TabsLayout() {
   const needs = useQuery(convexQuery(api.mystuff.needsYou, {}));
@@ -37,7 +37,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: color.bay,
         tabBarInactiveTintColor: color.inkFaint,
         tabBarStyle: { borderTopColor: color.line, backgroundColor: color.white },
-        tabBarLabelStyle: { fontFamily: font.uiSemi, fontSize: 11 },
+        // Icons only. Each tab keeps its title, which VoiceOver reads.
+        tabBarShowLabel: false,
       }}
     >
       <Tabs.Screen
@@ -52,8 +53,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="circles"
         options={{
-          title: "Circles",
-          tabBarIcon: ({ color: c, focused }) => <CirclesTabIcon color={c} focused={focused} />,
+          title: "Domis",
+          tabBarIcon: ({ color: c, focused }) => <PoppyTabIcon color={String(c)} focused={focused} />,
         }}
       />
       <Tabs.Screen

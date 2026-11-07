@@ -31,6 +31,31 @@ export function PoppyMark({ size = 16, tone = "bay" }: { size?: number; tone?: "
   );
 }
 
+/**
+ * The Domis tab icon: the poppy in one color (the tab's tint). Outlined when the
+ * tab isn't selected, filled when it is, like the Ionicons beside it. Assumes the
+ * tab bar is white (the outlined petals are filled white to hide the overlaps).
+ */
+export function PoppyTabIcon({ color: tint, focused, size = 24 }: { color: string; focused: boolean; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="45.4 37.2 164 164">
+      {PETALS.map((p) => (
+        <Path
+          key={p.d}
+          d={p.d}
+          fill={focused ? tint : color.white}
+          stroke={focused ? color.white : tint}
+          strokeWidth={focused ? 7 : 10}
+          strokeLinejoin="round"
+        />
+      ))}
+      <Path d={STUB} stroke={tint} strokeWidth={focused ? 12 : 10} strokeLinecap="round" fill="none" />
+      <Path d={CALYX_CUP} fill={tint} />
+      <Path d={CALYX_BASE} fill={tint} />
+    </Svg>
+  );
+}
+
 /** Wordmark: the poppy beside "domi" in Figtree ExtraBold. */
 export function Logo({ size = 24, tone = "bay" }: { size?: number; tone?: "bay" | "white" }) {
   const text = {
