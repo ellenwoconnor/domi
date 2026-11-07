@@ -23,7 +23,7 @@ export type StuffRow = {
   itemId: Id<"items"> | null;
   wishId: Id<"wishlistItems"> | null;
   conversationId: Id<"conversations"> | null;
-  poppy: boolean; // show the domi flower beside the status line
+  poppy: boolean; // a domi flower was sent: a small icon beside the status line, no words
   at: number;
 };
 
@@ -116,17 +116,11 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
       if (chat.unread > 0) {
         status = `New message from ${recipient}`;
         needsYou = true;
-      } else if (conv?.thankedAt !== undefined) status = `${recipient} sent you a domi flower. Picked up?`;
-      else status = `Going to ${recipient}`;
+      } else status = `Going to ${recipient}`;
     } else if (item.status === "expired") {
       status = "Expired. Tap to post again.";
     } else {
-      status =
-        conv?.thankedAt !== undefined && recipient
-          ? `${recipient} sent you a domi flower`
-          : recipient
-            ? `Picked up by ${recipient}`
-            : "Picked up";
+      status = recipient ? `Picked up by ${recipient}` : "Picked up";
       ended = true;
     }
 

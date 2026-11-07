@@ -40,14 +40,10 @@ describe("domi flower", () => {
         note: "Just got home with it. Thank you!",
       });
     }
-    expect((await ellen.as.query(api.mystuff.giving, {}))[0]).toMatchObject({
-      status: "Maya sent you a domi flower. Picked up?",
-      poppy: true,
-    });
+    // My stuff marks it with the icon only; the push and the chat already said it.
+    expect((await ellen.as.query(api.mystuff.giving, {}))[0]).toMatchObject({ status: "Going to Maya", poppy: true });
     await ellen.as.mutation(api.items.markPickedUp, { itemId });
-    expect((await ellen.as.query(api.mystuff.giving, {}))[0]).toMatchObject({
-      status: "Maya sent you a domi flower",
-    });
+    expect((await ellen.as.query(api.mystuff.giving, {}))[0]).toMatchObject({ status: "Picked up by Maya", poppy: true });
     expect((await maya.as.query(api.mystuff.getting, {}))[0]).toMatchObject({ status: "Picked up. Enjoy!", poppy: true });
   });
 
