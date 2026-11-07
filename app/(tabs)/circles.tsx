@@ -61,7 +61,7 @@ export default function Circles() {
               style={({ pressed }) => [styles.homeCard, pressed && { opacity: 0.7 }]}
             >
               <View style={styles.row}>
-                <CircleBadge kind="zip" emoji="" size={52} onFog />
+                <CircleBadge kind="zip" emoji="📍" size={52} onFog />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.homeName} numberOfLines={1}>
                     {home.name}
