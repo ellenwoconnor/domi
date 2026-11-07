@@ -202,7 +202,6 @@ export default function ItemDetail() {
               <View style={styles.circleRow}>
                 {item.circles.map((c) => (
                   <View key={c.id} style={styles.circleChip}>
-                    {c.emoji ? null : <PoppyMark size={13} />}
                     <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
                   </View>
                 ))}

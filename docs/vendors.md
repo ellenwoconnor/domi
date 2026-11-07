@@ -14,7 +14,7 @@ Last updated 2026-10-21. Prices checked that day; recheck before relying on them
 | **Cloudflare** | DNS for domicircles.com; the website Worker (`web/`): app-link files, invite and listing pages | Free | $0 |
 | **Squarespace Domains** | Registrar for domicircles.com (DNS is on Cloudflare) | — | ~$20/year renewal (first year was ~$10; check the renewal notice) |
 | **GitHub** | Source code (`ellenwoconnor/domi`) | Free | $0 |
-| **GeoNames** | US zip code reference data (`scripts/import-zips.mjs`) | Free, CC BY 4.0 | $0; credited on You (`app/you.tsx`) and in the privacy policy |
+| **GeoNames** | US zip code reference data (`scripts/import-zips.mjs`) | Free, CC BY 4.0 | $0; credited in the privacy policy (`web/src/legal.js`), which satisfies the CC BY 4.0 attribution |
 | **Google Fonts** | Fraunces and Figtree (bundled in the app; the website loads them from Google) | Free | $0 |
 
 ## IDs that are safe to expose

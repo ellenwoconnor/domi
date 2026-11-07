@@ -57,8 +57,7 @@ export function CirclesPicture({ width, height }: Size) {
         })}
         <View style={styles.chips}>
           <View style={[styles.chip, { backgroundColor: color.bay }]}>
-            <PoppyMark size={12} tone="white" />
-            <Text style={[styles.chipText, { color: color.white }]}>Kensington</Text>
+            <Text style={[styles.chipText, { color: color.white }]}>📍 Kensington</Text>
           </View>
           <View style={[styles.chip, { backgroundColor: color.white }]}>
             <Text style={styles.chipText}>Maya's baby shower</Text>

@@ -1,13 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
-import { PoppyMark } from "../../ui/Logo";
 import { color } from "../../ui/theme";
 
 /**
- * A circle's face: its emoji in a disc, or the Domi mark for zip circles.
+ * A domi's face: its emoji in a disc (📍 for the neighborhood).
  * Use `onFog` when it sits on a Fog card, so the disc stays visible.
  */
 export function CircleBadge({
-  kind,
   emoji,
   size = 44,
   onFog = false,
@@ -24,7 +22,7 @@ export function CircleBadge({
         { width: size, height: size, borderRadius: size / 2, backgroundColor: onFog ? color.white : color.fog },
       ]}
     >
-      {kind === "zip" ? <PoppyMark size={size * 0.5} /> : <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>}
+      <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
     </View>
   );
 }

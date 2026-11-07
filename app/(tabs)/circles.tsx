@@ -51,7 +51,7 @@ export default function Circles() {
   return (
     <SafeAreaView style={styles.screen} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TabHeader title="Your domis" subtitle="Where you share things with neighbors" />
+        <TabHeader title="Your domis" subtitle="Your neighborhood, and the people you choose" />
         <View style={styles.content}>
           {home ? (
             <Pressable

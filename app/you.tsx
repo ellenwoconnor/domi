@@ -72,8 +72,6 @@ export default function You() {
         </View>
         <ErrorNote message={error} />
         <Text style={styles.version}>Domi {Constants.expoConfig?.version ?? ""}</Text>
-        {/* Required by the GeoNames CC BY 4.0 license (docs/vendors.md). */}
-        <Text style={styles.version}>Zip code data from GeoNames (CC BY 4.0)</Text>
       </ScrollView>
     </SafeAreaView>
   );

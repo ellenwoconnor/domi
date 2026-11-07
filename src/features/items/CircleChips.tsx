@@ -1,11 +1,10 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { PoppyMark } from "../../ui/Logo";
 import { color, font, radius, space } from "../../ui/theme";
 import { circleLabel } from "./format";
 
 type Circle = { id: string; name: string; emoji?: string | null; kind: "zip" | "custom" };
 
-/** Circle selector. `null` means all of your circles. Zip circles carry the mark. */
+/** Circle selector. `null` means all of your circles. The neighborhood's 📍 is part of its name. */
 export function CircleChips<C extends Circle>({
   circles,
   selected,
@@ -15,9 +14,9 @@ export function CircleChips<C extends Circle>({
   selected: C["id"] | null;
   onSelect: (id: C["id"] | null) => void;
 }) {
-  const options: { id: C["id"] | null; label: string; mark: boolean }[] = [
-    { id: null, label: "Everyone", mark: false },
-    ...circles.map((c) => ({ id: c.id, label: circleLabel(c), mark: c.kind === "zip" })),
+  const options: { id: C["id"] | null; label: string }[] = [
+    { id: null, label: "Everyone" },
+    ...circles.map((c) => ({ id: c.id, label: circleLabel(c) })),
   ];
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
@@ -31,7 +30,6 @@ export function CircleChips<C extends Circle>({
             accessibilityState={{ selected: on }}
             style={[styles.chip, on && styles.chipOn]}
           >
-            {o.mark ? <PoppyMark size={14} tone={on ? "white" : "bay"} /> : null}
             <Text style={[styles.label, on && styles.labelOn]}>{o.label}</Text>
           </Pressable>
         );
