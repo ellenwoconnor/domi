@@ -49,6 +49,7 @@ export const eventType = v.union(
   v.literal("joined_via_invite"),
   v.literal("wish_match"), // a new listing matches your open wish (M5)
   v.literal("circle_activity"), // new listings/wishes in your circles (M5, replaces the digest)
+  v.literal("thanked"), // the person who got your item sent you a poppy
 );
 export const pushResult = v.union(
   v.literal("sent"),
@@ -154,6 +155,9 @@ export default defineSchema({
     updatedAt: v.number(),
     searchText: v.string(), // title + description, for the search index
     photosPurgedAt: v.optional(v.number()),
+    // The thank-you poppy: sent once by the person who got the item, after pickup (thanks.send).
+    thankedAt: v.optional(v.number()),
+    thankNote: v.optional(v.string()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_wishlistItem", ["wishlistItemId"])

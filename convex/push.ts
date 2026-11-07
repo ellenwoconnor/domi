@@ -27,6 +27,7 @@ function tapTarget(e: Doc<"events">): Record<string, unknown> {
   switch (e.type) {
     case "new_message":
     case "picked":
+    case "thanked":
     case "offer_picked":
       return e.conversationId
         ? { ...base, open: "chat", conversationId: e.conversationId }

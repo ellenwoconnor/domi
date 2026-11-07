@@ -25,6 +25,7 @@ import { chatRows, type ChatRow } from "../../src/features/chat/rows";
 import { lowerFirst } from "../../src/features/items/format";
 import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockSheet";
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
+import { ThanksCard } from "../../src/features/thanks/ThanksCard";
 import { errorMessage } from "../../src/lib/errors";
 import { PoppyMark } from "../../src/ui/Logo";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
@@ -102,6 +103,18 @@ export default function Chat() {
       : owner
         ? `Going to ${other}`
         : "Going to you";
+
+  // The thank-you poppy sits at the bottom of the thread (the list is inverted, so it's the header).
+  const thanksCard = (
+    <ThanksCard
+      conversationId={conversationId}
+      role={conv.role}
+      other={other}
+      thing={thing}
+      pickedUp={item?.status === "gone"}
+      thanks={conv.thanks}
+    />
+  );
 
   const submit = async () => {
     const body = draft.trim();
@@ -274,7 +287,7 @@ export default function Chat() {
       </View>
 
       {/* Messages, newest at the bottom */}
-      {messages && messages.length === 0 && !conv.closed ? (
+      {messages && messages.length === 0 && !conv.closed && item?.status !== "gone" ? (
         <View style={styles.emptyWrap}>
           {owner ? (
             <View style={[styles.prompt, { backgroundColor: color.fog }]}>
@@ -301,6 +314,7 @@ export default function Chat() {
           data={rows}
           keyExtractor={(r) => r.key}
           renderItem={renderRow}
+          ListHeaderComponent={thanksCard}
           contentContainerStyle={styles.list}
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"

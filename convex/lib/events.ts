@@ -25,6 +25,7 @@ export const PUSH_TYPES: ReadonlySet<EventType> = new Set<EventType>([
   "offer_unpicked",
   "wish_match",
   "circle_activity",
+  "thanked",
 ]);
 
 /** Chat messages within this long of the last push fold into one push. */

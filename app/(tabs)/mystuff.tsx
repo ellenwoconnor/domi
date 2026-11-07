@@ -7,6 +7,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { StuffRow } from "../../convex/mystuff";
+import { PoppyMark } from "../../src/ui/Logo";
 import { TabHeader } from "../../src/ui/TabHeader";
 import { Segmented } from "../../src/ui/Segmented";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -89,6 +90,7 @@ function StuffRowView({ row }: { row: StuffRow }) {
         </Text>
         <View style={styles.statusLine}>
           {row.needsYou ? <View style={styles.dot} /> : null}
+          {row.poppy ? <PoppyMark size={16} /> : null}
           <Text style={[styles.status, row.needsYou && styles.statusNeeds]} numberOfLines={2}>
             {row.status}
           </Text>

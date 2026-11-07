@@ -24,6 +24,7 @@ Wishes run the other way: a member posts a wish, neighbors offer items for it, t
 | Lifecycle | Available → Pending → Gone, or Expired after 30 days, or Removed. |
 | Notifications | Push, fed by `events`, only when there's something to do. In the app, the My stuff tab shows what needs you (see "My stuff"). At most one circle activity push per day. |
 | Growth | Invite links that land people in the right circle, with a web landing page for people without the app. Listing share links (above). |
+| Thanks | After pickup, the person who got the item can send the giver one thank-you poppy, with an optional note. Private to the two of them; never counted. See "Thank-you poppy". |
 | Safety | Report and block. Block hides each person's items, wishes and messages from the other. Manual review in the Convex dashboard. Cap of 5 open requests per user. `bannedAt` on profiles to suspend. |
 
 ## Out of scope for MVP
@@ -71,7 +72,7 @@ User ids are Convex Auth `users` ids. All timestamps are milliseconds since epoc
   - If a custom circle's owner leaves or deletes their account, ownership passes to the longest-standing member; a circle with no members is deleted.
 - `communityBans` (communityId, userId): written when the owner removes a member, so the person cannot rejoin through an invite.
 - `invites` (code, communityId, inviterId, revokedAt?): one active link per member per custom circle. Regenerate revokes the old one.
-- `items` (ownerId, title, description, photos: storage ids (full size, item detail only), thumbs?: storage ids (~600 px, same order, for feeds and lists; missing on older listings, which fall back to the full photo), approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?)
+- `items` (ownerId, title, description, photos: storage ids (full size, item detail only), thumbs?: storage ids (~600 px, same order, for feeds and lists; missing on older listings, which fall back to the full photo), approxLat, approxLng, visibility: 'public' | 'private', wishlistItemId?, status: 'available' | 'pending' | 'gone' | 'expired' | 'removed', expiresAt, updatedAt, searchText, photosPurgedAt?, thankedAt?, thankNote? (the thank-you poppy, see below))
   - visibility is 'private' if and only if wishlistItemId is set; private items are offers to a wish and are not posted to circles.
   - approxLat/approxLng are copied from the owner's profile when posting.
   - 'removed' is a soft delete so requests, threads and events stay intact. Account deletion hard-deletes.
@@ -133,6 +134,12 @@ The owner un-picks with "<name> didn't show" (chat sheet, or the un-pick prompt 
 
 Missed pickups with two or more different owners within 30 days pause that person's new requests and offer picks (`requests.create`, `wishlist.pickOffer`) until 7 days after the latest one. Two different owners, so one unhappy neighbor can't pause someone alone. Pickups already under way are unaffected. Nothing is shown publicly and rows age out on their own. Constants and checks: `convex/lib/noShows.ts`. This is a limit, not karma: no score, no public signal.
 
+### Thank-you poppy (`thanks.send`, one mutation)
+
+After the owner marks an item picked up, the person who got it sees a Blush card at the bottom of the chat: "Send Ellen a poppy?", an optional note (140 characters, screened like other text) and "Not now". Sending sets `items.thankedAt` and `thankNote` and writes a `thanked` event to the owner, which pushes and opens the chat. The poppy blooms open once as it sends; the chat then shows "Sent to Ellen" and, later, a small "You sent Ellen a poppy". The owner sees it large in the chat ("Maya sent you a poppy", the note, "for the crib"); My stuff shows "Maya sent you a poppy" on the Giving side and "Picked up. Send Ellen a poppy?" / "Picked up. You sent a poppy." on the Getting side, with no "needs you" dot.
+
+Rules: only the recipient of that handoff (the conversation's selected request), only once the item is gone, only once per item, not after a block. "Not now" just hides the card; My stuff still offers it until the row drops off after 3 days. No counts anywhere, no profile badges; a collective "bloom" per domi may come later.
+
 ### Account deletion (`profiles.deleteAccount`)
 
 Runs "leaving a circle" for every circle, removes the user's remaining items and wishes (notifying requesters and offerers), then hard-deletes everything that belongs to the user: profile, items and their photos, requests, wishes, conversations they took part in and their messages (for both sides), events addressed to them, invites, shares, grants, blocks, reports they filed, push tokens, and their Convex Auth rows. Events where they were the actor keep their copy but lose the link to them.
@@ -177,6 +184,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | offer un-picked | wisher withdraws | offerer | "Maya can't take the stroller anymore" |
 | wish fulfilled elsewhere / wish removed | another offer picked up, or wish removed | other offerers | "Maya's wish was fulfilled" / "Maya removed the wish" |
 | joined via invite | invite redeemed | inviter | "Sam joined 🍼 Baby Shower" |
+| thank-you poppy | recipient sends a poppy after pickup | owner | "Maya sent you a poppy" / the note, or "A thank-you for the crib." |
 
 Push sending (M5, details in `docs/m5-requirements.md`): only events with an action push. Inserting one sets `pushDueAt` and schedules `push.flush`, which claims due events, sends through the Expo push API in batches and sets `pushedAt`. Chat messages merge. Circle activity (new listings and wishes) pushes as `circle_activity` events: 5 welcome pushes per circle joined, then back-off; per-circle mute applies only to these.
 
@@ -293,3 +301,4 @@ Recipients aren't told about the one-ask limit up front; only the sharer is. The
 - 2026-10-21: Links live on domicircles.com (Cloudflare Worker). Until launch the pages say Domi is in private testing and show the code to enter.
 - 2026-11-02: Share links are single use: one link per person, used up by the first request made through it (not by opening it). The listing stays in its circles and the owner still picks; nothing is reserved. Links die when the item ends (gone, removed, expired) or after 14 days; pending items keep them live. No public or group share links for items; broadcast is for joining Domi (flyers, campaign links), never for single items. Replaces reusable links; `shareGrants` stays as the look-before-requesting access. Considered and rejected: a few claims per link (confusing to explain), tying links to a phone number (too heavy; revisit with phone sign-in).
 - 2026-11-02: Zip changes limited to one per 30 days (first change after signup free), so one zip per account holds without address verification. Missed pickups: owners can mark a no-show; two with different owners in 30 days pause requests for 7 days. Chosen instead of address verification and karma: measure flakiness directly, keep it private.
+- 2026-11-06: Thank-you poppy: one per handoff, sent by the person who got the item, note optional, private to the two of them. Domi's brand moves from the ring to the leaning poppy, and user-facing copy says "neighborhood" and "domi" instead of "circle" (`docs/brand-strategy.md`).

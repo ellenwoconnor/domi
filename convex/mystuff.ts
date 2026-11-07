@@ -23,6 +23,7 @@ export type StuffRow = {
   itemId: Id<"items"> | null;
   wishId: Id<"wishlistItems"> | null;
   conversationId: Id<"conversations"> | null;
+  poppy: boolean; // show the thank-you poppy beside the status line
   at: number;
 };
 
@@ -82,6 +83,7 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
         itemId: item._id,
         wishId: null,
         conversationId: null,
+        poppy: false,
         at: item.updatedAt,
       });
       continue;
@@ -118,7 +120,12 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
     } else if (item.status === "expired") {
       status = "Expired. Tap to post again.";
     } else {
-      status = recipient ? `Picked up by ${recipient}` : "Picked up";
+      status =
+        item.thankedAt !== undefined && recipient
+          ? `${recipient} sent you a poppy`
+          : recipient
+            ? `Picked up by ${recipient}`
+            : "Picked up";
       ended = true;
     }
 
@@ -134,6 +141,7 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
       itemId: item._id,
       wishId: null,
       conversationId: conv?._id ?? null,
+      poppy: item.status === "gone" && item.thankedAt !== undefined,
       at: item.updatedAt,
     });
   }
@@ -164,7 +172,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         if (item.status === "gone") {
           if (now - item.updatedAt > RECENT_MS) continue;
           conv = await openConversation(ctx, r._id); // the chat stays open after pickup
-          line = "Picked up. Enjoy!";
+          line = item.thankedAt !== undefined ? "Picked up. You sent a poppy." : `Picked up. Send ${owner} a poppy?`;
           ended = true;
         } else {
           conv = await openConversation(ctx, r._id);
@@ -201,6 +209,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         itemId: item._id,
         wishId: null,
         conversationId: conv?._id ?? null,
+        poppy: status === "selected" && item.status === "gone" && item.thankedAt !== undefined,
         at: r.updatedAt,
       });
     }
@@ -235,6 +244,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
       itemId: null,
       wishId: wish._id,
       conversationId: null,
+      poppy: false,
       at: wish._creationTime,
     });
   }
