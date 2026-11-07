@@ -29,7 +29,7 @@ export function CirclesPicture({ width, height }: Size) {
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel="You, in the middle of your neighbors"
+      accessibilityLabel="You, in the middle of the people you share with"
       style={[styles.panel, { width, height, backgroundColor: color.fog }]}
     >
       <View {...hide} style={StyleSheet.absoluteFill}>
@@ -68,14 +68,14 @@ export function CirclesPicture({ width, height }: Size) {
   );
 }
 
-/** Card 2: a free listing (a wooden high chair) that three neighbors have asked for. */
+/** Card 2: a free listing (a wooden high chair) that three people have asked for. */
 export function GivePicture({ width, height }: Size) {
   const photo = Math.max(84, Math.min(140, height - 160));
   return (
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel="A free wooden high chair that three neighbors have asked for"
+      accessibilityLabel="A free wooden high chair that three people have asked for"
       style={[styles.panel, styles.center, { width, height, backgroundColor: color.blush }]}
     >
       <View {...hide} style={[styles.center, { gap: space.md }]}>
@@ -106,7 +106,7 @@ export function GivePicture({ width, height }: Size) {
               </View>
             ))}
           </View>
-          <Text style={styles.chipText}>3 neighbors asked</Text>
+          <Text style={styles.chipText}>3 people asked</Text>
         </View>
       </View>
     </View>
@@ -150,7 +150,7 @@ export function WishPicture({ width, height }: Size) {
     <View
       accessible
       accessibilityRole="image"
-      accessibilityLabel="The Wishes board, where neighbors post what they're looking for"
+      accessibilityLabel="The Wishes board, where people post what they're looking for"
       style={[styles.panel, { width, height, backgroundColor: color.fog, padding: space.md + 4, gap: space.md }]}
     >
       <View {...hide} style={{ gap: space.md }}>

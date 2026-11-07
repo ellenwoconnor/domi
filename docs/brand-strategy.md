@@ -107,8 +107,8 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 
 - Called a **domi flower** in the app. From pickup time on, the person who got the item can send the giver one, with an optional short note. One per handoff, always optional, never the first thing asked for.
 - It's the same poppy leaning further, 46°, on a thin Bay Blue stem that follows the lean and then curves down, like a picked flower being handed over (`domi-thanks.svg`). Shown on a Blush card ("Maya sent you a domi flower"). No words on the graphic itself.
-- **Poppies count for the domi, not the person.** No totals on profiles, no leaderboards. A domi can show its collective bloom ("Elm Street domi: 48 poppies this fall"). Pride in the group, never a score.
-- Motion: one gentle bloom when it arrives. No confetti.
+- **Flowers count for the domi, not the person.** No totals on profiles, no leaderboards, no comparisons. A domi's page quietly says how many were shared there ("9 domi flowers shared here"). Pride in the group, never a score.
+- Motion: one gentle bloom when it's sent or arrives. No confetti.
 - Not yet in `docs/spec.md`; it needs a spec entry and a place in the build plan before it's built.
 
 ### Color

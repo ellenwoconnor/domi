@@ -35,6 +35,23 @@ export const send = mutation({
       thankedAt: Date.now(),
       ...(note ? { thankNote: note } : {}),
     });
+    // Count it for every domi the item was shared in. An offer on a wish isn't
+    // posted anywhere, so it counts for the wish's domis.
+    const links = await ctx.db
+      .query("itemCommunities")
+      .withIndex("by_item", (q) => q.eq("itemId", item._id))
+      .collect();
+    const wishLinks =
+      links.length === 0 && item.wishlistItemId
+        ? await ctx.db
+            .query("wishlistCommunities")
+            .withIndex("by_wish", (q) => q.eq("wishlistItemId", item.wishlistItemId!))
+            .collect()
+        : [];
+    for (const { communityId } of [...links, ...wishLinks]) {
+      const community = await ctx.db.get(communityId);
+      if (community) await ctx.db.patch(communityId, { flowerCount: (community.flowerCount ?? 0) + 1 });
+    }
     await writeEvent(ctx, {
       recipientId: c.ownerId,
       type: "thanked",

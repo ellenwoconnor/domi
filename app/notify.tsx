@@ -20,12 +20,12 @@ function copy(reason: AskReason, circle?: string) {
     case "welcome":
       return {
         title: `${circle ?? "Your domi"} is just getting started`,
-        body: "Get a heads-up when neighbors post something or someone wants your stuff.",
+        body: "Get a heads-up when people post something or someone wants your stuff.",
       };
     case "join":
       return {
         title: `You're in ${circle ?? "your new domi"}`,
-        body: "Get a heads-up when neighbors here post something, and when someone wants your stuff.",
+        body: "Get a heads-up when people here post something, and when someone wants your stuff.",
       };
     case "request":
       return {
@@ -35,12 +35,12 @@ function copy(reason: AskReason, circle?: string) {
     case "post":
       return {
         title: "Want to know when someone asks for it?",
-        body: "We'll tell you when a neighbor requests it or messages you.",
+        body: "We'll tell you when someone requests it or messages you.",
       };
     case "wish":
       return {
         title: "Want to know when someone has one?",
-        body: "We'll tell you when a neighbor offers one or posts something that matches.",
+        body: "We'll tell you when someone offers one or posts something that matches.",
       };
     default:
       return {

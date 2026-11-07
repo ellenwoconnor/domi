@@ -109,6 +109,8 @@ export default defineSchema({
     zip: v.optional(v.string()),
     createdBy: v.optional(v.id("users")),
     memberCount: v.number(),
+    // Domi flowers sent for items shared here (all time). Counted for the group, never a person.
+    flowerCount: v.optional(v.number()),
   }).index("by_kind_zip", ["kind", "zip"]),
 
   memberships: defineTable({

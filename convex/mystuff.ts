@@ -232,8 +232,8 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         offers.length === 0
           ? "No offers yet"
           : offers.length === 1
-            ? "1 neighbor offered one"
-            : `${offers.length} neighbors offered one`,
+            ? "1 person offered one"
+            : `${offers.length} people offered one`,
       needsYou: offers.length > 0,
       ended: false,
       itemId: null,

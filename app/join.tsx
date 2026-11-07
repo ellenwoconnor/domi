@@ -15,7 +15,7 @@ export default function Join() {
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <ScreenHeader title="Join a domi" close />
       <FormScroll>
-        <Text style={type.caption}>Got an invite link or code from a neighbor? Enter the code here.</Text>
+        <Text style={type.caption}>Got an invite link or code? Enter the code here.</Text>
         <Field
           label="Invite code"
           value={typed}

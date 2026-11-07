@@ -128,14 +128,14 @@ export function OwnerSection({
     body = (
       <View style={{ gap: 2 }}>
         <Text style={type.title}>No requests yet</Text>
-        <Text style={type.meta}>When neighbors ask, you'll pick one person to give it to.</Text>
+        <Text style={type.meta}>When people ask, you'll pick one person to give it to.</Text>
       </View>
     );
   } else if (item.status === "available") {
     body = (
       <View>
         <Text style={type.title}>
-          {asks.length} {asks.length === 1 ? "neighbor" : "neighbors"} asked
+          {asks.length} {asks.length === 1 ? "person" : "people"} asked
         </Text>
         <Text style={[type.meta, { fontSize: 15, marginTop: 2, marginBottom: space.sm }]}>Pick one to give it to.</Text>
         <View accessibilityRole="radiogroup">
@@ -225,7 +225,7 @@ export function OwnerSection({
   } else if (item.status === "expired") {
     body = <Card head="Expired" text="Post it again for another 30 days. Anyone who asked is still in line." />;
   } else if (item.status === "removed") {
-    body = <Card head="Removed" text="Neighbors can't see this listing anymore." />;
+    body = <Card head="Removed" text="Nobody else can see this listing anymore." />;
   }
 
   return (
@@ -405,7 +405,7 @@ export function RemoveListingLink({ item }: { item: ItemView }) {
         ? `${item.wish.wisher.displayName} won't see your offer anymore.`
         : item.requestCount > 0
           ? "Everyone who asked will be told it's no longer available."
-          : "Neighbors won't see it anymore.",
+          : "Nobody else will see it anymore.",
       [
         { text: "Keep it", style: "cancel" },
         {

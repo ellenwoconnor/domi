@@ -12,6 +12,7 @@ import { shareInvite } from "../../src/features/circles/invite";
 import { errorMessage } from "../../src/lib/errors";
 import { ErrorNote, PrimaryButton, TextButton } from "../../src/ui/Form";
 import { Avatar } from "../../src/ui/Avatar";
+import { PoppyMark } from "../../src/ui/Logo";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -130,13 +131,23 @@ export default function CircleDetail() {
           <Text style={[type.display, { textAlign: "center" }]}>{c.name}</Text>
           {c.description ? <Text style={[type.caption, { textAlign: "center" }]}>{c.description}</Text> : null}
           <Text style={type.meta}>
-            {plural(c.memberCount, "neighbor")}
+            {plural(c.memberCount, "member")}
             {c.startedBy ? ` · started by ${c.startedBy}` : ""}
           </Text>
+          {/* Domi flowers sent for things shared here: a quiet total, only once there is one. */}
+          {c.flowerCount > 0 ? (
+            <View style={styles.flowers}>
+              <PoppyMark size={18} />
+              <Text style={styles.flowersText}>
+                <Text style={{ fontFamily: font.uiSemi, color: color.ink }}>{c.flowerCount}</Text>{" "}
+                {c.flowerCount === 1 ? "domi flower" : "domi flowers"} shared here
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {custom ? (
-          <PrimaryButton title="Invite a neighbor" onPress={invite} busy={busy} />
+          <PrimaryButton title="Invite someone" onPress={invite} busy={busy} />
         ) : (
           <Text style={[type.meta, styles.note]}>
             Everyone in your zip code is here. To change your neighborhood, edit the zip in your profile.
@@ -146,7 +157,7 @@ export default function CircleDetail() {
         <ErrorNote message={error} />
 
         <View>
-          <Text style={styles.h2}>Neighbors</Text>
+          <Text style={styles.h2}>Members</Text>
           {visible.map((m) => (
             <Pressable
               key={m.userId}
@@ -177,6 +188,17 @@ export default function CircleDetail() {
 }
 
 const styles = StyleSheet.create({
+  flowers: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: color.blush,
+    borderRadius: radius.pill,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    marginTop: space.xs,
+  },
+  flowersText: { fontFamily: font.ui, fontSize: 13.5, color: color.inkSoft },
   screen: { flex: 1, backgroundColor: color.white },
   body: { padding: space.lg, gap: space.xl, paddingBottom: space.xxl },
   hero: { alignItems: "center", gap: space.sm },

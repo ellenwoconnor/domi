@@ -80,9 +80,9 @@ export function AddWishSheet({
             onChangeText={setNote}
             maxLength={NOTE_MAX}
             multiline
-            placeholder="A note for neighbors (optional)"
+            placeholder="Add a note (optional)"
             placeholderTextColor={color.inkFaint}
-            accessibilityLabel="A note for neighbors"
+            accessibilityLabel="Note"
             style={[styles.input, styles.note]}
           />
           <Text style={[type.label, { marginTop: space.sm }]}>Show it in</Text>

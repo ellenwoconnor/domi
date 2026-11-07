@@ -87,7 +87,7 @@ export default function Onboarding() {
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Logo size={28} />
           <View style={{ gap: space.sm }}>
-            <Text style={type.display}>Welcome, neighbor.</Text>
+            <Text style={type.display}>Welcome!</Text>
             <Text style={type.caption}>
               {fromInvite
                 ? "You'll join the domi you were invited to, plus your neighborhood."
@@ -97,7 +97,7 @@ export default function Onboarding() {
 
           <Field
             label="Your name"
-            hint="What neighbors see. A first name is plenty."
+            hint="What others see. A first name is plenty."
             value={name}
             onChangeText={setName}
             autoComplete="given-name"

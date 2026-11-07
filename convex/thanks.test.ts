@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
-import { doc, eventsFor, newUser, post, setup } from "./lib/testing.helpers";
+import { circle, doc, eventsFor, invite, newUser, post, setup } from "./lib/testing.helpers";
 
 async function handoff({ pickedUp = false } = {}) {
   const t = await setup();
@@ -109,5 +109,20 @@ describe("domi flower", () => {
     const { maya, ellen, conversationId } = await handoff();
     await ellen.as.mutation(api.safety.block, { userId: maya.userId });
     await expect(maya.as.mutation(api.thanks.send, { conversationId })).rejects.toThrow("not found");
+  });
+  test("counted for every domi the item was shared in, never for a person", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const maya = await newUser(t, "Maya");
+    const shower = await circle(ellen);
+    await invite(ellen, maya, shower);
+    const itemId = await post(t, ellen, [ellen.zipCircle, shower]);
+    const requestId = await maya.as.mutation(api.requests.create, { itemId });
+    const conversationId = await ellen.as.mutation(api.items.selectRecipient, { requestId });
+    expect((await maya.as.query(api.communities.get, { communityId: shower })).flowerCount).toBe(0);
+    await maya.as.mutation(api.thanks.send, { conversationId });
+    for (const communityId of [ellen.zipCircle, shower]) {
+      expect((await maya.as.query(api.communities.get, { communityId })).flowerCount).toBe(1);
+    }
   });
 });

@@ -106,14 +106,14 @@ export default function Welcome() {
         <Card
           width={width}
           title="Give something away"
-          body="Snap a photo and post it free. Neighbors ask for it, you pick who gets it, and you set up pickup in chat. Your address is never shown."
+          body="Snap a photo and post it free. People ask for it, you pick who gets it, and you set up pickup in chat. Your address is never shown."
         >
           <GivePicture width={pictureW} height={pictureH} />
         </Card>
         <Card
           width={width}
           title="Share a wish"
-          body="Ask for things your neighbors and friends post, or post a wish for a neighbor to see and fulfill."
+          body="Ask for things others post, or post a wish for someone to fulfill."
         >
           <WishPicture width={pictureW} height={pictureH} />
         </Card>

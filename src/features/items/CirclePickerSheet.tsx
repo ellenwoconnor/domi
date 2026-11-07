@@ -56,7 +56,7 @@ export function CirclePickerSheet({
                     <Text style={styles.name}>{c.name}</Text>
                     <Text style={type.meta}>
                       {c.kind === "zip" ? "Neighborhood · " : ""}
-                      {c.memberCount} {c.memberCount === 1 ? "neighbor" : "neighbors"}
+                      {c.memberCount} {c.memberCount === 1 ? "member" : "members"}
                     </Text>
                   </View>
                   <View style={[styles.box, on && styles.boxOn]}>
@@ -73,7 +73,7 @@ export function CirclePickerSheet({
             style={[styles.primary, picked.length === 0 && { opacity: 0.5 }]}
           >
             <Text style={type.button}>
-              {picked.length === 0 ? "Pick at least one" : `Done · about ${reach} ${reach === 1 ? "neighbor" : "neighbors"}`}
+              {picked.length === 0 ? "Pick at least one" : `Done · about ${reach} ${reach === 1 ? "person" : "people"}`}
             </Text>
           </Pressable>
         </View>

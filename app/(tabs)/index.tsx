@@ -78,8 +78,8 @@ export default function Browse() {
             : " "
           : wishesQ.isSuccess
             ? wanted === 1
-              ? "1 neighbor is looking for something"
-              : `${wanted} neighbors are looking for something`
+              ? "1 person is looking for something"
+              : `${wanted} people are looking for something`
             : " ";
 
   const openAdd = (title = "") => {
@@ -113,7 +113,7 @@ export default function Browse() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={mode === "free" ? "Search offers" : "Search what neighbors want"}
+          placeholder={mode === "free" ? "Search offers" : "Search what people want"}
           placeholderTextColor={color.inkFaint}
           style={styles.searchInput}
           returnKeyType="search"
@@ -148,7 +148,7 @@ export default function Browse() {
               </Text>
               <Text style={[type.body, { color: color.inkSoft }]}>
                 {query
-                  ? "Add it to your wishes and your neighbors and friends will know you're looking."
+                  ? "Add it to your wishes and the people you share with will know you're looking."
                   : "Be the first to give something. Tap Give to post a photo."}
               </Text>
               {query ? (
@@ -177,7 +177,7 @@ export default function Browse() {
                 {query ? `No one is wishing for “${query.trim()}”.` : "No wishes here yet."}
               </Text>
               <Text style={[type.body, { color: color.inkSoft }]}>
-                {query ? "Add it as your own wish and your neighbors and friends will know you're looking." : "Looking for something? Add a wish and your neighbors and friends will see it."}
+                {query ? "Add it as your own wish and the people you share with will know you're looking." : "Looking for something? Add a wish and the people you share with will see it."}
               </Text>
               <Pressable onPress={() => openAdd(query.trim())} style={styles.pillButton}>
                 <Ionicons name="add" size={18} color={color.white} />

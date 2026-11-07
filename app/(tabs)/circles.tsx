@@ -10,7 +10,7 @@ import { Avatar } from "../../src/ui/Avatar";
 import { TabHeader } from "../../src/ui/TabHeader";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
-const neighbors = (n: number) => `${n} ${n === 1 ? "neighbor" : "neighbors"}`;
+const neighbors = (n: number) => `${n} ${n === 1 ? "member" : "members"}`;
 // The server caps each count at 50.
 const count = (n: number, one: string, many: string) => `${n >= 50 ? "50+" : n} ${n === 1 ? one : many}`;
 

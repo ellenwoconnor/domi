@@ -197,7 +197,7 @@ export function ListingEditor({
             <Avatar name={ownerName} size={42} />
             <View style={{ flex: 1 }}>
               <Text style={type.label}>From you</Text>
-              <Text style={type.meta}>Neighbors see roughly how far away you are, never your address.</Text>
+              <Text style={type.meta}>People see roughly how far away you are, never your address.</Text>
             </View>
           </View>
 
@@ -205,7 +205,7 @@ export function ListingEditor({
             ref={descriptionRef}
             value={description}
             onChangeText={setDescription}
-            placeholder="Condition, size, anything a neighbor should know. (Optional)"
+            placeholder="Condition, size, anything someone should know. (Optional)"
             placeholderTextColor={color.inkFaint}
             maxLength={DESCRIPTION_MAX}
             multiline
@@ -249,7 +249,7 @@ export function ListingEditor({
       {/* The bar rides on top of the keyboard so Post stays reachable while typing. */}
       <View style={[styles.bar, keyboard > 0 ? { bottom: keyboard, paddingBottom: space.md } : { paddingBottom: insets.bottom + space.md }]}>
         <Text style={[type.meta, { textAlign: "center" }]}>
-          {missing ?? (sendTo ? `This is how ${sendTo.name} will see it.` : "This is how neighbors will see it.")}
+          {missing ?? (sendTo ? `This is how ${sendTo.name} will see it.` : "This is how others will see it.")}
         </Text>
         <Pressable
           onPress={submit}

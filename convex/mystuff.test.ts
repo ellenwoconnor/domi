@@ -97,7 +97,7 @@ describe("My stuff", () => {
     });
     expect((await maya.as.query(api.mystuff.getting, {}))[0]).toMatchObject({
       kind: "wish",
-      status: "1 neighbor offered one",
+      status: "1 person offered one",
       needsYou: true,
       wishId,
     });

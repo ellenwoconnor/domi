@@ -210,13 +210,13 @@ function YourWish({ wish }: { wish: Wish }) {
           ) : waiting.length === 0 ? (
             <View style={[styles.card, { backgroundColor: color.fog }]}>
               <Text style={type.label}>No offers yet</Text>
-              <Text style={type.meta}>When a neighbor offers one, it shows up here and in My stuff.</Text>
+              <Text style={type.meta}>When someone offers one, it shows up here and in My stuff.</Text>
             </View>
           ) : (
             <View style={[styles.topLine, { paddingTop: space.xl, gap: space.md }]}>
               <View style={{ gap: 2 }}>
                 <Text style={type.title}>
-                  {waiting.length === 1 ? "A neighbor has one for you" : `${waiting.length} neighbors have one for you`}
+                  {waiting.length === 1 ? "Someone has one for you" : `${waiting.length} people have one for you`}
                 </Text>
                 <Text style={[type.meta, { fontSize: 15 }]}>Pick the one you'd like.</Text>
               </View>
@@ -437,7 +437,7 @@ function RemoveWish({ wish, offers }: { wish: Wish; offers: Offer[] }) {
         ? `${names[0]} offered one.`
         : names.length === 2
           ? `${names[0]} and ${names[1]} offered.`
-          : `${names.length} neighbors offered.`;
+          : `${names.length} people offered.`;
   const confirm = () =>
     Alert.alert("Remove your wish?", who ? `${who} We'll let them know you don't need one anymore.` : "Nobody else will see it anymore.", [
       { text: "Keep it", style: "cancel" },

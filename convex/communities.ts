@@ -30,6 +30,7 @@ async function myCircles(ctx: QueryCtx, userId: Id<"users">) {
       description: c.description ?? null,
       kind: c.kind,
       memberCount: c.memberCount,
+      flowerCount: c.flowerCount ?? 0,
       role: m.role,
       muted: m.muted,
     });
@@ -133,6 +134,7 @@ export const get = query({
       description: c.description ?? null,
       kind: c.kind,
       memberCount: c.memberCount,
+      flowerCount: c.flowerCount ?? 0,
       role: m.role,
       muted: m.muted,
     };
