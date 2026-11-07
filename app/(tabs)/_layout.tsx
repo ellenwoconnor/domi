@@ -39,6 +39,8 @@ export default function TabsLayout() {
         tabBarStyle: { borderTopColor: color.line, backgroundColor: color.white },
         // Icons only. Each tab keeps its title, which VoiceOver reads.
         tabBarShowLabel: false,
+        // Without labels, center the icon in the bar (the default stacks it at the top, leaving room for a label).
+        tabBarItemStyle: { justifyContent: "center" },
       }}
     >
       <Tabs.Screen
