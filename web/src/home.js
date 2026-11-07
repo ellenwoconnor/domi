@@ -2,8 +2,9 @@
 // page" design canvas (2026-10-25), private-testing version. When Domi is in
 // the App Store, swap the invite buttons for the App Store badge.
 
-const ring = (cls) => `<span class="${cls}" aria-hidden="true"><span></span></span>`;
-const wordmark = (cls) => `d${ring(cls)}mi`;
+import { faviconLink, poppy } from "./poppy.js";
+
+const wordmark = (cls) => `${poppy(cls)}domi`;
 const heart = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>`;
 
 const neighbors = [
@@ -17,7 +18,7 @@ const neighbors = [
   .join("");
 
 const steps = [
-  ["fog", `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="#F2652B" stroke="none"/></svg>`, "Join local circles", "Share with others in your area. Want to share stuff in your building? A group of friends? Collect items for a friend's new baby? Create your own circle and invite others into it."],
+  ["fog", poppy("poppy"), "Join local circles", "Share with others in your area. Want to share stuff in your building? A group of friends? Collect items for a friend's new baby? Create your own circle and invite others into it."],
   ["blush", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v4H4z"/><path d="M6 12v8h12v-8"/><path d="M12 8v12"/><path d="M12 8c-1.5-3-5-3.5-5-1.2C7 8 9 8 12 8z"/><path d="M12 8c1.5-3 5-3.5 5-1.2C17 8 15 8 12 8z"/></svg>`, "Give things away", "Snap a photo and post it to your circles. Neighbors ask for it, you pick who gets it, and you set up pickup in chat."],
   ["fog", heart, "Share a wish", "Need a cup of sugar? Ski clothes for a weekend trip? Post a wish, and a neighbor can offer it to you."],
 ]
@@ -43,6 +44,7 @@ export const homeHtml = `<!doctype html>
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Domi: good things find a new home nearby. Free things, from neighbors.">
 <meta name="twitter:card" content="summary_large_image">
+${faviconLink}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
@@ -66,10 +68,8 @@ h2{font-size:clamp(32px,3.6vw,44px);line-height:1.1}
 header.wrap{padding-top:24px;padding-bottom:24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
 .logo{display:inline-block;font-weight:800;font-size:28px;line-height:1;color:var(--bay);text-decoration:none;letter-spacing:-.5px;white-space:nowrap}
 /* The "o" mark, sized to Figtree ExtraBold's own o: 0.54em tall, sitting just below the baseline like a round letter. */
-.ring{display:inline-block;position:relative;vertical-align:-.02em;width:.54em;height:.54em;border:.115em solid currentColor;border-radius:50%;margin:0 .02em}
-.ring span{position:absolute;inset:0;margin:auto;width:.15em;height:.15em;border-radius:50%;background:var(--poppy)}
-.chip-ring{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border:2.5px solid #fff;border-radius:50%}
-.chip-ring span{width:4px;height:4px;border-radius:50%;background:var(--poppy)}
+.poppy{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.25em;margin-right:.16em}
+.chip-poppy{display:inline-block;width:16px;height:16px;flex:none}
 nav.main{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;font-weight:500;font-size:15px}
 nav.main a:not(.button){color:var(--ink);text-decoration:none}
 nav.main .button{padding:11px 18px}
@@ -90,8 +90,7 @@ h1{font-size:clamp(44px,5.4vw,72px);line-height:1.05;letter-spacing:-1px}
 .art{position:relative;width:100%;max-width:540px;aspect-ratio:1/1;background:var(--fog);border-radius:32px;overflow:hidden}
 .orbit{position:absolute;left:18%;top:12%;width:68%;height:68%;border:2px solid #D3DDE5;border-radius:50%}
 .you{position:absolute;left:52%;top:46%;width:20%;height:20%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(31,78,121,.12)}
-.you span{width:58%;height:58%;border:9px solid var(--bay);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.you span::after{content:"";width:34%;height:34%;border-radius:50%;background:var(--poppy)}
+.you .poppy{width:62%;height:62%;margin:0}
 .face{position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;font-weight:600;font-size:19px;display:flex;align-items:center;justify-content:center}
 .face.blush{background:var(--blush);color:var(--ink)}.face.bay{background:var(--bay);color:#fff}.face.white{background:#fff;color:var(--bay)}
 .wish{position:absolute;left:6%;top:7%;background:#fff;border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(24,34,46,.06)}
@@ -114,6 +113,7 @@ svg{fill:none;stroke:var(--bay);stroke-width:1.8;stroke-linecap:round;stroke-lin
 .step-top{display:flex;align-items:center;justify-content:space-between}
 .step-icon{width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
 .step-icon svg{width:26px;height:26px}
+.step-icon .poppy{width:34px;height:34px;margin:0}
 .step-num{font-weight:600;font-size:14px;color:var(--soft)}
 .step h3{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:24px;line-height:1.2}
 .step p{color:var(--soft)}
@@ -165,7 +165,7 @@ footer nav a{color:var(--soft)}
 </style></head>
 <body>
 <header class="wrap">
-<a class="logo" href="/" aria-label="Domi home">${wordmark("ring")}</a>
+<a class="logo" href="/" aria-label="Domi home">${wordmark("poppy")}</a>
 <nav class="main" aria-label="Main">
 <a href="#how">How it works</a>
 <a href="#circles">Circles</a>
@@ -187,7 +187,7 @@ footer nav a{color:var(--soft)}
 <div class="art-col">
 <div class="art" role="img" aria-label="You in the middle of your circle of neighbors, with a free wooden high chair posted">
 <div class="orbit"></div>
-<div class="you"><span></span></div>
+<div class="you">${poppy("poppy")}</div>
 ${neighbors}
 <div class="wish">${heart}Wish: a kids' bike</div>
 <div class="card">
@@ -229,7 +229,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 <h2 id="circles-title">Your neighborhood, and the people you choose.</h2>
 <p class="lead">Your village isn't just the people who live next door. Organize as many local sharing circles as you want and invite friends in easily with a link.</p>
 <ul class="chips" aria-label="Example circles">
-<li class="on">${ring("chip-ring")}Kensington</li>
+<li class="on">${poppy("chip-poppy", "white")}Kensington</li>
 <li>Maya's baby shower</li>
 <li>Cedar St. building</li>
 <li>Thursday soccer parents</li>
@@ -257,7 +257,7 @@ ${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to
 </main>
 
 <footer class="wrap">
-<div class="foot-left"><span class="foot-logo">${wordmark("ring")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
+<div class="foot-left"><span class="foot-logo">${wordmark("poppy")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
 <nav aria-label="Footer"><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@domicircles.com">support@domicircles.com</a></nav>
 </footer>
 </body></html>`;

@@ -18,6 +18,7 @@
 //   /internal/report-alert, called by Convex; see alerts.js).
 // Data comes from the public Convex queries invites:preview and shares:preview.
 
+import { faviconLink, poppy } from "./poppy.js";
 import { homeHtml } from "./home.js";
 import { OG_IMAGE_BASE64 } from "./og-image.js";
 import { privacyBody, termsBody } from "./legal.js";
@@ -259,6 +260,7 @@ function layout({ title, desc, image, body }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:image" content="${esc(image ?? OG_IMAGE_URL)}"><meta name="twitter:card" content="summary_large_image">
+${faviconLink}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
@@ -266,8 +268,7 @@ function layout({ title, desc, image, body }) {
 *{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
 main{max-width:440px;margin:0 auto;padding:24px 20px 48px;display:flex;flex-direction:column;gap:20px}
 .logo{align-self:flex-start;font-weight:800;font-size:24px;line-height:1;color:var(--bay);text-decoration:none;white-space:nowrap}
-.logo i{display:inline-block;position:relative;vertical-align:-.02em;width:.54em;height:.54em;border:.115em solid currentColor;border-radius:50%;margin:0 .02em}
-.logo i:after{content:"";position:absolute;inset:0;margin:auto;width:.15em;height:.15em;border-radius:50%;background:var(--poppy)}
+.logo .poppy{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.25em;margin-right:.16em}
 h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;line-height:40px;margin:0}
 .caption{font-family:Fraunces,serif;font-style:italic;color:var(--soft);margin:0}
 .intro{font-size:17px;margin:0}.intro b{font-weight:600}
@@ -299,5 +300,5 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .code-inline{font-weight:800;color:var(--bay);letter-spacing:1px}
 .copy{border:0;background:var(--fog);color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>
-<body><main><a class="logo" href="/">d<i></i>mi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
+<body><main><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }
