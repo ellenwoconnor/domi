@@ -91,14 +91,15 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 
 **Approved Nov 6, 2026.** A simplified California poppy seen from the side: three broad, round-tipped petals rising from a small cupped base (the calyx) on a short stem, leaning 26° to the right, because real poppies nod.
 
-- **Simple, not literal.** Three flat petals in three Poppy tones (Deep at the back, Poppy in the middle, Light in front, as if the sun is on it). No outlines, no stamens, no leaves.
+- **Simple, not literal.** Three flat petals, all Poppy, with thin see-through gaps between them (style A, Nov 7). No outlines, no stamens, no leaves.
+- **One color, never blended tones.** An earlier version used three Poppy tones that blended where the petals overlapped, which read too close to Mastercard's overlapping circles. The gaps keep the petals distinct; they are real gaps (an SVG mask), so they show whatever is behind the mark.
 - **Round tips, never pointed.** Pointed petals turn it into a lotus (spa and yoga territory).
 - **The calyx and stem keep it a flower.** Without them, three petals fanning from one point read as a butterfly. Don't replace them with a dot.
 - **The lean is the personality.** 26° for the logo and icon. Don't straighten it, and don't lean it further: past about 30° the icon looks like it's falling over.
 - **Stem and calyx are Bay Blue on light backgrounds, white on Bay Blue.** The petals never change color.
 - **The mark stands beside the wordmark; it doesn't replace a letter.** The wordmark is "domi" in Figtree ExtraBold, Bay Blue (white on Bay Blue). The mark can always appear alone.
-- **App icon:** the white-stem poppy on Bay Blue. A white icon with the Bay Blue stem is the alternate. Android's themed icon uses a one-color silhouette with thin gaps between the petals.
-- **Avoid:** pointed petals (lotus), a dot instead of the calyx (butterfly), a tall narrow cup on a long stem (torch or tulip), green stems or leaves (eco cliché), red with a black center (the remembrance poppy), overlapping filled circles (Mastercard), and house or door shapes (Nextdoor).
+- **App icon:** the white-stem poppy on Bay Blue. A white icon with the Bay Blue stem is the alternate. Android's themed icon and the Domis tab icon use the same shape in one color.
+- **Avoid:** blended or overlapping warm tones (Mastercard), pointed petals (lotus), a dot instead of the calyx (butterfly), a tall narrow cup on a long stem (torch or tulip), green stems or leaves (eco cliché), red with a black center (the remembrance poppy), overlapping filled circles (Mastercard), and house or door shapes (Nextdoor).
 - **How we got here:** a four-petal top-down poppy read as a toy or a button; tall side views as a tulip or torch; a detailed traced poppy was lovely but fussy at small sizes; abstract shapes (sunrise, cupped hands, a single petal) drifted into clichés. The simplified leaning poppy kept the warmth and survives at 16 px.
 - **Files** in `docs/brand/`: `domi-mark.svg` (light backgrounds), `domi-mark-on-blue.svg` (white stem), `domi-app-icon.svg` (1024 px, Bay Blue), `domi-app-icon-white.svg` (alternate), `domi-thanks.svg`. In the app the mark is drawn by `PoppyMark` in `src/ui/Logo.tsx`.
 
@@ -116,9 +117,7 @@ Everyone else trades warmth for efficiency or the reverse. Domi's whole brand jo
 | --- | --- | --- | --- |
 | Background | White | #FFFFFF | Every screen |
 | Primary | Bay Blue | #1F4E79 | Wordmark, logo stem and calyx, app icon, buttons, navigation, selected states |
-| Accent | Poppy | #F2652B | Giving moments only: free items, thank-you poppies, the logo's middle petal |
-| Logo only | Poppy Deep | #D9501C | The logo's back petal and poppy illustrations. Never in the interface |
-| Logo only | Poppy Light | #F7894F | The logo's front petal and poppy illustrations. Never in the interface |
+| Accent | Poppy | #F2652B | Giving moments only: free items, domi flowers, the logo's petals |
 | Warm tint | Blush | #FDE8DE | Highlight surfaces, thank-yous, celebrations, empty states |
 | Cool tint | Fog | #EAF0F4 | Photo backgrounds, chips, search |
 | Text | Ink | #18222E | Body text and icons |

@@ -10,8 +10,6 @@ export const color = {
   white: "#FFFFFF",
   bay: "#1F4E79", // primary: wordmark, buttons, navigation, selected states
   poppy: "#F2652B", // accent: giving moments only
-  poppyDeep: "#D9501C", // logo only: the poppy's back petal. Never in the interface
-  poppyLight: "#F7894F", // logo only: the poppy's front petal. Never in the interface
   blush: "#FDE8DE", // warm tint: highlights, celebrations, empty states
   fog: "#EAF0F4", // cool tint: photo backgrounds, chips, search
   ink: "#18222E", // text and icons
