@@ -71,7 +71,16 @@
           "microphonePermission": false
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#1F4E79"
+        }
+      ]
     ],
     "extra": {
       "router": {},
