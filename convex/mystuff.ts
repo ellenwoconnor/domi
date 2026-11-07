@@ -173,8 +173,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         if (item.status === "gone") {
           if (now - item.updatedAt > RECENT_MS) continue;
           conv = await openConversation(ctx, r._id); // the chat stays open after pickup
-          line =
-            conv?.thankedAt !== undefined ? "Picked up. You sent a domi flower." : `Picked up. Send ${owner} a domi flower?`;
+          line = "Picked up. Enjoy!"; // a sent domi flower shows as an icon, never a nudge
           ended = true;
         } else {
           conv = await openConversation(ctx, r._id);
@@ -211,7 +210,7 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
         itemId: item._id,
         wishId: null,
         conversationId: conv?._id ?? null,
-        poppy: status === "selected" && item.status === "gone",
+        poppy: status === "selected" && item.status === "gone" && conv?.thankedAt !== undefined,
         at: r.updatedAt,
       });
     }

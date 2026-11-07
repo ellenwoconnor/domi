@@ -103,7 +103,7 @@ describe("chats on the listing (M4)", () => {
     expect((await ellen.as.query(api.conversations.get, { conversationId })).closed).toBe(false);
     expect((await maya.as.query(api.items.get, { itemId })).chat?.id).toBe(conversationId);
     const [row] = await maya.as.query(api.mystuff.getting, {});
-    expect(row).toMatchObject({ status: "Picked up. Send Ellen a domi flower?", conversationId });
+    expect(row).toMatchObject({ status: "Picked up. Enjoy!", conversationId });
   });
 
   test("an un-picked chat becomes a past chat, readable but closed", async () => {

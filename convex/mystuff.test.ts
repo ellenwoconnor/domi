@@ -73,7 +73,7 @@ describe("My stuff", () => {
     });
 
     await ellen.as.mutation(api.items.markPickedUp, { itemId: crib });
-    expect(lines(await maya.as.query(api.mystuff.getting, {}))).toEqual([["Crib", "Picked up. Send Ellen a domi flower?", false, true]]);
+    expect(lines(await maya.as.query(api.mystuff.getting, {}))).toEqual([["Crib", "Picked up. Enjoy!", false, true]]);
     expect(lines(await sam.as.query(api.mystuff.getting, {}))).toEqual([["Crib", "Went to someone else", false, true]]);
   });
 

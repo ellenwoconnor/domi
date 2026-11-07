@@ -48,18 +48,18 @@ describe("domi flower", () => {
     expect((await ellen.as.query(api.mystuff.giving, {}))[0]).toMatchObject({
       status: "Maya sent you a domi flower",
     });
-    expect((await maya.as.query(api.mystuff.getting, {}))[0]).toMatchObject({
-      status: "Picked up. You sent a domi flower.",
-    });
+    expect((await maya.as.query(api.mystuff.getting, {}))[0]).toMatchObject({ status: "Picked up. Enjoy!", poppy: true });
   });
 
   test("or after the giver marks it picked up; the note is optional", async () => {
     const { t, ellen, maya, conversationId } = await handoff({
       pickedUp: true,
     });
+    // No nudge in My stuff; the flower is offered in the chat.
     expect((await maya.as.query(api.mystuff.getting, {}))[0]).toMatchObject({
-      status: "Picked up. Send Ellen a domi flower?",
+      status: "Picked up. Enjoy!",
       needsYou: false,
+      poppy: false,
     });
     await maya.as.mutation(api.thanks.send, { conversationId });
     expect((await doc(t, conversationId))?.thankNote).toBeUndefined();
