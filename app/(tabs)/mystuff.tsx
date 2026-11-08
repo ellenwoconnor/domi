@@ -7,6 +7,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { StuffRow } from "../../convex/mystuff";
+import { NotificationsOffStrip } from "../../src/features/push/NotificationsOffStrip";
 import { PoppyMark } from "../../src/ui/Logo";
 import { TabHeader } from "../../src/ui/TabHeader";
 import { Segmented } from "../../src/ui/Segmented";
@@ -31,6 +32,8 @@ export default function MyStuff() {
   }, [needs.data, side]);
 
   const current = side ?? "giving";
+  // Something under way on either side: a request, a pick, a pickup chat or a wish with offers.
+  const active = [...(giving.data ?? []), ...(getting.data ?? [])].some((r) => !r.ended);
   const rows = (current === "giving" ? giving.data : getting.data) ?? [];
   const loaded = current === "giving" ? giving.isSuccess : getting.isSuccess;
 
@@ -48,6 +51,13 @@ export default function MyStuff() {
           onChange={setSide}
         />
       </View>
+
+      {active ? (
+        <NotificationsOffStrip
+          because="You won't hear about requests, picks or messages."
+          style={styles.offStrip}
+        />
+      ) : null}
 
       <FlatList
         data={rows}
@@ -117,6 +127,7 @@ function Empty({ side }: { side: Side }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
+  offStrip: { marginHorizontal: space.lg, marginTop: space.sm },
   tabs: { marginTop: space.lg, marginBottom: space.xs },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: color.bay },
   list: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xxl },

@@ -6,6 +6,7 @@ import { useMutation } from "convex/react";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { setOpenChat } from "../../src/features/push/push";
+import { NotificationsOffStrip } from "../../src/features/push/NotificationsOffStrip";
 import {
   ActivityIndicator,
   Alert,
@@ -318,6 +319,11 @@ export default function Chat() {
         ) : null}
       </View>
 
+      {/* While the handoff is under way: say so if this phone won't hear about it. */}
+      {pending ? (
+        <NotificationsOffStrip because={`You won't hear when ${other} replies.`} style={styles.offStrip} />
+      ) : null}
+
       {/* Messages, newest at the bottom */}
       {messages && messages.length === 0 && !conv.closed && item?.status !== "gone" ? (
         <View style={styles.emptyWrap}>
@@ -419,6 +425,7 @@ const styles = StyleSheet.create({
   headerRow: { height: 44, flexDirection: "row", alignItems: "center", gap: space.xs },
   iconButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   name: { flex: 1, fontFamily: font.uiBold, fontSize: 17, color: color.ink },
+  offStrip: { marginHorizontal: space.md, marginTop: space.sm },
   itemStrip: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: space.sm, paddingTop: space.xs, paddingBottom: space.md },
   thumb: { width: 36, height: 36, borderRadius: 10, backgroundColor: color.fog },
   list: { paddingHorizontal: space.lg - 4, paddingVertical: space.md },
