@@ -114,8 +114,21 @@ export function OwnerSection({
   }, [asksQ.data, stillThere, onChoose]);
 
   let body: ReactNode = null;
-  if (item.wish && item.status === "available") {
+  if (item.wish && item.status === "available" && item.onHold) {
+    const who = item.wish.wisher.displayName;
+    body = <Card head={`${who}'s set for now`} text="Yours is ready if plans change. Only they see it." />;
+  } else if (item.wish && item.status === "available") {
     body = <WaitingForWisher wish={item.wish} />;
+  } else if (item.wish && item.status === "removed" && item.offerEnding) {
+    const ending = item.offerEnding;
+    body = ending.note ? (
+      <View style={[styles.card, { backgroundColor: color.blush, gap: space.sm, padding: space.lg }]}>
+        <Text style={styles.noteQuote}>“{ending.note}”</Text>
+        <Text style={type.meta}>{ending.who}</Text>
+      </View>
+    ) : (
+      <Card head={`${ending.who}'s all set`} text="Thanks for offering!" warm />
+    );
   } else if (item.wish && item.status === "removed") {
     const who = item.wish.wisher.displayName;
     body =
@@ -500,6 +513,20 @@ export function OwnerBar({ item, chosen, onGive }: { item: ItemView; chosen: Ask
       </Pressable>
     );
   }
+  if (item.status === "removed" && item.offerEnding?.canShareAgain) {
+    return (
+      <View style={{ gap: space.sm }}>
+        <Text style={[type.meta, { textAlign: "center", fontSize: 15 }]}>Someone nearby might still want it.</Text>
+        <Pressable
+          onPress={() => router.push({ pathname: "/listing/again/[id]", params: { id: item.id } })}
+          style={sheetStyles.give}
+          accessibilityRole="button"
+        >
+          <Text style={sheetStyles.giveText}>Share with others</Text>
+        </Pressable>
+      </View>
+    );
+  }
   return <Text style={type.meta}>This listing has ended.</Text>;
 }
 
@@ -587,6 +614,7 @@ const styles = StyleSheet.create({
   },
   card: { backgroundColor: color.fog, borderRadius: radius.thing, padding: 14, gap: 2 },
   cardHead: { fontFamily: font.uiSemi, fontSize: 15, color: color.ink },
+  noteQuote: { fontFamily: font.curatorLight, fontSize: 19, lineHeight: 27, color: color.ink },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },
   noteBox: { backgroundColor: color.fog, borderRadius: radius.control, paddingHorizontal: 14, paddingVertical: space.md },
   row: { flexDirection: "row", gap: 10 },

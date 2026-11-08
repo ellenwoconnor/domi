@@ -14,7 +14,7 @@ import {
 import { itemCard } from "./lib/cards";
 import { noteCircleActivity } from "./lib/circleActivity";
 import { writeEvent } from "./lib/events";
-import { closeWish, openSelection } from "./lib/lifecycle";
+import { closeWish, openSelection, removeItem } from "./lib/lifecycle";
 import { requireNotPaused } from "./lib/noShows";
 import { checkPhotos, itemText } from "./lib/photos";
 import { cleanOptionalText, cleanText, LIMITS, LISTING_LIFETIME_MS } from "./lib/validate";
@@ -164,6 +164,13 @@ export const offer = mutation({
     if (wish.userId === userId) fail("You can't offer on your own wish");
     if (wish.status !== "open") fail("This wish is closed");
     if ((await liveOffers(ctx, wish._id)).some((o) => o.ownerId === userId)) fail("You've already offered something for this wish");
+    const declined = await ctx.db
+      .query("items")
+      .withIndex("by_wishlistItem", (q) => q.eq("wishlistItemId", wish._id))
+      .collect();
+    if (declined.some((o) => o.ownerId === userId && o.declinedAt !== undefined)) {
+      fail("You've already offered something for this wish");
+    }
     const text = itemText(args.title, args.description);
     await checkPhotos(ctx, args.photos, args.thumbs);
 
@@ -245,5 +252,43 @@ export const pickOffer = mutation({
       body: `${who} chose your ${item.title}! Message ${who} to arrange pickup.`,
     });
     return conversationId;
+  },
+});
+
+/**
+ * The wisher says no thanks to an offer they won't take, with an optional note.
+ * The offer ends ('removed'); its owner is told, with a push only when there's
+ * a note. They can't offer on this wish again. A picked (pending) offer is
+ * withdrawn with "I can't take it" instead.
+ */
+export const declineOffer = mutation({
+  args: { itemId: v.id("items"), note: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const { userId } = await requireProfile(ctx);
+    const item = await ctx.db.get(args.itemId);
+    if (!item || item.visibility !== "private" || !item.wishlistItemId) fail("Offer not found");
+    const wish = await ctx.db.get(item.wishlistItemId);
+    if (!wish || wish.userId !== userId) fail("Offer not found");
+    if (wish.status !== "open") fail("This wish is closed");
+    if (item.status !== "available") fail("This offer isn't available");
+    const note = cleanOptionalText(args.note, "Note", LIMITS.declineNote);
+
+    const now = Date.now();
+    await removeItem(ctx, item, now, { notify: false });
+    await ctx.db.patch(item._id, { declinedAt: now, ...(note ? { declineNote: note } : {}) });
+    const who = await displayName(ctx, userId);
+    await writeEvent(
+      ctx,
+      {
+        recipientId: item.ownerId,
+        type: "offer_declined",
+        actorId: userId,
+        itemId: item._id,
+        wishlistItemId: wish._id,
+        title: wish.title,
+        body: note ? `${who}: “${note}”` : `${who}'s all set. Thanks for offering!`,
+      },
+      { push: note !== undefined },
+    );
   },
 });

@@ -1,6 +1,7 @@
 import type { Doc, Id } from "./_generated/dataModel";
 import { query, type QueryCtx } from "./_generated/server";
 import { displayName, requireProfile } from "./lib/access";
+import { offerEnding, offerOnHold } from "./lib/offers";
 import { firstThumbUrl } from "./lib/cards";
 import { DAY_MS } from "./lib/validate";
 
@@ -24,6 +25,7 @@ export type StuffRow = {
   wishId: Id<"wishlistItems"> | null;
   conversationId: Id<"conversations"> | null;
   poppy: boolean; // a domi flower was sent: a small icon beside the status line, no words
+  shareAgain?: boolean; // an ended offer that can be posted for others ("Share with others")
   at: number;
 };
 
@@ -67,23 +69,25 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
   for (const item of items) {
     if (item.status === "gone" && now - item.updatedAt > RECENT_MS) continue;
     if (item.status === "removed") {
-      // An offer closed because the wish came true with someone else's offer:
-      // say so gently for a few days. Other removals just disappear.
-      const wish = item.wishlistItemId ? await ctx.db.get(item.wishlistItemId) : null;
-      if (!wish || wish.status !== "fulfilled" || now - item.updatedAt > RECENT_MS) continue;
+      // An offer that ended because the wisher said no thanks, or because the
+      // wish came true with another offer: say so gently for a few days, with
+      // "Share with others". Other removals just disappear.
+      const ending = await offerEnding(ctx, item);
+      if (!ending || now - item.updatedAt > RECENT_MS) continue;
       rows.push({
         key: `item:${item._id}`,
         kind: "item",
         title: item.title,
         subtitle: "an offer",
         photoUrl: await firstThumbUrl(ctx, item),
-        status: `${await displayName(ctx, wish.userId)}'s wish came true. Thanks for offering.`,
+        status: ending.line,
         needsYou: false,
         ended: true,
         itemId: item._id,
         wishId: null,
         conversationId: null,
         poppy: false,
+        shareAgain: ending.canShareAgain,
         at: item.updatedAt,
       });
       continue;
@@ -107,7 +111,12 @@ export async function givingRows(ctx: QueryCtx, userId: Id<"users">): Promise<St
     let needsYou = false;
     let ended = false;
     if (item.status === "available") {
-      if (offerFor) status = `Offered for ${await displayName(ctx, offerFor.userId)}'s wish. Waiting for them to choose.`;
+      if (offerFor) {
+        const who = await displayName(ctx, offerFor.userId);
+        status = (await offerOnHold(ctx, item))
+          ? `${who}'s set for now. Yours is ready if plans change.`
+          : `Offered for ${who}'s wish. Waiting for them to choose.`;
+      }
       else if (open.length > 0) {
         status = `${people(open.length)} Choose one.`;
         needsYou = true;

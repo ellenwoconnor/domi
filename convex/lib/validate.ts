@@ -13,6 +13,7 @@ export const LIMITS = {
   wishDescription: 500,
   requestNote: 140,
   thankNote: 140,
+  declineNote: 140,
   message: 2000,
   reportReason: 1000,
   photosPerItem: 3,

@@ -42,12 +42,22 @@ export const create = mutation({
     photos: v.array(v.id("_storage")),
     thumbs: v.optional(v.array(v.id("_storage"))),
     communityIds: v.array(v.id("communities")),
+    // "Share with others": post an ended offer of yours for everyone. Its photos
+    // move to the new listing instead of being copied.
+    fromOfferId: v.optional(v.id("items")),
   },
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
     await rateLimit(ctx, "post", userId);
     const text = itemText(args.title, args.description);
     await checkPhotos(ctx, args.photos, args.thumbs);
+    const from = args.fromOfferId ? await ctx.db.get(args.fromOfferId) : null;
+    if (args.fromOfferId) {
+      if (!from || from.ownerId !== userId || from.visibility !== "private") fail("Offer not found");
+      if (from.status !== "removed" || from.sharedAgainAt !== undefined || from.photosPurgedAt !== undefined) {
+        fail("This offer can't be shared again; post it as a new listing");
+      }
+    }
     const circles = [...new Set(args.communityIds)];
     if (circles.length === 0) fail("Pick who sees it");
     for (const c of circles) await requireMember(ctx, c, userId);
@@ -67,6 +77,13 @@ export const create = mutation({
       searchText: `${text.title} ${text.description}`,
     });
     for (const communityId of circles) await ctx.db.insert("itemCommunities", { itemId, communityId });
+    if (from) {
+      // The old offer hands its photos over: the photo cleanup skips it from now
+      // on, and the ones the new listing didn't keep are deleted here.
+      const kept = new Set<Id<"_storage">>([...args.photos, ...(args.thumbs ?? [])]);
+      await deleteFiles(ctx, itemFiles(from).filter((f) => !kept.has(f)));
+      await ctx.db.patch(from._id, { sharedAgainAt: now, photosPurgedAt: now });
+    }
     await noteCircleActivity(ctx, circles, userId);
     await notifyWishMatches(ctx, (await ctx.db.get(itemId))!, circles);
     return itemId;

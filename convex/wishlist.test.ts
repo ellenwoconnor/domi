@@ -63,10 +63,10 @@ describe("wishes and offers", () => {
     await sam.as.mutation(api.items.markPickedUp, { itemId: samOffer });
     expect((await doc(t, wishId))?.status).toBe("fulfilled");
     expect((await doc(t, joOffer))?.status).toBe("removed");
-    expect((await eventsFor(t, jo.userId)).at(-1)?.body).toBe("Maya's wish was fulfilled. Thanks for offering!");
+    expect((await eventsFor(t, jo.userId)).at(-1)?.body).toBe("Maya's all set. Thank you for offering!");
     expect((await jo.as.query(api.mystuff.giving, {}))[0]).toMatchObject({
       title: "Jogging stroller",
-      status: "Maya's wish came true. Thanks for offering.",
+      status: "Maya's all set. Thanks for offering!",
       ended: true,
     });
     expect(await sam.as.query(api.wishlist.browse, {})).toEqual([]);
@@ -108,5 +108,130 @@ describe("wishes and offers", () => {
     expect(await nora.as.query(api.wishlist.browse, {})).toEqual([]);
     await expect(nora.as.query(api.wishlist.get, { wishId })).rejects.toThrow("not found");
     await expect(offer(t, nora, wishId)).rejects.toThrow("not found");
+  });
+});
+
+describe("no thanks to an offer", () => {
+  async function wishWithOffers() {
+    const t = await setup();
+    const maya = await newUser(t, "Maya");
+    const jun = await newUser(t, "Jun");
+    const priya = await newUser(t, "Priya");
+    const wishId = await maya.as.mutation(api.wishlist.create, { title: "Cup of sugar", communityIds: [maya.zipCircle] });
+    const junOffer = await offer(t, jun, wishId, "Half a bag of sugar");
+    const priyaOffer = await offer(t, priya, wishId, "Sugar cubes");
+    return { t, maya, jun, priya, wishId, junOffer, priyaOffer };
+  }
+
+  test("with a note: the offer ends, the offerer gets a push with the note and can't offer again", async () => {
+    const { t, maya, jun, priya, wishId, junOffer } = await wishWithOffers();
+    await expect(priya.as.mutation(api.wishlist.declineOffer, { itemId: junOffer })).rejects.toThrow("not found");
+    await expect(jun.as.mutation(api.wishlist.declineOffer, { itemId: junOffer })).rejects.toThrow("not found");
+
+    await maya.as.mutation(api.wishlist.declineOffer, { itemId: junOffer, note: "  Found some already. Thanks!  " });
+    const ended = await doc(t, junOffer);
+    expect(ended).toMatchObject({ status: "removed", declineNote: "Found some already. Thanks!" });
+    expect(ended?.declinedAt).toBeDefined();
+    expect((await maya.as.query(api.wishlist.offers, { wishId })).map((o) => o.title)).toEqual(["Sugar cubes"]);
+
+    const event = (await eventsFor(t, jun.userId)).at(-1);
+    expect(event).toMatchObject({ type: "offer_declined", body: "Maya: “Found some already. Thanks!”" });
+    expect(event?.pushDueAt).toBeDefined();
+
+    const row = (await jun.as.query(api.mystuff.giving, {})).find((r) => r.itemId === junOffer);
+    expect(row).toMatchObject({ status: "Maya: “Found some already. Thanks!”", ended: true, shareAgain: true });
+    expect((await jun.as.query(api.items.get, { itemId: junOffer })).offerEnding).toMatchObject({
+      who: "Maya",
+      note: "Found some already. Thanks!",
+    });
+
+    await expect(offer(t, jun, wishId, "Brown sugar")).rejects.toThrow("already offered");
+  });
+
+  test("without a note: a quiet event, and the gentle line", async () => {
+    const { t, maya, jun, junOffer } = await wishWithOffers();
+    await maya.as.mutation(api.wishlist.declineOffer, { itemId: junOffer, note: "   " });
+    const event = (await eventsFor(t, jun.userId)).at(-1);
+    expect(event).toMatchObject({ type: "offer_declined", body: "Maya's all set. Thanks for offering!" });
+    expect(event?.pushDueAt).toBeUndefined();
+    expect((await doc(t, junOffer))?.declineNote).toBeUndefined();
+  });
+
+  test("a picked offer is withdrawn, not declined; the others read as on hold", async () => {
+    const { t, maya, jun, priya, junOffer, priyaOffer } = await wishWithOffers();
+    await maya.as.mutation(api.wishlist.pickOffer, { itemId: priyaOffer });
+    await expect(maya.as.mutation(api.wishlist.declineOffer, { itemId: priyaOffer })).rejects.toThrow("isn't available");
+    expect((await jun.as.query(api.mystuff.giving, {})).find((r) => r.itemId === junOffer)?.status).toBe(
+      "Maya's set for now. Yours is ready if plans change.",
+    );
+    expect((await jun.as.query(api.items.get, { itemId: junOffer })).onHold).toBe(true);
+    expect((await priya.as.query(api.items.get, { itemId: priyaOffer })).onHold).toBe(false);
+    // Declining a waiting offer still works while another is picked.
+    await maya.as.mutation(api.wishlist.declineOffer, { itemId: junOffer });
+    expect((await doc(t, junOffer))?.status).toBe("removed");
+  });
+
+  test("share with others: the ended offer becomes a public listing and hands over its photos", async () => {
+    const { t, maya, jun, priya, junOffer } = await wishWithOffers();
+    await expect(
+      jun.as.mutation(api.items.create, {
+        title: "x",
+        description: "",
+        photos: [await photo(t)],
+        communityIds: [jun.zipCircle],
+        fromOfferId: junOffer,
+      }),
+    ).rejects.toThrow("can't be shared again"); // still a live offer
+
+    await maya.as.mutation(api.wishlist.declineOffer, { itemId: junOffer });
+    const old = (await doc(t, junOffer))!;
+    await expect(
+      priya.as.mutation(api.items.create, {
+        title: "x",
+        description: "",
+        photos: [await photo(t)],
+        communityIds: [priya.zipCircle],
+        fromOfferId: junOffer,
+      }),
+    ).rejects.toThrow("not found");
+
+    const itemId = await jun.as.mutation(api.items.create, {
+      title: "Half a bag of sugar",
+      description: "Unopened",
+      photos: old.photos,
+      communityIds: [jun.zipCircle],
+      fromOfferId: junOffer,
+    });
+    expect(await doc(t, itemId)).toMatchObject({ status: "available", visibility: "public", photos: old.photos });
+    const after = await doc(t, junOffer);
+    expect(after?.sharedAgainAt).toBeDefined();
+    expect(after?.photosPurgedAt).toBeDefined(); // the photo cleanup leaves the shared photos alone
+    expect(await t.run(async (ctx) => await ctx.db.system.get(old.photos[0]))).not.toBeNull();
+    // The ended offer's row gives way to the new listing.
+    const rows = await jun.as.query(api.mystuff.giving, {});
+    expect(rows.some((r) => r.itemId === junOffer)).toBe(false);
+    expect(rows.some((r) => r.itemId === itemId)).toBe(true);
+    // Only once.
+    await expect(
+      jun.as.mutation(api.items.create, {
+        title: "again",
+        description: "",
+        photos: [await photo(t)],
+        communityIds: [jun.zipCircle],
+        fromOfferId: junOffer,
+      }),
+    ).rejects.toThrow("can't be shared again");
+  });
+
+  test("when the wish comes true, other offerers get the gentle line too", async () => {
+    const { t, maya, jun, priya, junOffer, priyaOffer } = await wishWithOffers();
+    const conv = await maya.as.mutation(api.wishlist.pickOffer, { itemId: priyaOffer });
+    expect(conv).toBeDefined();
+    await priya.as.mutation(api.items.markPickedUp, { itemId: priyaOffer });
+    expect((await eventsFor(t, jun.userId)).at(-1)?.body).toBe("Maya's all set. Thank you for offering!");
+    expect((await jun.as.query(api.mystuff.giving, {})).find((r) => r.itemId === junOffer)).toMatchObject({
+      status: "Maya's all set. Thanks for offering!",
+      shareAgain: true,
+    });
   });
 });

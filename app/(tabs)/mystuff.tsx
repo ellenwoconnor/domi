@@ -86,7 +86,7 @@ function StuffRowView({ row }: { row: StuffRow }) {
       disabled={!tappable}
       onPress={open}
       accessibilityRole={tappable ? "button" : undefined}
-      style={({ pressed }) => [styles.row, row.ended && { opacity: 0.6 }, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [styles.row, row.ended && !row.shareAgain && { opacity: 0.6 }, pressed && { opacity: 0.7 }]}
     >
       {row.photoUrl ? (
         <Image source={{ uri: row.photoUrl }} style={[styles.thumb, wish && styles.round]} />
@@ -101,10 +101,21 @@ function StuffRowView({ row }: { row: StuffRow }) {
         <View style={styles.statusLine}>
           {row.needsYou ? <View style={styles.dot} /> : null}
           {row.poppy ? <PoppyMark size={16} /> : null}
-          <Text style={[styles.status, row.needsYou && styles.statusNeeds]} numberOfLines={2}>
+          <Text style={[styles.status, row.needsYou && styles.statusNeeds, row.shareAgain && { opacity: 0.6 }]} numberOfLines={2}>
             {row.status}
           </Text>
         </View>
+        {/* An ended offer: faded like other endings, except the way to post it for everyone. */}
+        {row.shareAgain && itemId ? (
+          <Pressable
+            onPress={() => router.push({ pathname: "/listing/again/[id]", params: { id: itemId } })}
+            accessibilityRole="button"
+            hitSlop={8}
+            style={{ alignSelf: "flex-start", paddingTop: 4 }}
+          >
+            <Text style={styles.shareAgain}>Share with others</Text>
+          </Pressable>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -140,6 +151,7 @@ const styles = StyleSheet.create({
   statusLine: { flexDirection: "row", alignItems: "center", gap: 6 },
   status: { flexShrink: 1, fontFamily: font.ui, fontSize: 14, lineHeight: 19, color: color.inkSoft },
   statusNeeds: { fontFamily: font.uiSemi, color: color.bay },
+  shareAgain: { fontFamily: font.uiSemi, fontSize: 14, color: color.bay },
   empty: { paddingTop: space.xl, gap: space.md, alignItems: "flex-start" },
   link: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
 });

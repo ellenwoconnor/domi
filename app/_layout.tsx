@@ -69,6 +69,7 @@ function AppStack() {
         <Stack.Screen name="listing/new" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="listing/posted" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
         <Stack.Screen name="listing/edit/[id]" options={{ presentation: "fullScreenModal" }} />
+        <Stack.Screen name="listing/again/[id]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="wish/[id]" />
         <Stack.Screen name="fulfill/[wishId]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="fulfill/sent" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />

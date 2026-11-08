@@ -30,6 +30,7 @@ import type * as lib_idTokens from "../lib/idTokens.js";
 import type * as lib_lifecycle from "../lib/lifecycle.js";
 import type * as lib_localTime from "../lib/localTime.js";
 import type * as lib_noShows from "../lib/noShows.js";
+import type * as lib_offers from "../lib/offers.js";
 import type * as lib_photos from "../lib/photos.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_redeem from "../lib/redeem.js";
@@ -78,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   "lib/lifecycle": typeof lib_lifecycle;
   "lib/localTime": typeof lib_localTime;
   "lib/noShows": typeof lib_noShows;
+  "lib/offers": typeof lib_offers;
   "lib/photos": typeof lib_photos;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/redeem": typeof lib_redeem;

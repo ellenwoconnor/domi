@@ -50,6 +50,7 @@ export const eventType = v.union(
   v.literal("wish_match"), // a new listing matches your open wish (M5)
   v.literal("circle_activity"), // new listings/wishes in your circles (M5, replaces the digest)
   v.literal("thanked"), // the person who got your item sent you a domi flower
+  v.literal("offer_declined"), // the wisher said no thanks to your offer (pushes only with a note)
 );
 export const pushResult = v.union(
   v.literal("sent"),
@@ -161,6 +162,12 @@ export default defineSchema({
     // The flower now lives on conversations. Safe to drop once dev data is cleared.
     thankedAt: v.optional(v.number()),
     thankNote: v.optional(v.string()),
+    // An offer the wisher said no thanks to (wishlist.declineOffer): status 'removed'.
+    declinedAt: v.optional(v.number()),
+    declineNote: v.optional(v.string()),
+    // An ended offer the owner posted again as a public listing (items.create fromOfferId).
+    // Its photos moved to the new listing, so photosPurgedAt is set too.
+    sharedAgainAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_wishlistItem", ["wishlistItemId"])

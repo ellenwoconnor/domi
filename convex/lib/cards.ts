@@ -1,6 +1,7 @@
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { displayName, getMembership, isBlockedEitherWay } from "./access";
+import { offerEnding, offerOnHold } from "./offers";
 
 // What the app gets for an item. Photo URLs are only ever produced here, after
 // the caller has checked access (see "Access rules" in docs/spec.md).
@@ -134,6 +135,9 @@ export async function itemCard(ctx: Ctx, item: Doc<"items">, viewerId: Id<"users
     isOwner,
     requestCount: await activeRequestCount(ctx, item._id),
     myRequest: mine ? { id: mine._id, status: mine.status, note: mine.note ?? null } : null,
+    // Your own offer, once the wisher has moved on or while they pick up another one.
+    offerEnding: isOwner ? await offerEnding(ctx, item) : null,
+    onHold: isOwner ? await offerOnHold(ctx, item) : false,
     circles,
     wish: wish
       ? {

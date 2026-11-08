@@ -27,14 +27,15 @@ export const PUSH_TYPES: ReadonlySet<EventType> = new Set<EventType>([
   "circle_activity",
   "picked_up", // informational; opens the chat, where the domi flower is offered
   "thanked",
+  "offer_declined", // only when the wisher wrote a note (writeEvent's `push: false` otherwise)
 ]);
 
 /** Chat messages within this long of the last push fold into one push. */
 export const MESSAGE_MERGE_MS = 2 * 60 * 1000;
 
-export async function writeEvent(ctx: MutationCtx, event: EventInput) {
+export async function writeEvent(ctx: MutationCtx, event: EventInput, { push = true }: { push?: boolean } = {}) {
   if (event.actorId !== undefined && event.actorId === event.recipientId) return; // never notify yourself
-  if (!PUSH_TYPES.has(event.type)) {
+  if (!push || !PUSH_TYPES.has(event.type)) {
     await ctx.db.insert("events", event);
     return;
   }

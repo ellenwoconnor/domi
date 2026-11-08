@@ -5,7 +5,7 @@ import type { FunctionReturnType } from "convex/server";
 import { useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -153,6 +153,9 @@ function YourWish({ wish }: { wish: Wish }) {
   const [chosen, setChosen] = useState<Offer | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [person, setPerson] = useState<Offer | null>(null);
+  // "No thanks": the note sheet for one offer, and the sheet for an offer under "Other offers".
+  const [declining, setDeclining] = useState<Offer | null>(null);
+  const [other, setOther] = useState<Offer | null>(null);
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
   const circles = wish.circles.map(circleLabel).join(", ");
@@ -193,7 +196,14 @@ function YourWish({ wish }: { wish: Wish }) {
                   If it falls through with {picked.owner.displayName}, you can pick another.
                 </Text>
                 {waiting.map((o) => (
-                  <Pressable key={o.id} onLongPress={() => setPerson(o)} accessibilityHint="Long press to report or block" style={styles.smallOffer}>
+                  <Pressable
+                    key={o.id}
+                    onPress={() => setOther(o)}
+                    onLongPress={() => setPerson(o)}
+                    accessibilityRole="button"
+                    accessibilityHint="Long press to report or block"
+                    style={styles.smallOffer}
+                  >
                     <PhotoTile uri={o.thumbUrls[0]} style={styles.smallPhoto} />
                     <View style={{ flex: 1 }}>
                       <Text style={type.objectLabel} numberOfLines={2}>
@@ -271,14 +281,36 @@ function YourWish({ wish }: { wish: Wish }) {
       {picked ? null : <BackButton top={insets.top + space.sm} tone="fog" />}
 
       {showBar && chosen ? (
-        <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
-          <Pressable onPress={() => setConfirming(true)} style={sheetStyles.give} accessibilityRole="button">
+        <View style={[styles.bar, styles.barRow, { paddingBottom: insets.bottom + space.md }]}>
+          <Pressable onPress={() => setDeclining(chosen)} style={styles.noThanks} accessibilityRole="button">
+            <Text style={styles.noThanksText}>No thanks</Text>
+          </Pressable>
+          <Pressable onPress={() => setConfirming(true)} style={[sheetStyles.give, { flex: 1 }]} accessibilityRole="button">
             <Text style={sheetStyles.giveText} numberOfLines={1}>
               {takeLabel(chosen)}
             </Text>
           </Pressable>
         </View>
       ) : null}
+
+      <NoThanksSheet
+        offer={declining}
+        onClose={() => setDeclining(null)}
+        onDone={() => {
+          setDeclining(null);
+          setChosen(null);
+        }}
+      />
+      <OtherOfferSheet
+        offer={other}
+        waitingFor={picked?.owner.displayName ?? null}
+        onClose={() => setOther(null)}
+        onNoThanks={() => {
+          const o = other;
+          setOther(null);
+          setDeclining(o);
+        }}
+      />
 
       <TakeSheet
         offer={confirming ? chosen : null}
@@ -398,6 +430,113 @@ function TakeSheet({ offer, others, onClose }: { offer: Offer | null; others: st
       </Pressable>
     </Sheet>
   );
+}
+
+/** "No thanks to Jun's sugar?": the offer comes off the wish, with an optional note for its giver. */
+function NoThanksSheet({ offer, onClose, onDone }: { offer: Offer | null; onClose: () => void; onDone: () => void }) {
+  const decline = useMutation(api.wishlist.declineOffer);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const name = offer?.owner.displayName ?? "";
+  // A fresh note each time the sheet opens.
+  useEffect(() => {
+    if (offer) setNote("");
+  }, [offer]);
+  const send = async () => {
+    if (!offer || busy) return;
+    setBusy(true);
+    try {
+      const text = note.trim();
+      await decline({ itemId: offer.id, ...(text ? { note: text } : {}) });
+      onDone();
+    } catch (e) {
+      Alert.alert("Couldn't send it", errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Sheet visible={!!offer} onClose={onClose}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+        <PhotoTile uri={offer?.thumbUrls[0]} style={{ width: 56, height: 66 }} />
+        <Text style={[type.title, { fontSize: 24, lineHeight: 30, flex: 1 }]}>
+          {offer ? `No thanks to ${name}'s ${offerThing(offer)}?` : ""}
+        </Text>
+      </View>
+      <Text style={[type.meta, { fontSize: 15, lineHeight: 21 }]}>The offer comes off your wish.</Text>
+      <View style={{ gap: space.xs }}>
+        <Text style={type.label} nativeID="noThanksNote">
+          Note for {name} <Text style={{ fontFamily: font.ui, color: color.inkSoft }}>(optional)</Text>
+        </Text>
+        <TextInput
+          value={note}
+          onChangeText={setNote}
+          multiline
+          maxLength={NOTE_MAX}
+          placeholder="Thanks so much for offering!"
+          placeholderTextColor={color.inkFaint}
+          accessibilityLabelledBy="noThanksNote"
+          style={styles.noteInput}
+        />
+        <Text style={[type.meta, { alignSelf: "flex-end", fontSize: 12.5 }]}>
+          {note.length}/{NOTE_MAX}
+        </Text>
+      </View>
+      <Pressable onPress={send} disabled={busy} style={[sheetStyles.primary, busy && { opacity: 0.6 }]} accessibilityRole="button">
+        <Text style={type.button}>{busy ? "Sending…" : "Send no thanks"}</Text>
+      </Pressable>
+      <Pressable onPress={onClose} style={sheetStyles.secondary} accessibilityRole="button">
+        <Text style={sheetStyles.secondaryText}>Cancel</Text>
+      </Pressable>
+    </Sheet>
+  );
+}
+
+/** An offer under "Other offers", while you're picking up another: keep it, or say no thanks. */
+function OtherOfferSheet({
+  offer,
+  waitingFor,
+  onClose,
+  onNoThanks,
+}: {
+  offer: Offer | null;
+  waitingFor: string | null;
+  onClose: () => void;
+  onNoThanks: () => void;
+}) {
+  const name = offer?.owner.displayName ?? "";
+  return (
+    <Sheet visible={!!offer} onClose={onClose}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
+        <PhotoTile uri={offer?.thumbUrls[0]} style={{ width: 72, height: 84 }} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={type.title} numberOfLines={2}>
+            {offer?.title ?? ""}
+          </Text>
+          <Text style={type.meta}>
+            From {name}
+            {offer ? ` · ${postedLabel(offer.createdAt)}` : ""}
+          </Text>
+        </View>
+      </View>
+      <Text style={[type.meta, { fontSize: 15, lineHeight: 21 }]}>
+        {waitingFor ? `It's waiting in case it falls through with ${waitingFor}. ` : ""}If you won't need it, let {name} know.
+      </Text>
+      <Pressable onPress={onNoThanks} style={sheetStyles.secondary} accessibilityRole="button">
+        <Text style={sheetStyles.secondaryText}>No thanks</Text>
+      </Pressable>
+      <Pressable onPress={onClose} style={styles.keepIt} accessibilityRole="button">
+        <Text style={styles.quiet}>Keep it for now</Text>
+      </Pressable>
+    </Sheet>
+  );
+}
+
+const NOTE_MAX = 140;
+
+/** "sugar" in "No thanks to Jun's sugar?": the offer's name when it's short, otherwise "offer". */
+function offerThing(o: Offer) {
+  return o.title.length <= 22 ? lowerFirst(o.title) : "offer";
 }
 
 function CantTakeIt({ offer }: { offer: Offer }) {
@@ -535,6 +674,25 @@ const styles = StyleSheet.create({
   smallOffer: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm },
   smallPhoto: { width: 56, height: 64, borderRadius: 12 },
   links: { flexDirection: "row", gap: space.xl, paddingBottom: space.lg },
+  barRow: { flexDirection: "row", alignItems: "center" },
+  // Borderless, like Cancel: "Take" stays the clear choice.
+  noThanks: { height: 54, paddingHorizontal: space.md, alignItems: "center", justifyContent: "center" },
+  noThanksText: { fontFamily: font.uiSemi, fontSize: 17, color: color.ink },
+  noteInput: {
+    minHeight: 88,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.control,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    fontFamily: font.ui,
+    fontSize: 16,
+    lineHeight: 22,
+    color: color.ink,
+    textAlignVertical: "top",
+  },
+  keepIt: { height: 44, alignItems: "center", justifyContent: "center" },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft },
   picked: { backgroundColor: color.blush, paddingHorizontal: space.lg, paddingBottom: space.xl, gap: space.lg },
   pickedPhotoWrap: { width: 150, height: 180, transform: [{ rotate: "3deg" }] },

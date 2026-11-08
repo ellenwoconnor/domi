@@ -42,6 +42,8 @@ My stuff has two sides, **Giving** and **Getting**. Each thing is one row: photo
 | Giving | available, people asked | "3 people asked. Choose one." | yes |
 | Giving | available, no requests | "No requests yet" | |
 | Giving | private offer, waiting | "Offered for Maya's wish. Waiting for them to choose." | |
+| Giving | private offer, wisher picked another | "Maya's set for now. Yours is ready if plans change." | |
+| Giving | offer declined or wish came true elsewhere (3 days) | "Maya: “<note>”" / "Maya's all set. Thanks for offering!", plus "Share with others" | ended |
 | Giving | pending, unread message | "New message from Maya" | yes |
 | Giving | pending | "Going to Maya" | |
 | Giving | expired | "Expired. Tap to post again." | |
@@ -118,6 +120,9 @@ Location: store only rounded coordinates (3 decimal places), never a street addr
 4. If the pick falls through (wisher withdraws, offerer un-picks), the offer goes back to 'available' and the wisher can pick again.
 5. When the picked offer is marked picked up, the wish becomes 'fulfilled' and the other offers are removed, with an event to each offerer.
 6. If the wisher removes the wish, open offers are removed and offerers are notified.
+7. **No thanks** (`wishlist.declineOffer`): the wisher can turn down an offer that's waiting ('available'), from the bottom bar next to Take, or from "Other offers" while another is picked. An optional note (140 characters, screened). The offer becomes 'removed' with `declinedAt` / `declineNote`; its offerer gets an `offer_declined` event ("Maya: “note”" or "Maya's all set. Thanks for offering!") that pushes only when there's a note, and can't offer on that wish again. A picked offer is withdrawn with "I can't take it" instead.
+8. Copy for offers that weren't taken stays gentle: being declined without a note and the wish coming true with another offer read the same ("Maya's all set"); never "not picked" or "declined".
+9. **Share with others**: an offer that ended this way (photos not yet purged) can be posted as an ordinary public listing from its row in My stuff or its screen (`app/listing/again/[id].tsx`, the listing editor prefilled). `items.create` with `fromOfferId` moves the photos: the old offer gets `sharedAgainAt` and `photosPurgedAt`, so the photo cleanup leaves the shared files alone, and files the new listing didn't keep are deleted. Once per offer.
 
 ### Leaving a circle (shared by leave, remove member, delete circle, zip change, account deletion)
 
@@ -308,3 +313,4 @@ Recipients aren't told about the one-ask limit up front; only the sharer is. The
 - 2026-11-06: Domi flower (thank-you poppy): one per handoff, sent by the person who got the item from pickup time on (before or after it's marked picked up), note optional, private to the two of them. "Picked up" now pushes to the recipient, informational only, so the flower is one tap away without being asked for. Domi's brand moves from the ring to the leaning poppy, and user-facing copy says "neighborhood" and "domi" instead of "circle" (`docs/brand-strategy.md`).
 - 2026-11-07: Logo style A (one-color petals with gaps). The neighborhood keeps its 📍 (no flower). Member counts say "members" and the invite button "Invite someone" (domis aren't only neighbors). Each domi page shows its all-time domi flower count, quietly.
 - 2026-11-08: A domi flower counts only in domis where the item was listed and both people are members (not every domi it was listed in).
+- 2026-11-08: Wish offers get "No thanks" with an optional note (push only with a note), no re-offer on that wish, gentle "all set" copy for every offer that wasn't taken, "set for now" while another offer is being picked up, and "Share with others" to post an ended offer publicly. Considered and rejected: quick-reply chips for the note (kept the sheet slim).

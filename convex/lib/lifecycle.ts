@@ -238,7 +238,7 @@ export async function closeWish(
       itemId: offer._id,
       wishlistItemId: wish._id,
       title: wish.title,
-      body: status === "fulfilled" ? `${wisher}'s wish was fulfilled. Thanks for offering!` : `${wisher} removed the wish.`,
+      body: status === "fulfilled" ? `${wisher}'s all set. Thank you for offering!` : `${wisher} removed the wish.`,
     });
   }
 }
