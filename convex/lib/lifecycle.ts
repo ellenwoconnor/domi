@@ -83,7 +83,7 @@ export async function endSelection(
         ? `${owner} said the pickup for the ${t} didn't happen, so it's available again.`
         : item.visibility === "private"
           ? `${owner} can't give you the ${t} anymore.`
-          : `${owner} un-picked you for the ${t}.`,
+          : `${owner} has cancelled this exchange.`, // the push title names the item
     });
   } else {
     const who = await displayName(ctx, request.requesterId);
@@ -181,7 +181,7 @@ export async function markGone(ctx: Ctx, item: Doc<"items">, now: number) {
       itemId: item._id,
       requestId: r._id,
       title: item.title,
-      body: `The ${item.title} has been picked up.`,
+      body: `The ${item.title} went to someone else this time.`,
     });
   }
   if (item.wishlistItemId) {
@@ -238,7 +238,7 @@ export async function closeWish(
       itemId: offer._id,
       wishlistItemId: wish._id,
       title: wish.title,
-      body: status === "fulfilled" ? `${wisher}'s all set. Thank you for offering!` : `${wisher} removed the wish.`,
+      body: status === "fulfilled" ? `${wisher}'s all set. Thank you for offering!` : `${wisher} doesn't need one anymore. Thanks for offering.`,
     });
   }
 }

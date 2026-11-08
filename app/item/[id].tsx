@@ -269,7 +269,7 @@ export default function ItemDetail() {
               <Text style={type.meta}>{owner} has picked someone. You can still ask and wait in line.</Text>
             ) : null}
             <Pressable onPress={() => setSheetOpen(true)} style={styles.primary}>
-              <Text style={type.button}>{pending ? "Get in line" : "Request"}</Text>
+              <Text style={type.button}>{pending ? "Get in line" : "Ask for it"}</Text>
             </Pressable>
           </>
         )}
@@ -322,7 +322,7 @@ export default function ItemDetail() {
               maxLength={NOTE_MAX}
               multiline
               autoFocus
-              placeholder="Due in March, and I can pick up any evening."
+              placeholder="Thank you for posting this! Due in March, and I can pick up any evening."
               placeholderTextColor={color.inkFaint}
               style={styles.noteInput}
             />

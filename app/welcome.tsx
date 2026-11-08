@@ -113,7 +113,7 @@ export default function Welcome() {
         <Card
           width={width}
           title="Share a wish"
-          body="Ask for things others post, or post a wish for someone to fulfill."
+          body="Ask for things others post, or post a wish for someone to fulfill. When something comes your way, send a domi flower to say thanks."
         >
           <WishPicture width={pictureW} height={pictureH} />
         </Card>

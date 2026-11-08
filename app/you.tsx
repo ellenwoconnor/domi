@@ -55,6 +55,7 @@ export default function You() {
         </View>
 
         <View style={styles.settings}>
+          <SettingsRow label="Thank-yous" onPress={() => router.push("/thanks")} />
           <SettingsRow
             label="How Domi works"
             onPress={() => router.push({ pathname: "/welcome", params: { replay: "1" } })}

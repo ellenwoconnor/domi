@@ -17,7 +17,7 @@ describe("requests and the item lifecycle (M4)", () => {
     expect(list).toMatchObject([{ note: "For my twins!", requester: { displayName: "Maya" }, status: "open" }]);
     await expect(maya.as.query(api.requests.forItem, { itemId })).rejects.toThrow("not found");
     const [event] = await eventsFor(t, ellen.userId);
-    expect(event.body).toBe('Maya requested your Crib: "For my twins!"');
+    expect(event.body).toBe('Maya asked for your Crib: "For my twins!"');
   });
 
   test("open requests are capped at 5", async () => {

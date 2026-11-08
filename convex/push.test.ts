@@ -44,7 +44,7 @@ describe("which events push (R1)", () => {
 
     const messages = await claim(t);
     expect(messages.filter((m) => m.to === ellenToken)).toHaveLength(2);
-    expect(messages[0]).toMatchObject({ body: "Maya requested your Crib", data: { open: "item", itemId } });
+    expect(messages[0]).toMatchObject({ body: "Maya asked for your Crib", data: { open: "item", itemId } });
 
     await ellen.as.mutation(api.items.selectRecipient, { requestId: mayaReq });
     // Maya has no device: logged as no_device. Sam's "pending elsewhere" doesn't push at all.

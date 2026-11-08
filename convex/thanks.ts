@@ -1,7 +1,8 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { internalMutation, mutation, type QueryCtx } from "./_generated/server";
-import { fail, isBlockedEitherWay, requireProfile } from "./lib/access";
+import { internalMutation, mutation, query, type QueryCtx } from "./_generated/server";
+import { blockedUserIds, displayName, fail, isBlockedEitherWay, requireProfile } from "./lib/access";
+import { firstThumbUrl } from "./lib/cards";
 import { writeEvent } from "./lib/events";
 import { selectedRequest } from "./lib/lifecycle";
 import { cleanText, LIMITS } from "./lib/validate";
@@ -51,6 +52,37 @@ export const send = mutation({
       title: `${profile.displayName} sent you a domi flower`,
       body: note ? `“${note}”` : `A thank-you for the ${item.title}.`,
     });
+  },
+});
+
+/**
+ * You › Thank-yous: the domi flowers you've been sent as a giver, newest first,
+ * each with its note. Private to you; no count is shown anywhere. People
+ * blocked either way are left out.
+ */
+export const received = query({
+  args: {},
+  handler: async (ctx) => {
+    const { userId } = await requireProfile(ctx);
+    const blocked = await blockedUserIds(ctx, userId);
+    const convs = await ctx.db
+      .query("conversations")
+      .withIndex("by_owner", (q) => q.eq("ownerId", userId))
+      .collect();
+    const out = [];
+    for (const c of convs) {
+      if (c.thankedAt === undefined || blocked.has(c.recipientId)) continue;
+      const item = await ctx.db.get(c.itemId);
+      out.push({
+        conversationId: c._id,
+        at: c.thankedAt,
+        note: c.thankNote ?? null,
+        from: await displayName(ctx, c.recipientId),
+        thing: item?.title ?? null,
+        photoUrl: item ? await firstThumbUrl(ctx, item) : null,
+      });
+    }
+    return out.sort((a, b) => b.at - a.at);
   },
 });
 

@@ -97,7 +97,7 @@ describe("wishes and offers", () => {
     const samOffer = await offer(t, sam, wishId, "Crib");
     await maya.as.mutation(api.wishlist.remove, { wishId });
     expect((await doc(t, samOffer))?.status).toBe("removed");
-    expect((await eventsFor(t, sam.userId)).at(-1)?.body).toBe("Maya removed the wish.");
+    expect((await eventsFor(t, sam.userId)).at(-1)?.body).toBe("Maya doesn't need one anymore. Thanks for offering.");
   });
 
   test("wishes outside your circles are invisible", async () => {

@@ -75,6 +75,7 @@ function AppStack() {
         <Stack.Screen name="fulfill/sent" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
         <Stack.Screen name="you" />
         <Stack.Screen name="blocked" />
+        <Stack.Screen name="thanks" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="circle/[id]" />
         <Stack.Screen name="circle/form" options={{ presentation: "modal" }} />

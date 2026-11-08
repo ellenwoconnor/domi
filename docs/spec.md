@@ -148,6 +148,7 @@ A thank-you from the person who got an item to the person who gave it: the poppy
 - **Sent:** the flower blooms open once and stays in the thread at the time it was sent ("Sent to Ellen", later "You sent Ellen a domi flower"). The owner gets a `thanked` push ("Maya sent you a domi flower" / the note) and sees the flower large in the thread; while the item is still pending it also offers "Maya has it? Mark it picked up". My stuff never repeats it in words: on both sides a sent flower is just a small icon beside the usual status line.
 
 Stored on the conversation (`conversations.thankedAt`, `thankNote`), so it's one per handoff even if the item is later picked for someone else. Rules: only the conversation's recipient, only while the item is pending or gone with that conversation's request still selected, only while the conversation is open, only once, not after a block. Hiding the strip or card lasts for that visit. Counted for the group, never a person: each domi page shows a quiet Blush line ("9 domi flowers shared here", all time, hidden at zero) from `communities.flowerCount`, which `thanks.send` adds 1 to in each domi where the item was listed (for an offer on a wish, where the wish was posted) **and both the giver and the person who got it are members**. A handoff with no such domi (e.g. through a share link) counts nowhere. Counts never go down (leaving, blocking, removal); `thanks:recountFlowers` recomputes them from scratch if the rule changes. No profile totals, no rankings, no comparisons between domis.
+- **You › Thank-yous** (`thanks.received`, `app/thanks.tsx`): the giver's own flowers, newest first, each with who sent it, for what, and the note; tapping one opens that chat. Private to the giver, never counted, and people blocked either way are left out.
 
 ### Account deletion (`profiles.deleteAccount`)
 
@@ -176,14 +177,14 @@ Every state change writes its events in the same mutation. Each event has its re
 
 | Transition | Trigger | Event to | Copy example |
 | --- | --- | --- | --- |
-| request created | requester taps Request | owner | "Maya requested your crib" |
+| request created | requester taps Ask for it | owner | "Maya asked for your crib" |
 | available → pending | owner picks recipient | recipient | "The crib is yours! Message Ellen to plan pickup." |
 | available → pending | owner picks recipient | other open requesters | "The crib is pending with someone else. You're still in line." |
-| pending → available | owner un-picks | former recipient | "Ellen un-picked you for the crib" |
+| pending → available | owner un-picks | former recipient | "Ellen has cancelled this exchange." (push title: the crib) |
 | pending → available | owner marks a no-show | former recipient | "Ellen said the pickup for the crib didn't happen, so it's available again." |
 | pending → available | recipient withdraws, or leaves/zip change withdraws them | owner | "Maya can't take the crib anymore" |
 | pending → gone | owner taps Mark picked up | recipient (pushes, opens the chat) | "Enjoy the crib!" / "Ellen marked it picked up." |
-| pending → gone | owner taps Mark picked up | open requesters | "The crib has been picked up" |
+| pending → gone | owner taps Mark picked up | open requesters | "The crib went to someone else this time." |
 | any → removed | owner removes, or a circle change leaves it with no circles | open and selected requesters | "The crib is no longer available" |
 | available → expired | 30 days, cron | owner | "Your crib listing expired. Repost?" |
 | available → expired | 30 days, cron | open requesters | "The crib listing expired" |
@@ -191,7 +192,7 @@ Every state change writes its events in the same mutation. Each event has its re
 | offer created | someone offers an item for a wish | wisher | "Sam offered a stroller for your wish" |
 | offer picked | wisher picks an offer | offerer | "Maya chose your stroller! Message Maya to arrange pickup." |
 | offer un-picked | wisher withdraws | offerer | "Maya can't take the stroller anymore" |
-| wish fulfilled elsewhere / wish removed | another offer picked up, or wish removed | other offerers | "Maya's wish was fulfilled" / "Maya removed the wish" |
+| wish fulfilled elsewhere / wish removed | another offer picked up, or wish removed | other offerers | "Maya's wish was fulfilled" / "Maya doesn't need one anymore. Thanks for offering." |
 | joined via invite | invite redeemed | inviter | "Sam joined 🍼 Baby Shower" |
 | domi flower | recipient sends a thank-you (pending or picked up) | owner | "Maya sent you a domi flower" / the note, or "A thank-you for the crib." |
 
@@ -314,3 +315,4 @@ Recipients aren't told about the one-ask limit up front; only the sharer is. The
 - 2026-11-07: Logo style A (one-color petals with gaps). The neighborhood keeps its 📍 (no flower). Member counts say "members" and the invite button "Invite someone" (domis aren't only neighbors). Each domi page shows its all-time domi flower count, quietly.
 - 2026-11-08: A domi flower counts only in domis where the item was listed and both people are members (not every domi it was listed in).
 - 2026-11-08: Wish offers get "No thanks" with an optional note (push only with a note), no re-offer on that wish, gentle "all set" copy for every offer that wasn't taken, "set for now" while another offer is being picked up, and "Share with others" to post an ended offer publicly. Considered and rejected: quick-reply chips for the note (kept the sheet slim).
+- 2026-11-08 (gratitude audit): You › Thank-yous keeps the flowers a giver received in one place (no count). The request note's placeholder starts with a thank-you; the intro's wish card mentions the domi flower. Copy: "Ask for it" / "Maya asked for your crib"; un-pick says "Ellen has cancelled this exchange."; requesters not picked hear "The crib went to someone else this time."; offerers on a removed wish hear "Maya doesn't need one anymore. Thanks for offering." Considered and left out: a "thanks anyway" from requesters who weren't picked, and a note when backing out (the chat covers it).

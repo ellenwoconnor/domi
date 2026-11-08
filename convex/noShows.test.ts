@@ -47,7 +47,7 @@ describe("missed pickups", () => {
     await ellen.as.mutation(api.items.selectRecipient, { requestId: r });
     await ellen.as.mutation(api.items.unpick, { itemId });
     expect(await t.run((ctx) => ctx.db.query("noShows").collect())).toHaveLength(0);
-    expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe("Ellen un-picked you for the Crib.");
+    expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe("Ellen has cancelled this exchange.");
   });
 
   test("only the owner can mark a no-show", async () => {

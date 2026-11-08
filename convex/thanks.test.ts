@@ -153,4 +153,17 @@ describe("domi flower", () => {
     expect((await ellen.as.query(api.communities.get, { communityId: shower })).flowerCount).toBe(0);
     expect((await ellen.as.query(api.communities.get, { communityId: ellen.zipCircle })).flowerCount).toBe(1);
   });
+
+  test("the giver sees their thank-yous under You; nobody else does; blocking hides them", async () => {
+    const { ellen, maya, conversationId } = await handoff({ pickedUp: true });
+    expect(await ellen.as.query(api.thanks.received, {})).toEqual([]);
+    await maya.as.mutation(api.thanks.send, { conversationId, note: "Thank you!" });
+    const mine = await ellen.as.query(api.thanks.received, {});
+    expect(mine).toHaveLength(1);
+    expect(mine[0]).toMatchObject({ conversationId, from: "Maya", note: "Thank you!", thing: "Crib" });
+    // The person who sent it doesn't see it as received.
+    expect(await maya.as.query(api.thanks.received, {})).toEqual([]);
+    await ellen.as.mutation(api.safety.block, { userId: maya.userId });
+    expect(await ellen.as.query(api.thanks.received, {})).toEqual([]);
+  });
 });

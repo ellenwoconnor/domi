@@ -68,7 +68,7 @@ export const create = mutation({
       itemId: item._id,
       requestId,
       title: item.title,
-      body: note ? `${who} requested your ${item.title}: "${note}"` : `${who} requested your ${item.title}`,
+      body: note ? `${who} asked for your ${item.title}: "${note}"` : `${who} asked for your ${item.title}`,
     });
     return requestId;
   },

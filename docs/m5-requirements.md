@@ -24,11 +24,11 @@ Every state change already writes its `events` row (`convex/lib/events.ts`, 16 t
 
 | Event type | Who | Push copy (from the event) | Tap opens |
 | --- | --- | --- | --- |
-| `request_created` | owner | "Maya requested your crib" | the listing |
+| `request_created` | owner | "Maya asked for your crib" | the listing |
 | `recipient_withdrew` | owner | "Maya can't take the crib anymore" | the listing |
 | `item_expired` | owner | "Your crib listing expired. Repost?" | the listing |
 | `picked` | recipient | "The crib is yours! Message Ellen to plan pickup." | the chat |
-| `unpicked` | former recipient | "Ellen un-picked you for the crib" | the listing |
+| `unpicked` | former recipient | "Ellen has cancelled this exchange." (push title: the crib) | the listing |
 | `new_message` | other participant | the message text (merged, R2) | the chat |
 | `wish_offer` | wisher | "Sam offered a stroller for your wish" | the wish |
 | `offer_picked` | offerer | "Maya chose your stroller! Message Maya…" | the chat |
