@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import { internalMutation, mutation, type QueryCtx } from "./_generated/server";
 import { fail, isBlockedEitherWay, requireProfile } from "./lib/access";
 import { writeEvent } from "./lib/events";
 import { selectedRequest } from "./lib/lifecycle";
@@ -35,20 +36,8 @@ export const send = mutation({
       thankedAt: Date.now(),
       ...(note ? { thankNote: note } : {}),
     });
-    // Count it for every domi the item was shared in. An offer on a wish isn't
-    // posted anywhere, so it counts for the wish's domis.
-    const links = await ctx.db
-      .query("itemCommunities")
-      .withIndex("by_item", (q) => q.eq("itemId", item._id))
-      .collect();
-    const wishLinks =
-      links.length === 0 && item.wishlistItemId
-        ? await ctx.db
-            .query("wishlistCommunities")
-            .withIndex("by_wish", (q) => q.eq("wishlistItemId", item.wishlistItemId!))
-            .collect()
-        : [];
-    for (const { communityId } of [...links, ...wishLinks]) {
+    // Count it once in each domi where the item was listed and both people are members.
+    for (const communityId of await flowerDomis(ctx, item, c.ownerId, c.recipientId)) {
       const community = await ctx.db.get(communityId);
       if (community) await ctx.db.patch(communityId, { flowerCount: (community.flowerCount ?? 0) + 1 });
     }
@@ -62,5 +51,69 @@ export const send = mutation({
       title: `${profile.displayName} sent you a domi flower`,
       body: note ? `“${note}”` : `A thank-you for the ${item.title}.`,
     });
+  },
+});
+
+/**
+ * The domis a domi flower counts for: where the item was listed (an offer on a
+ * wish isn't listed anywhere, so the wish's domis) and both the giver and the
+ * person who got it are members. Can be none, e.g. a handoff through a share link.
+ */
+async function flowerDomis(
+  ctx: QueryCtx,
+  item: Doc<"items">,
+  ownerId: Id<"users">,
+  recipientId: Id<"users">,
+): Promise<Id<"communities">[]> {
+  let listed = (
+    await ctx.db
+      .query("itemCommunities")
+      .withIndex("by_item", (q) => q.eq("itemId", item._id))
+      .collect()
+  ).map((l) => l.communityId);
+  if (listed.length === 0 && item.wishlistItemId) {
+    listed = (
+      await ctx.db
+        .query("wishlistCommunities")
+        .withIndex("by_wish", (q) => q.eq("wishlistItemId", item.wishlistItemId!))
+        .collect()
+    ).map((l) => l.communityId);
+  }
+  const both: Id<"communities">[] = [];
+  for (const communityId of new Set(listed)) {
+    const isMember = async (userId: Id<"users">) =>
+      (await ctx.db
+        .query("memberships")
+        .withIndex("by_community_user", (q) => q.eq("communityId", communityId).eq("userId", userId))
+        .first()) !== null;
+    if ((await isMember(ownerId)) && (await isMember(recipientId))) both.push(communityId);
+  }
+  return both;
+}
+
+/**
+ * Recounts every domi's flowerCount from the flowers sent so far, under the
+ * rule above (with today's memberships). One-off, after changing the rule:
+ *   npx convex run --prod thanks:recountFlowers
+ */
+export const recountFlowers = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const counts = new Map<Id<"communities">, number>();
+    for (const c of await ctx.db.query("conversations").collect()) {
+      if (c.thankedAt === undefined) continue;
+      const item = await ctx.db.get(c.itemId);
+      if (!item) continue;
+      for (const id of await flowerDomis(ctx, item, c.ownerId, c.recipientId)) counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    let changed = 0;
+    for (const community of await ctx.db.query("communities").collect()) {
+      const n = counts.get(community._id) ?? 0;
+      if ((community.flowerCount ?? 0) !== n) {
+        await ctx.db.patch(community._id, { flowerCount: n });
+        changed++;
+      }
+    }
+    return { flowers: [...counts.values()].reduce((a, b) => a + b, 0), domisChanged: changed };
   },
 });

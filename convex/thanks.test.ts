@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { circle, doc, eventsFor, invite, newUser, post, setup } from "./lib/testing.helpers";
 
 async function handoff({ pickedUp = false } = {}) {
@@ -110,7 +110,7 @@ describe("domi flower", () => {
     await ellen.as.mutation(api.safety.block, { userId: maya.userId });
     await expect(maya.as.mutation(api.thanks.send, { conversationId })).rejects.toThrow("not found");
   });
-  test("counted for every domi the item was shared in, never for a person", async () => {
+  test("counted in each domi where it was listed and both people are members", async () => {
     const t = await setup();
     const ellen = await newUser(t, "Ellen");
     const maya = await newUser(t, "Maya");
@@ -124,5 +124,33 @@ describe("domi flower", () => {
     for (const communityId of [ellen.zipCircle, shower]) {
       expect((await maya.as.query(api.communities.get, { communityId })).flowerCount).toBe(1);
     }
+  });
+
+  test("not counted in a listed domi the person who got it isn't in", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const maya = await newUser(t, "Maya");
+    const shower = await circle(ellen); // Maya isn't in it
+    const itemId = await post(t, ellen, [ellen.zipCircle, shower]);
+    const requestId = await maya.as.mutation(api.requests.create, { itemId });
+    const conversationId = await ellen.as.mutation(api.items.selectRecipient, { requestId });
+    await maya.as.mutation(api.thanks.send, { conversationId });
+    expect((await ellen.as.query(api.communities.get, { communityId: ellen.zipCircle })).flowerCount).toBe(1);
+    expect((await ellen.as.query(api.communities.get, { communityId: shower })).flowerCount).toBe(0);
+  });
+
+  test("recountFlowers brings old totals in line with the rule", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const maya = await newUser(t, "Maya");
+    const shower = await circle(ellen);
+    const itemId = await post(t, ellen, [ellen.zipCircle, shower]);
+    const requestId = await maya.as.mutation(api.requests.create, { itemId });
+    const conversationId = await ellen.as.mutation(api.items.selectRecipient, { requestId });
+    await maya.as.mutation(api.thanks.send, { conversationId });
+    await t.run((ctx) => ctx.db.patch(shower, { flowerCount: 5 })); // counted under the old rule
+    expect(await t.mutation(internal.thanks.recountFlowers, {})).toEqual({ flowers: 1, domisChanged: 1 });
+    expect((await ellen.as.query(api.communities.get, { communityId: shower })).flowerCount).toBe(0);
+    expect((await ellen.as.query(api.communities.get, { communityId: ellen.zipCircle })).flowerCount).toBe(1);
   });
 });
