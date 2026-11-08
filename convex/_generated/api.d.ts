@@ -41,6 +41,7 @@ import type * as moderation from "../moderation.js";
 import type * as mystuff from "../mystuff.js";
 import type * as profiles from "../profiles.js";
 import type * as push from "../push.js";
+import type * as pushTest from "../pushTest.js";
 import type * as requests from "../requests.js";
 import type * as safety from "../safety.js";
 import type * as shares from "../shares.js";
@@ -88,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   mystuff: typeof mystuff;
   profiles: typeof profiles;
   push: typeof push;
+  pushTest: typeof pushTest;
   requests: typeof requests;
   safety: typeof safety;
   shares: typeof shares;
