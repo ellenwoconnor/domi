@@ -121,7 +121,8 @@ export const registerPushToken = mutation({
   handler: async (ctx, args) => {
     const { userId, profile } = await requireProfile(ctx);
     if (args.token.length > 200) fail("That isn't a push token");
-    await ctx.db.patch(profile._id, { pushAskedAt: Date.now(), ...clockPatch(args) });
+    // Registering isn't asking: pushAskedAt is only for "Not now" (declinePushAsk), so a fresh install still gets asked.
+    await ctx.db.patch(profile._id, clockPatch(args));
     const existing = await ctx.db
       .query("pushTokens")
       .withIndex("by_token", (q) => q.eq("token", args.token))

@@ -6,7 +6,7 @@ import { AppState } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { AuthState } from "../auth/useAuthState";
-import { clock, configurePush, pushPermission, registerDevice } from "./push";
+import { clock, configurePush, forgetDevice, pushPermission, registerDevice } from "./push";
 
 const TOUCH_EVERY_MS = 5 * 60 * 1000;
 
@@ -40,6 +40,7 @@ function openFromPush(d: PushData) {
 export function usePushSetup(state: AuthState) {
   const onboarded = state === "onboarded";
   const register = useMutation(api.activity.registerPushToken);
+  const unregister = useMutation(api.activity.unregisterPushToken);
   const touch = useMutation(api.activity.touch);
   const markOpened = useMutation(api.activity.markOpened);
   const lastTouch = useRef(0);
@@ -50,12 +51,23 @@ export function usePushSetup(state: AuthState) {
     configurePush();
   }, []);
 
+  // On launch and whenever the app comes back: keep the server in step with this
+  // phone's notification setting (it may have been changed in Settings).
   useEffect(() => {
     if (!onboarded) return;
-    pushPermission()
-      .then((p) => (p === "granted" ? registerDevice(register) : false))
-      .catch(() => {});
-  }, [onboarded, register]);
+    const sync = () =>
+      pushPermission()
+        .then(async (p) => {
+          if (p === "granted") await registerDevice(register);
+          else await forgetDevice(unregister);
+        })
+        .catch(() => {});
+    sync();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") sync();
+    });
+    return () => sub.remove();
+  }, [onboarded, register, unregister]);
 
   useEffect(() => {
     if (!onboarded) return;

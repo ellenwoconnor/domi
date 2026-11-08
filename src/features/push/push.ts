@@ -66,6 +66,18 @@ type Register = (args: {
   utcOffsetMinutes?: number;
 }) => Promise<unknown>;
 
+/**
+ * Notifications turned off on this phone (in Settings, or a fresh install that
+ * hasn't said yes yet): tell the server to stop sending to its old token, so
+ * pushes show as "no_device" instead of going nowhere.
+ */
+export async function forgetDevice(unregister: (args: { token: string }) => Promise<unknown>): Promise<void> {
+  const token = await SecureStore.getItemAsync(TOKEN_KEY).catch(() => null);
+  if (!token) return;
+  await unregister({ token });
+  await SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {});
+}
+
 /** Gets this device's Expo push token and saves it on the server. Needs permission. */
 export async function registerDevice(register: Register): Promise<boolean> {
   if (Platform.OS !== "ios" && Platform.OS !== "android") return false;

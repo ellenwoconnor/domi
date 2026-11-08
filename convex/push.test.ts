@@ -278,3 +278,16 @@ describe("circle activity pushes (R3)", () => {
     expect(push).toMatchObject({ title: "🍼 Baby Shower", body: "Ellen wishes for: High chair. Have one?" });
   });
 });
+
+describe("asking for notifications", () => {
+  test("registering a phone isn't an ask, so a fresh install still gets asked; only Not now counts", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    await ellen.as.mutation(api.activity.registerPushToken, { token: "ExponentPushToken[ask]", platform: "ios" });
+    expect((await ellen.as.query(api.profiles.me, {}))?.profile).toMatchObject({ pushAskCount: 0, pushAskedAt: null });
+    await ellen.as.mutation(api.activity.declinePushAsk, {});
+    const me = (await ellen.as.query(api.profiles.me, {}))?.profile;
+    expect(me?.pushAskCount).toBe(1);
+    expect(me?.pushAskedAt).not.toBeNull();
+  });
+});

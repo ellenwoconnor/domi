@@ -14,7 +14,7 @@ const MAX_NOT_NOWS = 3;
 /**
  * Opens our own "turn on notifications?" screen (app/notify.tsx) when it's a
  * good moment: not yet allowed, not blocked in Settings, fewer than 3 "Not
- * now"s, and no ask in the last week. The You row ("settings") always asks.
+ * now"s, and no "Not now" in the last week. The You row ("settings") always asks.
  * Resolves true when the screen was opened. With `replace`, the screen
  * replaces the current one and then goes to `next`.
  */
@@ -37,7 +37,8 @@ export function useAskForPush() {
       if (permission === "blocked" || !me) return false;
       if (reason !== "settings") {
         if (me.pushAskCount >= MAX_NOT_NOWS) return false;
-        if (me.pushAskedAt !== null && Date.now() - me.pushAskedAt < WEEK_MS) return false;
+        // Older accounts had pushAskedAt set by registering a phone; only a real "Not now" counts.
+        if (me.pushAskCount > 0 && me.pushAskedAt !== null && Date.now() - me.pushAskedAt < WEEK_MS) return false;
       }
       const href = {
         pathname: "/notify" as const,
