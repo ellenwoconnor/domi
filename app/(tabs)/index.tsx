@@ -232,7 +232,8 @@ const styles = StyleSheet.create({
     height: 46,
     marginBottom: -space.sm,
   },
-  searchInput: { flex: 1, fontFamily: font.ui, fontSize: 16, color: color.ink },
+  // Fill the row: left to size itself, iOS made it too short for Figtree and cut the text in half.
+  searchInput: { flex: 1, height: "100%", paddingVertical: 0, fontFamily: font.ui, fontSize: 16, color: color.ink },
   columns: { gap: space.lg },
   cell: { flex: 1, paddingBottom: space.xl },
   empty: {
