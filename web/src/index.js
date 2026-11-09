@@ -135,6 +135,15 @@ const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
  * (TestFlight, Domi through the TestFlight public link in TESTFLIGHT_URL, then
  * back to this link). `join` is the last button's label for invite/share pages.
  */
+// The domi:// button does nothing (or Safari says the address is invalid)
+// when Domi isn't installed yet. If the page is still in front 1.5 s after the
+// tap, show the hint; leaving the page (the app opened) or Safari's "Open in
+// Domi?" prompt taking focus cancels it. Inline, since the page has no script file.
+const OPEN_APP_JS =
+  "var h=document.getElementById('no-app'),t=setTimeout(function(){if(!document.hidden)h.hidden=false},1500)," +
+  "c=function(){clearTimeout(t)};window.addEventListener('pagehide',c,{once:true});" +
+  "window.addEventListener('blur',c,{once:true});document.addEventListener('visibilitychange',c,{once:true})";
+
 export function installSteps(env, { openUrl, code, join, askWho = "the person who invited you" } = {}) {
   const link = env?.TESTFLIGHT_URL;
   const getDomi = link
@@ -143,7 +152,8 @@ export function installSteps(env, { openUrl, code, join, askWho = "the person wh
     : `<p><b>Get Domi.</b> Ask ${esc(askWho)} to send you the Domi test link.</p>`;
   const last = code
     ? `<li><p><b>Come back to this page</b> and tap the button.</p>
-        <a class="button" href="${esc(openUrl)}">${esc(join)}</a>
+        <a class="button" onclick="${OPEN_APP_JS}" href="${esc(openUrl)}">${esc(join)}</a>
+        <p class="hint" id="no-app" role="status" hidden>Nothing happened? You may not have Domi yet. Do steps 1 and 2 first, then come back and tap again.</p>
         <p class="meta">Or type this code in Domi: <b class="code-inline">${esc(fmt(code))}</b>
           <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button></p></li>`
     : `<li><p><b>Open Domi</b> and sign in with Apple or Google.</p></li>`;
@@ -297,6 +307,7 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .steps li p{margin:0;font-size:17px}.steps li p.meta{font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .steps li:before{content:counter(step);position:absolute;left:0;top:-2px;width:32px;height:32px;border-radius:50%;background:var(--bay);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px}
 .button.secondary{background:var(--fog);color:var(--bay)}
+.hint{margin:0;font-size:15px;color:var(--soft);background:var(--fog);border-radius:14px;padding:12px 14px}.hint[hidden]{display:none}
 .code-inline{font-weight:800;color:var(--bay);letter-spacing:1px}
 .copy{border:0;background:var(--fog);color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
 </style></head>

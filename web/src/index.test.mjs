@@ -189,6 +189,15 @@ test("invite and listing pages show the steps, ask the inviter or owner for the 
   assert.match(listing, /href="domi:\/\/i\/AAAABBBB">See it in Domi/);
 });
 
+test("the open-in-Domi button has a hidden hint for when Domi isn't installed", async () => {
+  mockConvex({
+    "invites:preview": ({ code }) => ({ code, name: "Baby Shower", emoji: "🍼", description: null, memberCount: 3, invitedBy: "Sam" }),
+  });
+  const invite = await (await get("/c/7K2MQX9P")).text();
+  assert.match(invite, /<a class="button" onclick="[^"]*no-app[^"]*" href="domi:/);
+  assert.match(invite, /<p class="hint" id="no-app" role="status" hidden>Nothing happened\? You may not have Domi yet/);
+});
+
 test("report alert: needs the shared secret, then emails the subject and text", async () => {
   const { reportAlert } = await import("./alerts.js");
   const sent = [];
