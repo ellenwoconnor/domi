@@ -263,9 +263,6 @@ export function ListingEditor({
             </View>
           </View>
           )}
-          <Text style={[type.meta, { marginTop: -space.sm }]}>
-            From you. People see roughly how far away you are, never your address.
-          </Text>
         </View>
       </ScrollView>
 
