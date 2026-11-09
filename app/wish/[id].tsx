@@ -287,7 +287,7 @@ function YourWish({ wish }: { wish: Wish }) {
           </Pressable>
           <Pressable onPress={() => setConfirming(true)} style={[sheetStyles.give, { flex: 1 }]} accessibilityRole="button">
             <Text style={sheetStyles.giveText} numberOfLines={1}>
-              {takeLabel(chosen)}
+              Take it
             </Text>
           </Pressable>
         </View>
@@ -348,7 +348,7 @@ function YourWish({ wish }: { wish: Wish }) {
   );
 }
 
-/** "Take Jun's helmet": the offer's name when it's short, otherwise "offer". */
+/** "Take Jun's helmet": the confirm sheet's title (buttons just say "Take it"). The offer's name when it's short, otherwise "offer". */
 function takeLabel(o: Offer) {
   const thing = o.title.length <= 22 ? lowerFirst(o.title) : "offer";
   return `Take ${o.owner.displayName}'s ${thing}`;
@@ -422,7 +422,7 @@ function TakeSheet({ offer, others, onClose }: { offer: Offer | null; others: st
       <Text style={type.body}>A private chat opens with {name} to plan pickup.{wait}</Text>
       <Pressable onPress={take} disabled={busy} style={[sheetStyles.give, busy && { opacity: 0.6 }]} accessibilityRole="button">
         <Text style={sheetStyles.giveText} numberOfLines={1}>
-          {busy ? "Taking it…" : offer ? takeLabel(offer) : ""}
+          {busy ? "Taking it…" : "Take it"}
         </Text>
       </Pressable>
       <Pressable onPress={onClose} style={sheetStyles.secondary} accessibilityRole="button">
