@@ -17,7 +17,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MAX_PHOTOS, pickPhotos, takePhoto } from "../give/photos";
-import { Avatar } from "../../ui/Avatar";
 import { PhotoTile } from "../../ui/PhotoTile";
 import { color, font, radius, space, type } from "../../ui/theme";
 import { CirclePickerSheet } from "./CirclePickerSheet";
@@ -41,14 +40,15 @@ export type SendTo = { name: string };
 
 /**
  * Write the placard: the listing edited in place, looking the way neighbors
- * will see it (big photo, italic title, who it's from, the circles).
+ * will see it (photo, italic title, the circles), with a small label on each
+ * field so it's clear what's left to fill in. Opens with the keyboard down so
+ * every field shows; while typing, the Post bar gives way to a Next/Done row.
  * Used for a new listing, for editing one, and for an offer on a wish
  * (`sendTo`: "Goes to Sam" replaces the circles, and the button is Poppy).
  */
 export function ListingEditor({
   initial,
   circles,
-  ownerName,
   submitLabel,
   busyLabel,
   onClose,
@@ -58,7 +58,6 @@ export function ListingEditor({
   sendTo?: SendTo;
   initial: ListingValues;
   circles: CircleView[];
-  ownerName: string;
   submitLabel: string;
   busyLabel: string;
   onClose: (dirty: boolean) => void;
@@ -73,7 +72,11 @@ export function ListingEditor({
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [focused, setFocused] = useState<"title" | "description" | null>(null);
+  // What's missing, shown only after a tap on Post that couldn't go through.
+  const [nudged, setNudged] = useState(false);
   const keyboard = useKeyboardHeight();
+  const titleRef = useRef<TextInput>(null);
   const descriptionRef = useRef<TextInput>(null);
 
   const dirty =
@@ -110,7 +113,14 @@ export function ListingEditor({
   };
 
   const submit = async () => {
-    if (missing || busy) return;
+    if (busy) return;
+    if (missing) {
+      setNudged(true);
+      if (missing === "Name it") titleRef.current?.focus();
+      else if (missing === "Pick who sees it") setPicking(true);
+      else if (missing === "Add a photo") addPhotos();
+      return;
+    }
     setBusy(true);
     try {
       await onSubmit({ photos, title: title.trim(), description: description.trim(), circleIds });
@@ -130,7 +140,7 @@ export function ListingEditor({
           {photos.length > 0 ? (
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll}>
               {photos.map((p) => (
-                <PhotoTile key={p.uri} uri={p.uri} rounded={false} style={{ width, height: 330 }} />
+                <PhotoTile key={p.uri} uri={p.uri} rounded={false} style={{ width, height: 250 }} />
               ))}
             </ScrollView>
           ) : (
@@ -179,39 +189,43 @@ export function ListingEditor({
         </View>
 
         <View style={styles.body}>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Name it"
-            placeholderTextColor={color.inkFaint}
-            maxLength={TITLE_MAX}
-            autoFocus={initial.title === ""}
-            returnKeyType="next"
-            submitBehavior="submit"
-            onSubmitEditing={() => descriptionRef.current?.focus()}
-            accessibilityLabel="Title"
-            style={styles.title}
-          />
-
-          <View style={styles.owner}>
-            <Avatar name={ownerName} size={42} />
-            <View style={{ flex: 1 }}>
-              <Text style={type.label}>From you</Text>
-              <Text style={type.meta}>People see roughly how far away you are, never your address.</Text>
-            </View>
+          <View style={styles.field}>
+            <Text style={[type.label, focused === "title" && styles.labelOn]}>What is it?</Text>
+            <TextInput
+              ref={titleRef}
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Kids' bike helmet"
+              placeholderTextColor={color.inkFaint}
+              maxLength={TITLE_MAX}
+              onFocus={() => setFocused("title")}
+              onBlur={() => setFocused(null)}
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => descriptionRef.current?.focus()}
+              accessibilityLabel="What is it?"
+              style={[styles.title, focused === "title" && styles.inputOn]}
+            />
           </View>
 
-          <TextInput
-            ref={descriptionRef}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Condition, size, anything someone should know. (Optional)"
-            placeholderTextColor={color.inkFaint}
-            maxLength={DESCRIPTION_MAX}
-            multiline
-            accessibilityLabel="Description"
-            style={styles.description}
-          />
+          <View style={styles.field}>
+            <Text style={[type.label, focused === "description" && styles.labelOn]}>
+              Details <Text style={styles.optional}>(optional)</Text>
+            </Text>
+            <TextInput
+              ref={descriptionRef}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Condition, size, anything someone should know"
+              placeholderTextColor={color.inkFaint}
+              maxLength={DESCRIPTION_MAX}
+              multiline
+              onFocus={() => setFocused("description")}
+              onBlur={() => setFocused(null)}
+              accessibilityLabel="Details (optional)"
+              style={[styles.description, focused === "description" && styles.inputOn]}
+            />
+          </View>
 
           {sendTo ? (
             <View style={[styles.owner, styles.sendTo]}>
@@ -225,7 +239,7 @@ export function ListingEditor({
             </View>
           ) : (
           <View style={{ gap: space.sm }}>
-            <Text style={type.label}>Shared with</Text>
+            <Text style={type.label}>Who sees it</Text>
             <View style={styles.circleRow}>
               {chosen.map((c) => (
                 <View key={c.id} style={styles.circleChip}>
@@ -243,30 +257,54 @@ export function ListingEditor({
             </View>
           </View>
           )}
+          <Text style={[type.meta, { marginTop: -space.sm }]}>
+            From you. People see roughly how far away you are, never your address.
+          </Text>
         </View>
       </ScrollView>
 
-      {/* The bar rides on top of the keyboard so Post stays reachable while typing. */}
-      <View style={[styles.bar, keyboard > 0 ? { bottom: keyboard, paddingBottom: space.md } : { paddingBottom: insets.bottom + space.md }]}>
-        <Text style={[type.meta, { textAlign: "center" }]}>
-          {missing ?? (sendTo ? `This is how ${sendTo.name} will see it.` : "This is how others will see it.")}
-        </Text>
-        <Pressable
-          onPress={submit}
-          disabled={!!missing || busy}
-          accessibilityRole="button"
-          style={[styles.primary, sendTo && styles.poppy, (!!missing || busy) && { opacity: 0.5 }]}
-        >
-          {busy ? (
-            <View style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}>
-              <ActivityIndicator color={sendTo ? color.ink : color.white} />
-              <Text style={[type.button, sendTo && styles.poppyText]}>{busyLabel}</Text>
-            </View>
-          ) : (
-            <Text style={[type.button, sendTo && styles.poppyText]}>{submitLabel}</Text>
-          )}
-        </Pressable>
-      </View>
+      {keyboard > 0 ? (
+        // While typing: what's next instead of Post, riding on the keyboard.
+        <View style={[styles.next, { bottom: keyboard }]}>
+          <Text style={[type.meta, { flex: 1 }]} numberOfLines={1}>
+            {focused === "title"
+              ? sendTo
+                ? "Next: details"
+                : "Next: details, then who sees it"
+              : sendTo
+                ? "Details are optional"
+                : "Details are optional. Then who sees it."}
+          </Text>
+          <Pressable
+            onPress={() => (focused === "title" ? descriptionRef.current?.focus() : Keyboard.dismiss())}
+            accessibilityRole="button"
+            hitSlop={6}
+            style={styles.nextButton}
+          >
+            <Text style={styles.nextText}>{focused === "title" ? "Next" : "Done"}</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+          {nudged && missing ? <Text style={[type.meta, { textAlign: "center" }]}>{missing}</Text> : null}
+          <Pressable
+            onPress={submit}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !!missing || busy }}
+            style={[styles.primary, sendTo && styles.poppy, (!!missing || busy) && { opacity: 0.5 }]}
+          >
+            {busy ? (
+              <View style={{ flexDirection: "row", gap: space.sm, alignItems: "center" }}>
+                <ActivityIndicator color={sendTo ? color.ink : color.white} />
+                <Text style={[type.button, sendTo && styles.poppyText]}>{busyLabel}</Text>
+              </View>
+            ) : (
+              <Text style={[type.button, sendTo && styles.poppyText]}>{submitLabel}</Text>
+            )}
+          </Pressable>
+        </View>
+      )}
 
       <CirclePickerSheet
         visible={picking}
@@ -299,7 +337,7 @@ function useKeyboardHeight() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  photoArea: { height: 330, backgroundColor: color.fog },
+  photoArea: { height: 250, backgroundColor: color.fog },
   noPhoto: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.sm },
   round: {
     position: "absolute",
@@ -346,11 +384,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   photoButtonText: { fontFamily: font.uiSemi, fontSize: 14, color: color.bay },
-  body: { paddingHorizontal: space.lg, paddingTop: space.xl, gap: space.lg },
+  body: { paddingHorizontal: space.lg, paddingTop: space.lg, gap: space.lg },
+  field: { gap: 6 },
+  labelOn: { color: color.bay },
+  optional: { fontFamily: font.ui, color: color.inkSoft },
+  inputOn: { borderBottomColor: color.bay },
   title: {
     fontFamily: font.curator,
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 30,
+    lineHeight: 36,
     color: color.ink,
     paddingBottom: 6,
     borderBottomWidth: 1.5,
@@ -401,6 +443,21 @@ const styles = StyleSheet.create({
     paddingTop: space.md,
     gap: space.sm,
   },
+  next: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.md,
+    paddingHorizontal: space.md,
+    backgroundColor: color.white,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: color.line,
+  },
+  nextButton: { height: 34, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: color.bay, justifyContent: "center" },
+  nextText: { fontFamily: font.uiSemi, fontSize: 14, color: color.white },
   primary: {
     height: 54,
     borderRadius: radius.control,

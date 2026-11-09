@@ -55,7 +55,6 @@ export default function EditListing() {
         circleIds: item.circles.map((c) => c.id),
       }}
       circles={circles}
-      ownerName={me.displayName}
       submitLabel="Save"
       busyLabel="Saving…"
       onClose={close}

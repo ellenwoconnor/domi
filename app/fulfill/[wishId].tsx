@@ -74,7 +74,6 @@ export default function Fulfill() {
     <ListingEditor
       initial={{ photos: [], title: wish.title, description: "", circleIds: [] }}
       circles={[]}
-      ownerName={me.displayName}
       submitLabel={`Send to ${name}`}
       busyLabel="Sending…"
       sendTo={{ name }}

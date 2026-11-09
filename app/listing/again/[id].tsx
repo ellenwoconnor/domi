@@ -66,7 +66,6 @@ export default function ShareAgain() {
         circleIds: home ? [home.id] : [],
       }}
       circles={circles}
-      ownerName={me.displayName}
       submitLabel="Post it"
       busyLabel="Posting…"
       onClose={close}

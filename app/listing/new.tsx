@@ -61,7 +61,6 @@ export default function NewListing() {
     <ListingEditor
       initial={{ photos: photos.map((uri) => ({ uri })), title: "", description: "", circleIds: home ? [home.id] : [] }}
       circles={circles}
-      ownerName={me.displayName}
       submitLabel="Post it"
       busyLabel="Posting…"
       onClose={close}
