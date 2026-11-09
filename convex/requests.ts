@@ -97,6 +97,23 @@ export const forItem = query({
       .query("requests")
       .withIndex("by_item", (q) => q.eq("itemId", item._id))
       .collect();
+    // "via your link" only for people the link let in: not for members of the listing's domis.
+    const circles = (
+      await ctx.db
+        .query("itemCommunities")
+        .withIndex("by_item_community", (q) => q.eq("itemId", item._id))
+        .collect()
+    ).map((l) => l.communityId);
+    const inCircle = async (requesterId: (typeof rows)[number]["requesterId"]) => {
+      for (const communityId of circles) {
+        const m = await ctx.db
+          .query("memberships")
+          .withIndex("by_community_user", (q) => q.eq("communityId", communityId).eq("userId", requesterId))
+          .first();
+        if (m) return true;
+      }
+      return false;
+    };
     const out = [];
     for (const r of rows) {
       if (r.status !== "open" && r.status !== "selected") continue;
@@ -107,7 +124,7 @@ export const forItem = query({
         note: r.note ?? null,
         status: r.status,
         createdAt: r._creationTime,
-        viaLink: r.viaShareId !== undefined,
+        viaLink: r.viaShareId !== undefined && !(await inCircle(r.requesterId)),
       });
     }
     return out.sort((a, b) => a.createdAt - b.createdAt);

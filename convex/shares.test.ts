@@ -30,6 +30,18 @@ describe("listing share links (single use)", () => {
     await expect(maya.as.query(api.items.get, { itemId: other })).rejects.toThrow("not found");
   });
 
+  test("a member of the listing's circle who comes through the link isn't marked 'via your link'", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen", { zip: "94610" });
+    const itemId = await post(t, ellen, [ellen.zipCircle], "Table");
+    const code = await ellen.as.mutation(api.shares.create, { itemId });
+    const sam = await newUser(t, "Sam", { zip: "94610" });
+    await sam.as.mutation(api.shares.redeem, { code });
+    await sam.as.mutation(api.requests.create, { itemId });
+    const asks = await ellen.as.query(api.requests.forItem, { itemId });
+    expect(asks.map((a) => [a.requester.displayName, a.viaLink])).toEqual([["Sam", false]]);
+  });
+
   test("opening doesn't use it; the first request does, and the second person is told", async () => {
     const t = await setup();
     const ellen = await newUser(t, "Ellen");

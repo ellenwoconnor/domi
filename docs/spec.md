@@ -217,7 +217,7 @@ Decided 2026-11-02, built on branch `share-links-single-use`. A share link lets 
 - **A leaked link is harmless.** A stranger who uses it is just one more requester the owner doesn't pick. The owner taps Share again for a new link.
 - **Links close** when used, 14 days after creation, or when the listing is gone, removed or expired. A pending listing keeps its links live, since requests wait in line while an item is pending. Links made before 2026-11-02 have no `expiresAt` and are treated as closed.
 - Owner only, on public listings. The app offers Share on available listings (the backend also allows pending).
-- Someone already in one of the listing's circles can use a link too; their request is simply marked "via your link". Withdrawing and asking again keeps the mark.
+- Someone already in one of the listing's circles can use a link too. Their request records the link, but the owner sees "via your link" only for people outside the listing's circles (2026-11-08: the mark told owners nothing for their own neighbors). Withdrawing and asking again keeps the record.
 - A newcomer from a link joins their own zip circle as usual. The link gives them that one listing, never the owner's circles.
 
 ### Flows
