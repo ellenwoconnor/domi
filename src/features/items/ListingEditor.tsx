@@ -19,7 +19,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MAX_PHOTOS, pickPhotos, takePhoto } from "../give/photos";
 import { PhotoTile } from "../../ui/PhotoTile";
 import { color, font, radius, space, type } from "../../ui/theme";
-import { CirclePickerSheet } from "./CirclePickerSheet";
 import { circleLabel, type CircleView } from "./format";
 
 const TITLE_MAX = 80;
@@ -71,7 +70,6 @@ export function ListingEditor({
   const [circleIds, setCircleIds] = useState(initial.circleIds);
   const [page, setPage] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [picking, setPicking] = useState(false);
   const [focused, setFocused] = useState<"title" | "description" | null>(null);
   // What's missing, shown only after a tap on Post that couldn't go through.
   const [nudged, setNudged] = useState(false);
@@ -86,6 +84,12 @@ export function ListingEditor({
     circleIds.join() !== initial.circleIds.join();
   const chosen = circles.filter((c) => circleIds.includes(c.id));
   const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick who sees it" : null;
+
+  // The photo as neighbors see it on the listing (a square), smaller, on Fog.
+  const square = Math.min(260, width - 128);
+  const photoHeight = insets.top + space.sm + square + space.md;
+  const toggleCircle = (id: CircleView["id"]) =>
+    setCircleIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
     setPage(Math.round(e.nativeEvent.contentOffset.x / width));
@@ -117,7 +121,6 @@ export function ListingEditor({
     if (missing) {
       setNudged(true);
       if (missing === "Name it") titleRef.current?.focus();
-      else if (missing === "Pick who sees it") setPicking(true);
       else if (missing === "Add a photo") addPhotos();
       return;
     }
@@ -136,11 +139,13 @@ export function ListingEditor({
         keyboardDismissMode="interactive"
         contentContainerStyle={{ paddingBottom: 150 + keyboard }}
       >
-        <View style={styles.photoArea}>
+        <View style={[styles.photoArea, { height: photoHeight }]}>
           {photos.length > 0 ? (
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll}>
               {photos.map((p) => (
-                <PhotoTile key={p.uri} uri={p.uri} rounded={false} style={{ width, height: 250 }} />
+                <View key={p.uri} style={{ width, paddingTop: insets.top + space.sm, alignItems: "center" }}>
+                  <PhotoTile uri={p.uri} style={{ width: square, height: square }} />
+                </View>
               ))}
             </ScrollView>
           ) : (
@@ -241,19 +246,20 @@ export function ListingEditor({
           <View style={{ gap: space.sm }}>
             <Text style={type.label}>Who sees it</Text>
             <View style={styles.circleRow}>
-              {chosen.map((c) => (
-                <View key={c.id} style={styles.circleChip}>
-                  <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
-                </View>
-              ))}
-              <Pressable
-                onPress={() => setPicking(true)}
-                style={styles.changeChip}
-                accessibilityRole="button"
-                accessibilityLabel="Change who sees it"
-              >
-                <Text style={styles.changeText}>{chosen.length ? "Change" : "Choose who sees it"}</Text>
-              </Pressable>
+              {circles.map((c) => {
+                const on = circleIds.includes(c.id);
+                return (
+                  <Pressable
+                    key={c.id}
+                    onPress={() => toggleCircle(c.id)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: on }}
+                    style={[styles.circleChip, on && styles.circleChipOn]}
+                  >
+                    <Text style={[styles.circleChipText, on && { color: color.white }]}>{circleLabel(c)}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
           )}
@@ -305,16 +311,6 @@ export function ListingEditor({
           </Pressable>
         </View>
       )}
-
-      <CirclePickerSheet
-        visible={picking}
-        circles={circles}
-        selected={circleIds}
-        onClose={(next) => {
-          setPicking(false);
-          if (next) setCircleIds(next);
-        }}
-      />
     </View>
   );
 }
@@ -337,7 +333,7 @@ function useKeyboardHeight() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  photoArea: { height: 250, backgroundColor: color.fog },
+  photoArea: { backgroundColor: color.fog },
   noPhoto: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.sm },
   round: {
     position: "absolute",
@@ -418,19 +414,10 @@ const styles = StyleSheet.create({
     backgroundColor: color.fog,
     borderRadius: radius.pill,
     paddingHorizontal: 12,
-    height: 32,
+    height: 36,
   },
+  circleChipOn: { backgroundColor: color.bay },
   circleChipText: { fontFamily: font.uiMedium, color: color.ink, fontSize: 14 },
-  changeChip: {
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.line,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  changeText: { fontFamily: font.uiSemi, color: color.bay, fontSize: 14 },
   bar: {
     position: "absolute",
     left: 0,
