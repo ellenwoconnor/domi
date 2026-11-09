@@ -10,7 +10,8 @@ import { clearPendingCodes, getPendingCodes, type PendingCodes } from "../src/fe
 import { setLandingItem } from "../src/features/auth/landing";
 import { openLegal } from "../src/features/legal";
 import { errorMessage } from "../src/lib/errors";
-import { ErrorNote, Field, PrimaryButton, TextButton } from "../src/ui/Form";
+import { ErrorNote, Field, PrimaryButton } from "../src/ui/Form";
+import { CircleBadge } from "../src/features/circles/CircleBadge";
 import { Logo } from "../src/ui/Logo";
 import { color, radius, space, type } from "../src/ui/theme";
 
@@ -27,7 +28,6 @@ export default function Onboarding() {
   const [name, setName] = useState("");
   const [zip, setZip] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [codeOpen, setCodeOpen] = useState(false);
   const [typedCode, setTypedCode] = useState("");
   const [pending, setPending] = useState<PendingCodes>({ invites: [], shares: [] });
   const [busy, setBusy] = useState(false);
@@ -50,7 +50,7 @@ export default function Onboarding() {
     if (!terms?.value) return;
     setError(null);
     setBusy(true);
-    const inviteCodes = [...pending.invites, ...(typedCode.trim() ? [typedCode.trim()] : [])];
+    const inviteCodes = [...pending.invites, ...(typedClean ? [typedClean] : [])];
     try {
       const result = await completeSignup({
         displayName: name,
@@ -80,6 +80,7 @@ export default function Onboarding() {
   }
 
   const fromInvite = pending.invites.length > 0;
+  const typedClean = typedCode.toUpperCase().replace(/[\s-]/g, "");
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -116,19 +117,21 @@ export default function Onboarding() {
             maxLength={5}
           />
 
-          {codeOpen ? (
-            <Field
-              label="Invite code"
-              value={typedCode}
-              onChangeText={setTypedCode}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              placeholder="e.g. 7K2M-QX9P"
-              maxLength={12}
-            />
+          {fromInvite ? (
+            pending.invites.map((code) => <InviteRow key={code} code={code} />)
           ) : (
-            <View style={{ alignItems: "flex-start" }}>
-              <TextButton title="Have an invite code?" onPress={() => setCodeOpen(true)} />
+            <View style={{ gap: space.sm }}>
+              <Field
+                label="Invite code (optional)"
+                hint="Got an invite link? The code is on that page. No code? Leave this blank; you can join a domi later."
+                value={typedCode}
+                onChangeText={setTypedCode}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                placeholder="7K2M-QX9P"
+                maxLength={12}
+              />
+              {typedClean.length === 8 ? <InviteRow code={typedClean} typed /> : null}
             </View>
           )}
 
@@ -162,7 +165,34 @@ export default function Onboarding() {
   );
 }
 
+/** "🍼 Baby Shower · Sam invited you": the domi a saved or typed code joins. */
+function InviteRow({ code, typed = false }: { code: string; typed?: boolean }) {
+  const preview = useQuery(convexQuery(api.invites.preview, { code }));
+  if (preview.isPending) return null;
+  const p = preview.data;
+  if (!p) {
+    return typed ? <Text style={type.meta}>That code doesn't match an invite. Check it, or leave it blank.</Text> : null;
+  }
+  return (
+    <View style={styles.invite}>
+      <CircleBadge kind="custom" emoji={p.emoji} size={40} />
+      <View style={{ flex: 1 }}>
+        <Text style={type.label}>{typed ? `You'll join ${p.name}` : `Joining ${p.name}`}</Text>
+        <Text style={type.meta}>{p.invitedBy} invited you</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  invite: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.md,
+    padding: space.md,
+    borderRadius: radius.control,
+    backgroundColor: color.blush,
+  },
   screen: { flex: 1, backgroundColor: color.white },
   body: { padding: space.lg, gap: space.lg, paddingBottom: space.xxl },
   agree: {

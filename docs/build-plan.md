@@ -107,7 +107,9 @@ Several milestones were built and tested in code, but their checks on a real dev
 
 #### 1d. Easy onboarding
 - [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most.
-- [ ] Show the invite on the sign-in screen ("Ellen invited you to …") when a code is saved. Small, JS only.
+- [x] Show the invite on the sign-in screen ("Ellen invited you to …") when a code is saved. Done 2026-11-08 (`src/features/auth/SignInInvite.tsx`), together with install match below and a visible code box at signup (live "You'll join …" check).
+- [x] iPhone install match, moved up from phase 3 after the 2026-11-08 test run (new users lost the code between the web page and first open). Buttons on invite and listing pages send the code to `POST /m`; the Worker keeps it an hour under a salted IP hash in KV (`web/src/match.js`); the sign-in screen asks `GET /m` and shows "Ellen invited you to … Is that you?". Privacy Policy updated. Doesn't match when Safari uses iCloud Private Relay or the phone changes networks; the code box covers those.
+- [ ] Set up install match on Cloudflare: `cd web && npx wrangler kv namespace create MATCHES`, paste the id into the commented `[[kv_namespaces]]` block in `wrangler.toml` and uncomment it, `npx wrangler secret put MATCH_SALT` (any long random string), then `npx wrangler deploy`. Until then `/m` does nothing and people type the code.
 
 #### 1e. Finalize brand details
 Settle what testers see first: the app icon, the TestFlight description, the website and the invite pages. Open questions come from "Domi Circles — Brand Strategy (Draft)" in Drive.
@@ -208,7 +210,7 @@ Strangers arrive in phase 2, and the giver picks who gets each item, so "who is 
 - [ ] Revoke the Apple sign-in token on account deletion (needs the Sign in with Apple key in Convex env).
 - [ ] Website: App Store and Google Play badges and Apple's Smart App Banner, replacing the TestFlight and closed-test steps.
 - [ ] Google Play: apply for production access once the closed test has run its 14 days, then release.
-- [ ] iPhone install match (the code applies itself on first launch) if phase 2 shows people dropping off at the code box.
+- [x] iPhone install match: done early, in phase 1d.
 
 #### 3c. Support at volume
 - [ ] Support agent auto-sends only non-urgent emails the FAQ fully covers, with ~10% spot checks. Only after accept rate is high in phase 2.

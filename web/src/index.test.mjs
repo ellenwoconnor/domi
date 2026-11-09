@@ -183,10 +183,12 @@ test("invite and listing pages show the steps, ask the inviter or owner for the 
   assert.match(invite, /Get TestFlight/);
   assert.match(invite, /Ask Sam to send you the Domi test link/);
   assert.match(invite, /href="domi:\/\/c\/7K2MQX9P">Join Baby Shower/);
-  assert.match(invite, /Or type this code in Domi/);
+  assert.match(invite, /<span class="code">7K2M-QX9P<\/span>/);
+  assert.match(invite, /Your invite code/);
   const listing = await (await get("/i/AAAABBBB")).text();
   assert.match(listing, /Ask Ellen to send you the Domi test link/);
   assert.match(listing, /href="domi:\/\/i\/AAAABBBB">See it in Domi/);
+  assert.match(listing, /Or type this code in Domi/);
 });
 
 test("the open-in-Domi button has a hidden hint for when Domi isn't installed", async () => {
@@ -226,4 +228,43 @@ test("report alert: needs the shared secret, then emails the subject and text", 
   const [headers, body] = sent[0].raw.split("\r\n\r\n");
   assert.match(headers, /^Subject: =\?UTF-8\?B\?/m);
   assert.equal(new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\r\n/g, "")), (c) => c.charCodeAt(0))), "Maya reported a listing. ✓");
+});
+
+function fakeKV() {
+  const m = new Map();
+  return {
+    m,
+    get: async (k) => m.get(k) ?? null,
+    put: async (k, v, o) => m.set(k, v),
+    delete: async (k) => m.delete(k),
+  };
+}
+const fromIp = (ip, path, init) =>
+  new Request(`https://domicircles.com${path}`, { ...init, headers: { "cf-connecting-ip": ip, ...(init?.headers ?? {}) } });
+
+test("install match: a tapped invite is handed once to the same network, and only real codes are kept", async () => {
+  mockConvex({ "invites:preview": ({ code }) => (code === "7K2MQX9P" ? { code, name: "Baby Shower" } : null) });
+  const kv = fakeKV();
+  const e = { ...env, MATCHES: kv, MATCH_SALT: "s" };
+  const post = (ip, body) => worker.fetch(fromIp(ip, "/m", { method: "POST", body: JSON.stringify(body) }), e);
+  const match = async (ip) => (await worker.fetch(fromIp(ip, "/m"), e)).json();
+
+  assert.equal((await post("1.2.3.4", { kind: "c", code: "ZZZZZZZZ" })).status, 204);
+  assert.equal(kv.m.size, 0, "unknown codes aren't stored");
+  await post("1.2.3.4", { kind: "c", code: "7k2m-qx9p" });
+  assert.equal(kv.m.size, 1);
+  assert.ok(![...kv.m.keys()][0].includes("1.2.3.4"), "the address itself isn't stored");
+  assert.deepEqual(await match("5.6.7.8"), {});
+  assert.deepEqual(await match("1.2.3.4"), { kind: "c", code: "7K2MQX9P" });
+  assert.deepEqual(await match("1.2.3.4"), {}, "handed out once");
+});
+
+test("install match does nothing without the KV binding, and pages send the code when a button is tapped", async () => {
+  mockConvex({ "invites:preview": ({ code }) => ({ code, name: "Baby Shower", emoji: "🍼", description: null, memberCount: 3, invitedBy: "Sam" }) });
+  const res = await worker.fetch(fromIp("1.2.3.4", "/m", { method: "POST", body: '{"kind":"c","code":"7K2MQX9P"}' }), env);
+  assert.equal(res.status, 204);
+  assert.deepEqual(await (await worker.fetch(fromIp("1.2.3.4", "/m"), env)).json(), {});
+  const invite = await (await get("/c/7K2MQX9P")).text();
+  assert.match(invite, /function keepCode\(\)\{[^<]*sendBeacon\("\/m"[^<]*kind:"c",code:"7K2MQX9P"/);
+  assert.match(invite, /class="button secondary" onclick="keepCode\(\)" href="https:\/\/apps.apple.com/);
 });

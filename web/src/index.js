@@ -14,6 +14,8 @@
 // - serves /beta, which explains the TestFlight test version and how to
 //   install it; invite and listing pages show the same steps. The TestFlight
 //   public link comes from the TESTFLIGHT_URL var (wrangler.toml).
+// - remembers which invite or listing a visitor tapped, so the app can find
+//   it on first open (POST and GET /m, see match.js),
 // - emails the developer when someone files a report (POST
 //   /internal/report-alert, called by Convex; see alerts.js).
 // Data comes from the public Convex queries invites:preview and shares:preview.
@@ -24,6 +26,7 @@ import { OG_IMAGE_BASE64 } from "./og-image.js";
 import { privacyBody, termsBody } from "./legal.js";
 import { supportBody } from "./support.js";
 import { reportAlert } from "./alerts.js";
+import { matchCode, rememberCode } from "./match.js";
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
@@ -37,6 +40,13 @@ export default {
     const path = url.pathname.replace(/\/+$/, "") || "/";
 
     if (path === "/internal/report-alert" && request.method === "POST") return reportAlert(request, env);
+    if (path === "/m" && request.method === "POST") {
+      return rememberCode(request, env, async (kind, code) => {
+        const found = await convexQuery(env, kind === "c" ? "invites:preview" : "shares:preview", { code });
+        return kind === "c" ? !!found : !!found?.available;
+      });
+    }
+    if (path === "/m") return matchCode(request, env);
 
     if (path === "/.well-known/apple-app-site-association" || path === "/apple-app-site-association") {
       return json({
@@ -144,24 +154,36 @@ const OPEN_APP_JS =
   "c=function(){clearTimeout(t)};window.addEventListener('pagehide',c,{once:true});" +
   "window.addEventListener('blur',c,{once:true});document.addEventListener('visibilitychange',c,{once:true})";
 
-export function installSteps(env, { openUrl, code, join, askWho = "the person who invited you" } = {}) {
+export function installSteps(env, { openUrl, code, kind, join, askWho = "the person who invited you", codeBox = false } = {}) {
   const link = env?.TESTFLIGHT_URL;
+  // With a code: each button also tells match.js about it and copies the code (keepCode, below).
+  const keep = code ? ` onclick="keepCode()"` : "";
   const getDomi = link
     ? `<p><b>Get Domi.</b> Tap the button, then tap <b>Accept</b> and <b>Install</b>.</p>
-        <a class="button" href="${esc(link)}">Get Domi</a>`
+        <a class="button"${keep} href="${esc(link)}">Get Domi</a>`
     : `<p><b>Get Domi.</b> Ask ${esc(askWho)} to send you the Domi test link.</p>`;
   const last = code
     ? `<li><p><b>Come back to this page</b> and tap the button.</p>
-        <a class="button" onclick="${OPEN_APP_JS}" href="${esc(openUrl)}">${esc(join)}</a>
+        <a class="button" onclick="keepCode();${OPEN_APP_JS}" href="${esc(openUrl)}">${esc(join)}</a>
         <p class="hint" id="no-app" role="status" hidden>Nothing happened? You may not have Domi yet. Do steps 1 and 2 first, then come back and tap again.</p>
-        <p class="meta">Or type this code in Domi: <b class="code-inline">${esc(fmt(code))}</b>
-          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button></p></li>`
+        ${codeBox ? "" : `<p class="meta">Or type this code in Domi: <b class="code-inline">${esc(fmt(code))}</b>
+          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button></p>`}</li>`
     : `<li><p><b>Open Domi</b> and sign in with Apple or Google.</p></li>`;
-  return `
+  const script = code
+    ? `<script>function keepCode(){try{navigator.sendBeacon("/m",JSON.stringify({kind:"${kind === "i" ? "i" : "c"}",code:"${esc(code)}"}))}catch(e){}try{navigator.clipboard.writeText("${esc(fmt(code))}")}catch(e){}}</script>`
+    : "";
+  const box = code && codeBox
+    ? `<div class="code-box">
+        <div class="code-row"><span class="code">${esc(fmt(code))}</span>
+          <button class="copy" onclick="navigator.clipboard.writeText('${esc(fmt(code))}').then(()=>{this.textContent='Copied'})">Copy</button></div>
+        <p class="meta">Your invite code. Domi usually finds your invite on its own. If it asks, paste or type this code when you sign up.</p>
+      </div>`
+    : "";
+  return `${script}${box}
     <p class="note">Domi isn't in the App Store yet. It's open to friends and family for now, and we'd love to know what you think. Here's how to get it on your iPhone:</p>
     <ol class="steps">
       <li><p><b>Get TestFlight.</b> It's Apple's free app for trying new apps.</p>
-        <a class="button secondary" href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
+        <a class="button secondary"${keep} href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
       <li>${getDomi}</li>
       ${last}
     </ol>`;
@@ -191,7 +213,7 @@ function invitePage(p, code, env) {
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
       </div>
-      ${installSteps(env, { openUrl: `domi://c/${code}`, code, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
+      ${installSteps(env, { openUrl: `domi://c/${code}`, code, kind: "c", codeBox: true, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
   });
 }
 
@@ -247,7 +269,7 @@ function sharePage(p, code, origin, env) {
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
         <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
       </div>
-      ${installSteps(env, { openUrl: `domi://i/${code}`, code, join: "See it in Domi", askWho: p.ownerName })}`,
+      ${installSteps(env, { openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName })}`,
   });
 }
 

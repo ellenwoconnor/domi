@@ -18,3 +18,12 @@ TESTFLIGHT_URL = ""
 # Cloudflare Email Routing. The recipient is the REPORT_ALERT_TO secret.
 [[send_email]]
 name = "REPORT_EMAIL"
+
+# Install match (src/match.js): the code a visitor tapped, kept an hour under a
+# hashed IP so the app can find it on first open. Create once with
+#   npx wrangler kv namespace create MATCHES
+# and paste the id it prints below. Optional secret: npx wrangler secret put MATCH_SALT
+# Until then /m does nothing and people type the code instead.
+# [[kv_namespaces]]
+# binding = "MATCHES"
+# id = "<paste id>"

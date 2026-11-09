@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DevSignIn, devSignInEnabled } from "../src/features/auth/DevSignIn";
+import { SignInInvite } from "../src/features/auth/SignInInvite";
 import { appleSignInParams, googleSignInParams } from "../src/features/auth/nativeSignIn";
 import { openLegal } from "../src/features/legal";
 import { Logo } from "../src/ui/Logo";
@@ -44,6 +45,7 @@ export default function SignIn() {
             <Text style={[type.body, { color: color.inkSoft }]}>
               Give and get secondhand with your neighbors. Only the people you share with see what you post.
             </Text>
+            <SignInInvite />
           </View>
 
           <View style={styles.buttons}>

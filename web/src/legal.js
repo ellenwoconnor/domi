@@ -131,6 +131,7 @@ export const privacyBody = `
 <li><b>Profile.</b> The display name you choose, your zip code, and an approximate location: the center of your zip code, rounded to about 100 meters. We never ask for or store your street address or your phone's precise location.</li>
 <li><b>What you post and send.</b> Listings and their photos, wishes, offers, requests and the notes on them, chat messages, domis you start or join, invite and share links, reports you make, and people you block.</li>
 <li><b>Notifications.</b> If you allow notifications, a push token for your device.</li>
+<li><b>Invite links.</b> When you tap a button on an invite or listing page on domicircles.com, we keep that link's code for up to an hour, filed under a scrambled (hashed) form of your IP address, so the Domi app on the same network can find your invite when you first open it. We never store the IP address itself, and the code is deleted as soon as the app picks it up.</li>
 <li><b>Records.</b> When you accepted these Terms, and routine technical records (like error logs and request logs) kept by the services that run Domi.</li>
 </ul>
 
