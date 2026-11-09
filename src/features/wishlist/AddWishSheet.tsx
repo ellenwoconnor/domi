@@ -2,11 +2,11 @@ import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "convex/react";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { errorMessage } from "../../lib/errors";
+import { Sheet } from "../../ui/Sheet";
 import { color, font, radius, space, type } from "../../ui/theme";
 import { circleLabel } from "../items/format";
 
@@ -24,7 +24,6 @@ export function AddWishSheet({
   initialTitle?: string;
   onClose: (added: boolean) => void;
 }) {
-  const insets = useSafeAreaInsets();
   const circles = useQuery(convexQuery(api.communities.mine, {})).data ?? [];
   const create = useMutation(api.wishlist.create);
   const [title, setTitle] = useState(initialTitle);
@@ -59,70 +58,56 @@ export function AddWishSheet({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={() => onClose(false)}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.wrap}>
-        <Pressable style={styles.scrim} onPress={() => onClose(false)} accessibilityLabel="Close" />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + space.lg }]}>
-          <View style={styles.grabber} />
-          <Text style={type.title}>What are you looking for?</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            autoFocus
-            maxLength={TITLE_MAX}
-            placeholder="Kids' bike helmet"
-            placeholderTextColor={color.inkFaint}
-            accessibilityLabel="What you're looking for"
-            style={styles.input}
-          />
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            maxLength={NOTE_MAX}
-            multiline
-            placeholder="Add a note (optional)"
-            placeholderTextColor={color.inkFaint}
-            accessibilityLabel="Note"
-            style={[styles.input, styles.note]}
-          />
-          <Text style={[type.label, { marginTop: space.sm }]}>Show it in</Text>
-          <View style={styles.chips}>
-            {circles.map((c) => {
-              const on = picked.includes(c.id);
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={() => toggle(c.id)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: on }}
-                  style={[styles.chip, on && styles.chipOn]}
-                >
-                  <Text style={[styles.chipText, on && { color: color.white }]}>{circleLabel(c)}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Pressable disabled={!canAdd} onPress={add} style={[styles.primary, !canAdd && { opacity: 0.4 }]} accessibilityRole="button">
-            {busy ? <ActivityIndicator color={color.white} /> : <Text style={type.button}>Add to my wishes</Text>}
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+    <Sheet visible={visible} onClose={() => onClose(false)}>
+      <View style={styles.body}>
+      <Text style={type.title}>What are you looking for?</Text>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        autoFocus
+        maxLength={TITLE_MAX}
+        placeholder="Kids' bike helmet"
+        placeholderTextColor={color.inkFaint}
+        accessibilityLabel="What you're looking for"
+        style={styles.input}
+      />
+      <TextInput
+        value={note}
+        onChangeText={setNote}
+        maxLength={NOTE_MAX}
+        multiline
+        placeholder="Add a note (optional)"
+        placeholderTextColor={color.inkFaint}
+        accessibilityLabel="Note"
+        style={[styles.input, styles.note]}
+      />
+      <Text style={[type.label, { marginTop: space.sm }]}>Show it in</Text>
+      <View style={styles.chips}>
+        {circles.map((c) => {
+          const on = picked.includes(c.id);
+          return (
+            <Pressable
+              key={c.id}
+              onPress={() => toggle(c.id)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+              style={[styles.chip, on && styles.chipOn]}
+            >
+              <Text style={[styles.chipText, on && { color: color.white }]}>{circleLabel(c)}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Pressable disabled={!canAdd} onPress={add} style={[styles.primary, !canAdd && { opacity: 0.4 }]} accessibilityRole="button">
+        {busy ? <ActivityIndicator color={color.white} /> : <Text style={type.button}>Add to my wishes</Text>}
+      </Pressable>
+      </View>
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, justifyContent: "flex-end" },
-  scrim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(24,34,46,0.35)" },
-  sheet: {
-    backgroundColor: color.white,
-    borderTopLeftRadius: radius.sheet,
-    borderTopRightRadius: radius.sheet,
-    paddingHorizontal: space.lg,
-    paddingTop: space.sm,
-    gap: space.sm,
-  },
-  grabber: { alignSelf: "center", width: 36, height: 5, borderRadius: 3, backgroundColor: color.line, marginBottom: space.sm },
+  body: { gap: space.sm },
   input: {
     backgroundColor: color.fog,
     borderRadius: radius.control,
