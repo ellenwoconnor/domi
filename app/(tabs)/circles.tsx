@@ -14,15 +14,18 @@ const neighbors = (n: number) => `${n} ${n === 1 ? "member" : "members"}`;
 // The server caps each count at 50.
 const count = (n: number, one: string, many: string) => `${n >= 50 ? "50+" : n} ${n === 1 ? one : many}`;
 
-/** Home card: "12 offers · 3 wishes this week". Rows: "4 new offers · 1 new wish". Null when nothing's new. */
-function news(offers: number, wishes: number, style: "week" | "new") {
-  const pre = style === "new" ? "new " : "";
+/**
+ * "12 offers · 3 wishes this week", on the neighborhood card and each domi row alike:
+ * other people's offers and wishes posted there in the last 7 days. Not "new" (unseen),
+ * which it isn't (changed 2026-11-08). Null when there's nothing this week.
+ */
+function news(offers: number, wishes: number) {
   const parts = [
-    offers ? count(offers, `${pre}offer`, `${pre}offers`) : null,
-    wishes ? count(wishes, `${pre}wish`, `${pre}wishes`) : null,
+    offers ? count(offers, "offer", "offers") : null,
+    wishes ? count(wishes, "wish", "wishes") : null,
   ].filter(Boolean);
   if (!parts.length) return null;
-  return parts.join(" · ") + (style === "week" ? " this week" : "");
+  return parts.join(" · ") + " this week";
 }
 
 // One tap fills in the Start a circle form; people change the name there.
@@ -70,7 +73,7 @@ export default function Circles() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={color.inkSoft} />
               </View>
-              {home.faces.length || news(home.newOffers, home.newWishes, "week") ? (
+              {home.faces.length || news(home.newOffers, home.newWishes) ? (
                 <View style={styles.homeFoot}>
                   <View style={{ flexDirection: "row" }}>
                     {home.faces.map((name, i) => (
@@ -79,8 +82,8 @@ export default function Circles() {
                       </View>
                     ))}
                   </View>
-                  {news(home.newOffers, home.newWishes, "week") ? (
-                    <Text style={styles.news}>{news(home.newOffers, home.newWishes, "week")}</Text>
+                  {news(home.newOffers, home.newWishes) ? (
+                    <Text style={styles.news}>{news(home.newOffers, home.newWishes)}</Text>
                   ) : null}
                 </View>
               ) : null}
@@ -127,7 +130,7 @@ export default function Circles() {
               <View>
                 <Text style={styles.section}>Invite-only</Text>
                 {custom.map((c, i) => {
-                  const fresh = news(c.newOffers, c.newWishes, "new");
+                  const fresh = news(c.newOffers, c.newWishes);
                   return (
                     <Pressable
                       key={c.id}
