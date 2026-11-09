@@ -57,10 +57,6 @@ export default function You() {
         <View style={styles.settings}>
           <SettingsRow label="Thank-yous" onPress={() => router.push("/thanks")} />
           <SettingsRow
-            label="How Domi works"
-            onPress={() => router.push({ pathname: "/welcome", params: { replay: "1" } })}
-          />
-          <SettingsRow
             label="Notifications"
             value={push === "granted" ? "On" : push === null ? undefined : "Off"}
             onPress={notifications}
