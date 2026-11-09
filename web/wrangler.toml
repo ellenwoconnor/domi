@@ -24,6 +24,6 @@ name = "REPORT_EMAIL"
 #   npx wrangler kv namespace create MATCHES
 # and paste the id it prints below. Optional secret: npx wrangler secret put MATCH_SALT
 # Until then /m does nothing and people type the code instead.
-# [[kv_namespaces]]
-# binding = "MATCHES"
-# id = "<paste id>"
+[[kv_namespaces]]
+binding = "MATCHES"
+id = "74143f95bb8a4494ad7bfc9065c09f17"
