@@ -21,7 +21,7 @@ export default function You() {
   const { data: circles } = useQuery(convexQuery(api.communities.mine, {}));
   const p = me?.profile;
   const home = circles?.find((c) => c.kind === "zip");
-  const { doSignOut, confirmDelete, deleting, error } = useAccountActions();
+  const { doSignOut, confirmDelete, deleteSheet, deleting, error } = useAccountActions();
   const askForPush = useAskForPush();
   const [push, setPush] = useState<PushPermission | null>(null);
   useFocusEffect(
@@ -74,6 +74,7 @@ export default function You() {
         <ErrorNote message={error} />
         <Text style={styles.version}>Domi {Constants.expoConfig?.version ?? ""}</Text>
       </ScrollView>
+      {deleteSheet}
     </SafeAreaView>
   );
 }

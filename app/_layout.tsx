@@ -11,12 +11,14 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { setAccountClosing, useAccountClosing } from "../src/features/auth/closing";
 import { useAuthState } from "../src/features/auth/useAuthState";
 import { useRedeemSavedCodes } from "../src/features/auth/useRedeemSavedCodes";
 import { usePushSetup } from "../src/features/push/usePushSetup";
 import { secureStorage } from "../src/lib/authStorage";
 import { convex, queryClient } from "../src/lib/convex";
-import { color } from "../src/ui/theme";
+import { color, space, type } from "../src/ui/theme";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,6 +53,7 @@ export default function RootLayout() {
 function AppStack() {
   const state = useAuthState();
   const loading = state === "loading";
+  const closing = useAccountClosing();
   useRedeemSavedCodes(state);
   usePushSetup(state);
 
@@ -58,8 +61,25 @@ function AppStack() {
     if (!loading) SplashScreen.hideAsync();
   }, [loading]);
 
-  if (loading) return null;
+  // Account deletion: keep the cover up until the session is gone too.
+  useEffect(() => {
+    if (closing && state === "signedOut") setAccountClosing(false);
+  }, [closing, state]);
 
+  return (
+    <>
+      {loading ? null : <Screens state={state} />}
+      {closing ? (
+        <View style={styles.closing} accessibilityLiveRegion="polite">
+          <ActivityIndicator color={color.bay} />
+          <Text style={type.caption}>Deleting your account…</Text>
+        </View>
+      ) : null}
+    </>
+  );
+}
+
+function Screens({ state }: { state: ReturnType<typeof useAuthState> }) {
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.white } }}>
       <Stack.Protected guard={state === "onboarded"}>
@@ -97,3 +117,13 @@ function AppStack() {
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  closing: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: color.white,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: space.md,
+  },
+});

@@ -22,7 +22,7 @@ import { color, radius, space, type } from "../src/ui/theme";
 export default function UpdatedTerms() {
   const { data: me } = useQuery(convexQuery(api.profiles.me, {}));
   const accept = useMutation(api.profiles.acceptTerms);
-  const { doSignOut, confirmDelete, deleting, error: accountError } = useAccountActions();
+  const { doSignOut, confirmDelete, deleteSheet, deleting, error: accountError } = useAccountActions();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const version = me?.profile?.currentTermsVersion ?? null;
@@ -68,6 +68,7 @@ export default function UpdatedTerms() {
       <View style={styles.bar}>
         <PrimaryButton title="Agree and continue" onPress={agree} busy={busy} disabled={!version || deleting} />
       </View>
+      {deleteSheet}
     </SafeAreaView>
   );
 }
