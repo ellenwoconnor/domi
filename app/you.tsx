@@ -1,29 +1,39 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import Constants from "expo-constants";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../convex/_generated/api";
 import { useAccountActions } from "../src/features/auth/useAccountActions";
+import { lowerFirst, postedLabel } from "../src/features/items/format";
 import { openLegal } from "../src/features/legal";
 import { pushPermission, type PushPermission } from "../src/features/push/push";
 import { useAskForPush } from "../src/features/push/useAskForPush";
+import { Garden } from "../src/features/thanks/Garden";
 import { Avatar } from "../src/ui/Avatar";
 import { ErrorNote } from "../src/ui/Form";
-import { ScreenHeader } from "../src/ui/ScreenHeader";
-import { color, font, space, type } from "../src/ui/theme";
+import { Sheet, SheetAction } from "../src/ui/Sheet";
+import { color, font, radius, space, type } from "../src/ui/theme";
 
-/** You: who you are and settings (incl. sign out and delete). Opened from your initial on every tab. Circles have their own tab. */
+/**
+ * You: your garden across the top (a domi flower for each thank-you, seedlings
+ * before the first), who you are, the latest thank-you, then a few settings.
+ * Opened from your initial on every tab. (Layout H1, 2026-11-08 design review.)
+ */
 export default function You() {
+  const insets = useSafeAreaInsets();
   const { data: me } = useQuery(convexQuery(api.profiles.me, {}));
   const { data: circles } = useQuery(convexQuery(api.communities.mine, {}));
+  const { data: thanks } = useQuery(convexQuery(api.thanks.received, {}));
   const p = me?.profile;
   const home = circles?.find((c) => c.kind === "zip");
   const { doSignOut, confirmDelete, deleteSheet, deleting, error } = useAccountActions();
   const askForPush = useAskForPush();
   const [push, setPush] = useState<PushPermission | null>(null);
+  const [legalOpen, setLegalOpen] = useState(false);
   useFocusEffect(
     useCallback(() => {
       pushPermission().then(setPush).catch(() => setPush(null));
@@ -36,12 +46,25 @@ export default function You() {
     else Linking.openSettings().catch(() => {});
   }
 
+  const latest = thanks?.[0];
+  const openThanks = () => router.push("/thanks");
+
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
-      <ScreenHeader />
-      <ScrollView contentContainerStyle={styles.body}>
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space.xl }}>
+        <Pressable
+          onPress={openThanks}
+          disabled={!thanks?.length}
+          accessibilityRole={thanks?.length ? "button" : "image"}
+          accessibilityHint={thanks?.length ? "Opens your thank-yous" : undefined}
+        >
+          <Garden flowers={thanks?.length ?? 0} />
+        </Pressable>
+
+        <View style={styles.avatar}>
+          <Avatar name={p?.displayName ?? ""} size={72} />
+        </View>
         <View style={styles.me}>
-          <Avatar name={p?.displayName ?? ""} size={64} />
           <View style={{ flex: 1 }}>
             <Text style={styles.name} numberOfLines={1}>
               {p?.displayName ?? ""}
@@ -54,24 +77,71 @@ export default function You() {
           <Link label="Edit" onPress={() => router.push("/profile")} />
         </View>
 
+        {latest ? (
+          <Pressable onPress={openThanks} accessibilityRole="button" style={({ pressed }) => [styles.note, pressed && { opacity: 0.7 }]}>
+            <Text style={styles.quote}>
+              {latest.note ? `“${latest.note}”` : latest.thing ? `A thank-you for the ${lowerFirst(latest.thing)}.` : "A thank-you."}
+            </Text>
+            <Text style={type.meta}>
+              {latest.from}
+              {latest.thing ? `, for the ${lowerFirst(latest.thing)}` : ""} · {postedLabel(latest.at)}
+            </Text>
+          </Pressable>
+        ) : null}
+
         <View style={styles.settings}>
-          <SettingsRow label="Thank-yous" onPress={() => router.push("/thanks")} />
           <SettingsRow
             label="Notifications"
             value={push === "granted" ? "On" : push === null ? undefined : "Off"}
             onPress={notifications}
           />
           <SettingsRow label="Blocked people" onPress={() => router.push("/blocked")} />
-          <SettingsRow label="Terms of Service" onPress={() => openLegal("terms")} />
-          <SettingsRow label="Privacy Policy" onPress={() => openLegal("privacy")} />
-          <SettingsRow label="Sign out" onPress={doSignOut} />
-          <SettingsRow label={deleting ? "Deleting…" : "Delete account"} onPress={confirmDelete} last />
+          <SettingsRow label="Terms & Privacy" onPress={() => setLegalOpen(true)} last />
         </View>
         <ErrorNote message={error} />
-        <Text style={styles.version}>Domi {Constants.expoConfig?.version ?? ""}</Text>
+        <View style={styles.footer}>
+          <Pressable onPress={doSignOut} accessibilityRole="button" hitSlop={8}>
+            <Text style={styles.quiet}>Sign out</Text>
+          </Pressable>
+          <Pressable onPress={confirmDelete} accessibilityRole="button" hitSlop={8}>
+            <Text style={styles.quiet}>{deleting ? "Deleting…" : "Delete account"}</Text>
+          </Pressable>
+          <Text style={[styles.quiet, { marginLeft: "auto", color: color.inkFaint }]}>
+            Domi {Constants.expoConfig?.version ?? ""}
+          </Text>
+        </View>
       </ScrollView>
+
+      <Pressable
+        onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        style={[styles.back, { top: insets.top + space.sm }]}
+      >
+        <Ionicons name="chevron-back" size={22} color={color.ink} />
+      </Pressable>
+
+      <Sheet visible={legalOpen} onClose={() => setLegalOpen(false)}>
+        <SheetAction
+          icon={<Ionicons name="document-text-outline" size={22} color={color.bay} />}
+          label="Terms of Service"
+          onPress={() => {
+            setLegalOpen(false);
+            openLegal("terms");
+          }}
+        />
+        <SheetAction
+          icon={<Ionicons name="lock-closed-outline" size={22} color={color.bay} />}
+          label="Privacy Policy"
+          onPress={() => {
+            setLegalOpen(false);
+            openLegal("privacy");
+          }}
+          last
+        />
+      </Sheet>
       {deleteSheet}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -109,14 +179,42 @@ function SettingsRow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  body: { paddingHorizontal: space.lg, paddingBottom: space.xxl, gap: space.xl },
-  me: { flexDirection: "row", alignItems: "center", gap: 16 },
+  back: {
+    position: "absolute",
+    left: space.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: color.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Your initial sits on the hill.
+  avatar: {
+    marginTop: -48,
+    marginLeft: space.lg,
+    alignSelf: "flex-start",
+    borderRadius: 40,
+    borderWidth: 4,
+    borderColor: color.white,
+  },
+  me: { flexDirection: "row", alignItems: "flex-start", gap: 14, paddingHorizontal: space.lg, paddingTop: space.sm },
   name: { fontFamily: font.curator, fontSize: 28, lineHeight: 34, color: color.ink },
   soft: { fontFamily: font.ui, fontSize: 15, color: color.inkSoft },
   link: { minHeight: 44, justifyContent: "center" },
   linkText: { fontFamily: font.uiSemi, fontSize: 15, color: color.bay },
-  settings: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line },
+  note: {
+    marginHorizontal: space.lg,
+    marginTop: space.lg,
+    padding: space.md,
+    borderRadius: radius.thing,
+    backgroundColor: color.fog,
+    gap: 4,
+  },
+  quote: { fontFamily: font.curatorLight, fontSize: 18, lineHeight: 25, color: color.ink },
+  settings: { marginHorizontal: space.lg, marginTop: space.lg },
   settingsRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  version: { fontFamily: font.ui, fontSize: 13, color: color.inkFaint, textAlign: "center" },
   rule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: color.line },
+  footer: { flexDirection: "row", alignItems: "center", gap: space.lg, marginHorizontal: space.lg, marginTop: space.md },
+  quiet: { fontFamily: font.ui, fontSize: 14, color: color.inkSoft },
 });
