@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
@@ -23,6 +24,7 @@ import { circleLabel, type CircleView } from "./format";
 
 const TITLE_MAX = 80;
 const DESCRIPTION_MAX = 1000;
+const NEXT_ROW_HEIGHT = 48;
 
 /** A photo on the listing: a local file still to upload, or one already stored. */
 export type PhotoEntry = { uri: string; storageId?: string; thumbId?: string | null };
@@ -63,7 +65,7 @@ export function ListingEditor({
   onSubmit: (values: ListingValues) => Promise<void>;
 }) {
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const { width, height: windowHeight } = useWindowDimensions();
   const [photos, setPhotos] = useState(initial.photos);
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
@@ -74,6 +76,26 @@ export function ListingEditor({
   // What's missing, shown only after a tap on Post that couldn't go through.
   const [nudged, setNudged] = useState(false);
   const keyboard = useKeyboardHeight();
+  // Keep the field you're typing in above the keyboard and the Next row,
+  // including as the description grows a line at a time.
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+  const bodyY = useRef(0);
+  const fieldBox = useRef({ title: { y: 0, h: 0 }, description: { y: 0, h: 0 } });
+  const reveal = useCallback(() => {
+    if (!focused || keyboard === 0) return;
+    const f = fieldBox.current[focused];
+    const top = bodyY.current + f.y;
+    const bottom = top + f.h;
+    const visible = windowHeight - keyboard - NEXT_ROW_HEIGHT - space.md;
+    if (bottom > scrollY.current + visible) scrollRef.current?.scrollTo({ y: bottom - visible, animated: true });
+    else if (top < scrollY.current + insets.top) scrollRef.current?.scrollTo({ y: Math.max(0, top - insets.top - space.md), animated: true });
+  }, [focused, keyboard, windowHeight, insets.top]);
+  useEffect(reveal, [reveal]);
+  const onFieldLayout = (name: "title" | "description") => (e: LayoutChangeEvent) => {
+    fieldBox.current[name] = { y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height };
+    if (focused === name) reveal();
+  };
   const titleRef = useRef<TextInput>(null);
   const descriptionRef = useRef<TextInput>(null);
 
@@ -135,6 +157,9 @@ export function ListingEditor({
   return (
     <View style={styles.screen}>
       <ScrollView
+        ref={scrollRef}
+        onScroll={(e) => (scrollY.current = e.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
         contentContainerStyle={{ paddingBottom: 150 + keyboard }}
@@ -193,8 +218,8 @@ export function ListingEditor({
           ) : null}
         </View>
 
-        <View style={styles.body}>
-          <View style={styles.field}>
+        <View style={styles.body} onLayout={(e) => (bodyY.current = e.nativeEvent.layout.y)}>
+          <View style={styles.field} onLayout={onFieldLayout("title")}>
             <Text style={[type.label, focused === "title" && styles.labelOn]}>What is it?</Text>
             <TextInput
               ref={titleRef}
@@ -213,7 +238,7 @@ export function ListingEditor({
             />
           </View>
 
-          <View style={styles.field}>
+          <View style={styles.field} onLayout={onFieldLayout("description")}>
             <Text style={[type.label, focused === "description" && styles.labelOn]}>
               Details <Text style={styles.optional}>(optional)</Text>
             </Text>
@@ -431,7 +456,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    height: 48,
+    height: NEXT_ROW_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     gap: space.md,
