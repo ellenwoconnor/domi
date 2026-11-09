@@ -1,8 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { useAskForPush } from "../../src/features/push/useAskForPush";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { circleLabel, type ItemView } from "../../src/features/items/format";
 import { useDebounced } from "../../src/lib/useDebounced";
-import { AddWishSheet } from "../../src/features/wishlist/AddWishSheet";
+import { takeWishAdded } from "../../src/features/wishlist/justAdded";
 import { masonry, WishCard, type WishView } from "../../src/features/wishlist/WishCard";
 import { WishSafetySheet, type WishSafetyTarget } from "../../src/features/wishlist/WishSafetySheet";
 import { Segmented } from "../../src/ui/Segmented";
@@ -25,8 +25,6 @@ export default function Browse() {
   const [mode, setMode] = useState<Mode>("free");
   const [query, setQuery] = useState("");
   const [circleId, setCircleId] = useState<Id<"communities"> | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [addTitle, setAddTitle] = useState("");
   const [safety, setSafety] = useState<WishSafetyTarget | null>(null);
   const askForPush = useAskForPush();
 
@@ -82,10 +80,18 @@ export default function Browse() {
               : `${wanted} people are looking for something`
             : " ";
 
-  const openAdd = (title = "") => {
-    setAddTitle(title);
-    setAddOpen(true);
-  };
+  const openAdd = (title = "") => router.push({ pathname: "/wish/new", params: title ? { title } : {} });
+
+  // Back from adding a wish: show it on Wishes, and maybe ask about notifications.
+  useFocusEffect(
+    useCallback(() => {
+      if (!takeWishAdded()) return;
+      setQuery("");
+      setMode("wishes");
+      const t = setTimeout(() => askForPush("wish").catch(() => {}), 500);
+      return () => clearTimeout(t);
+    }, [askForPush]),
+  );
 
   const header = (
     <View style={styles.header}>
@@ -188,18 +194,6 @@ export default function Browse() {
         </ScrollView>
       )}
 
-      <AddWishSheet
-        visible={addOpen}
-        initialTitle={addTitle}
-        onClose={(added) => {
-          setAddOpen(false);
-          if (added) {
-            setQuery("");
-            setMode("wishes");
-            setTimeout(() => askForPush("wish").catch(() => {}), 500); // after the sheet closes
-          }
-        }}
-      />
       <WishSafetySheet target={safety} onClose={() => setSafety(null)} />
     </SafeAreaView>
   );

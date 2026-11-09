@@ -103,7 +103,7 @@ Several milestones were built and tested in code, but their checks on a real dev
 - [ ] Write the test script: invite link → install → sign up → post → request → pick → chat → pickup → wish and fulfill → push.
 - [ ] Run it on two iPhones using the TestFlight build on prod. It covers the open device checks: an invite link opens the installed app (M2), the code works on a fresh install (M2), chat and block (M4), wishes (M4b), every push type (M5), and the Circles tab.
 - [ ] Fix anything that blocks the script. Write everything else down for phase 2.
-  - 2026-11-08 run (fresh accounts, sections 0–2 of the checklist): fixes on branch `test-fixes`. Sheets close on swipe down (the wish sheet couldn't be dismissed); delete account asks in a Domi sheet and no longer flashes the signup screen; invite and listing pages show a hint when the open-in-Domi button does nothing (app not installed). Ship: merge, `npm run update:production` (app) and `cd web && npx wrangler deploy` (website).
+  - 2026-11-08 run (fresh accounts, sections 0–2 of the checklist): fixes on branch `test-fixes`. Also added: editing a wish (server change: needs `npx convex deploy`), and adding a wish moved from the sheet to the listing editor. Sheets close on swipe down (the wish sheet couldn't be dismissed); delete account asks in a Domi sheet and no longer flashes the signup screen; invite and listing pages show a hint when the open-in-Domi button does nothing (app not installed). Ship: merge, `npm run update:production` (app) and `cd web && npx wrangler deploy` (website).
 
 #### 1d. Easy onboarding
 - [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most.

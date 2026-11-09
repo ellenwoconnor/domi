@@ -279,6 +279,16 @@ function YourWish({ wish }: { wish: Wish }) {
       </ScrollView>
 
       {picked ? null : <BackButton top={insets.top + space.sm} tone="fog" />}
+      {wish.status === "open" ? (
+        // The same Edit button as on your listings (square and pencil). White on the Blush hero, Fog on white.
+        <Pressable
+          onPress={() => router.push({ pathname: "/wish/edit/[id]", params: { id: wish.id } })}
+          accessibilityLabel="Edit wish"
+          style={[styles.round, { top: insets.top + space.sm, right: space.lg, backgroundColor: picked ? color.white : color.fog }]}
+        >
+          <Ionicons name="create-outline" size={19} color={color.ink} />
+        </Pressable>
+      ) : null}
 
       {showBar && chosen ? (
         <View style={[styles.bar, styles.barRow, { paddingBottom: insets.bottom + space.md }]}>

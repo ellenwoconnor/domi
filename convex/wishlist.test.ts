@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
-import { doc, eventsFor, newUser, photo, setup, type T, type U } from "./lib/testing.helpers";
+import { circle, doc, eventsFor, newUser, photo, setup, type T, type U } from "./lib/testing.helpers";
 import type { Id } from "./_generated/dataModel";
 
 async function offer(t: T, u: U, wishId: Id<"wishlistItems">, title = "Stroller") {
@@ -233,5 +233,39 @@ describe("no thanks to an offer", () => {
       status: "Maya's all set. Thanks for offering!",
       shareAgain: true,
     });
+  });
+
+  test("the wisher edits words, note and domis while the wish is open; nobody else can", async () => {
+    const t = await setup();
+    const maya = await newUser(t, "Maya");
+    const sam = await newUser(t, "Sam");
+    const wishId = await maya.as.mutation(api.wishlist.create, { title: "Stroller", communityIds: [maya.zipCircle] });
+    await maya.as.mutation(api.wishlist.update, { wishId, title: "Jogging stroller", description: "Any brand" });
+    const w = await sam.as.query(api.wishlist.get, { wishId });
+    expect([w.title, w.description]).toEqual(["Jogging stroller", "Any brand"]);
+    await maya.as.mutation(api.wishlist.update, { wishId, description: "" });
+    expect((await maya.as.query(api.wishlist.get, { wishId })).description).toBeNull();
+    await expect(sam.as.mutation(api.wishlist.update, { wishId, title: "Mine now" })).rejects.toThrow("not found");
+    await expect(maya.as.mutation(api.wishlist.update, { wishId, title: "  " })).rejects.toThrow();
+    await expect(maya.as.mutation(api.wishlist.update, { wishId, communityIds: [] })).rejects.toThrow("Pick who sees it");
+    await maya.as.mutation(api.wishlist.remove, { wishId });
+    await expect(maya.as.mutation(api.wishlist.update, { wishId, title: "Again" })).rejects.toThrow("can't be edited");
+  });
+
+  test("a domi can't be dropped once someone in it has offered; an edit tells nobody", async () => {
+    const t = await setup();
+    const maya = await newUser(t, "Maya");
+    const sam = await newUser(t, "Sam");
+    const shower = await circle(maya);
+    const wishId = await maya.as.mutation(api.wishlist.create, { title: "Stroller", communityIds: [maya.zipCircle, shower] });
+    await offer(t, sam, wishId); // Sam is in the neighborhood, not the domi
+    await expect(maya.as.mutation(api.wishlist.update, { wishId, communityIds: [shower] })).rejects.toThrow("someone there has offered");
+    await maya.as.mutation(api.wishlist.update, { wishId, communityIds: [maya.zipCircle] });
+    expect((await maya.as.query(api.wishlist.get, { wishId })).circles.map((c) => c.id)).toEqual([maya.zipCircle]);
+    const before = (await eventsFor(t, sam.userId)).length;
+    await maya.as.mutation(api.wishlist.update, { wishId, title: "Double stroller" });
+    expect((await eventsFor(t, sam.userId)).length).toBe(before);
+    expect((await maya.as.query(api.wishlist.offers, { wishId })).length).toBe(1);
+    await expect(maya.as.mutation(api.wishlist.update, { wishId, communityIds: [] })).rejects.toThrow("Pick who sees it");
   });
 });

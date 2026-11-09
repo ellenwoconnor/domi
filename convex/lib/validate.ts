@@ -10,7 +10,7 @@ export const LIMITS = {
   itemTitle: 80,
   itemDescription: 1000,
   wishTitle: 80,
-  wishDescription: 500,
+  wishDescription: 1000, // same as listings (2026-11-08)
   requestNote: 140,
   thankNote: 140,
   declineNote: 140,

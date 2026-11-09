@@ -81,6 +81,60 @@ export const create = mutation({
   },
 });
 
+/**
+ * Edit my wish, like editing a listing (items.update): words, note and domis,
+ * while it's open (a picked offer included). Nobody is told; offers stay put
+ * and new listings are matched against the new words from now on. A domi
+ * can't be dropped once someone in it has offered, so no offer loses the
+ * domi it came from.
+ */
+export const update = mutation({
+  args: {
+    wishId: v.id("wishlistItems"),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    communityIds: v.optional(v.array(v.id("communities"))),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await requireProfile(ctx);
+    const wish = await ctx.db.get(args.wishId);
+    if (!wish || wish.userId !== userId) fail("Wish not found");
+    if (wish.status !== "open") fail("This wish can't be edited anymore");
+
+    const patch: Partial<Doc<"wishlistItems">> = {};
+    if (args.title !== undefined) patch.title = cleanText(args.title, "Title", LIMITS.wishTitle);
+    if (args.description !== undefined) {
+      patch.description = cleanOptionalText(args.description, "Description", LIMITS.wishDescription);
+    }
+
+    if (args.communityIds) {
+      const wanted = new Set(args.communityIds);
+      if (wanted.size === 0) fail("Pick who sees it");
+      for (const c of wanted) await requireMember(ctx, c, userId);
+      const links = await ctx.db
+        .query("wishlistCommunities")
+        .withIndex("by_wish", (q) => q.eq("wishlistItemId", wish._id))
+        .collect();
+      const removing = links.filter((l) => !wanted.has(l.communityId));
+      if (removing.length > 0) {
+        const offerers = (await liveOffers(ctx, wish._id)).map((o) => o.ownerId);
+        for (const l of removing) {
+          for (const offerer of offerers) {
+            if (await getMembership(ctx, l.communityId, offerer)) {
+              fail("You can't stop sharing with a group once someone there has offered");
+            }
+          }
+        }
+      }
+      for (const l of removing) await ctx.db.delete(l._id);
+      const added = [...wanted].filter((c) => !links.some((l) => l.communityId === c));
+      for (const communityId of added) await ctx.db.insert("wishlistCommunities", { wishlistItemId: wish._id, communityId });
+      if (added.length > 0) await noteCircleActivity(ctx, added, userId);
+    }
+    await ctx.db.patch(wish._id, patch);
+  },
+});
+
 /** Remove my wish. Open offers are removed and their offerers told. */
 export const remove = mutation({
   args: { wishId: v.id("wishlistItems") },

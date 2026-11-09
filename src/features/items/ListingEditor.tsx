@@ -46,6 +46,8 @@ export type SendTo = { name: string };
  * every field shows; while typing, the Post bar gives way to a Next/Done row.
  * Used for a new listing, for editing one, and for an offer on a wish
  * (`sendTo`: "Goes to Sam" replaces the circles, and the button is Poppy).
+ * `kind="wish"` writes a wish with the same fields: no photo and no Free
+ * sticker (you don't have the thing yet), and "What are you looking for?".
  */
 export function ListingEditor({
   initial,
@@ -55,8 +57,10 @@ export function ListingEditor({
   onClose,
   onSubmit,
   sendTo,
+  kind = "listing",
 }: {
   sendTo?: SendTo;
+  kind?: "listing" | "wish";
   initial: ListingValues;
   circles: CircleView[];
   submitLabel: string;
@@ -105,7 +109,9 @@ export function ListingEditor({
     photos.length !== initial.photos.length ||
     circleIds.join() !== initial.circleIds.join();
   const chosen = circles.filter((c) => circleIds.includes(c.id));
-  const missing = photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick who sees it" : null;
+  const isWish = kind === "wish";
+  const titleLabel = isWish ? "What are you looking for?" : "What is it?";
+  const missing = !isWish && photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick who sees it" : null;
 
   // The photo as neighbors see it on the listing (a square), smaller, on Fog.
   const square = Math.min(260, width - 128);
@@ -164,8 +170,13 @@ export function ListingEditor({
         keyboardDismissMode="interactive"
         contentContainerStyle={{ paddingBottom: 150 + keyboard }}
       >
-        <View style={[styles.photoArea, { height: photoHeight }]}>
-          {photos.length > 0 ? (
+        <View
+          style={[
+            styles.photoArea,
+            isWish ? { height: insets.top + space.sm + 40 + space.md, backgroundColor: color.white } : { height: photoHeight },
+          ]}
+        >
+          {isWish ? null : photos.length > 0 ? (
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll}>
               {photos.map((p) => (
                 <View key={p.uri} style={{ width, paddingTop: insets.top + space.sm, alignItems: "center" }}>
@@ -182,15 +193,17 @@ export function ListingEditor({
           <Pressable
             onPress={() => onClose(dirty)}
             accessibilityLabel="Close"
-            style={[styles.round, { top: insets.top + space.sm, left: space.lg }]}
+            style={[styles.round, { top: insets.top + space.sm, left: space.lg }, isWish && { backgroundColor: color.fog }]}
           >
             <Ionicons name="close" size={22} color={color.ink} />
           </Pressable>
-          <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
-            <View style={styles.freeDot} />
-            <Text style={styles.freeText}>Free</Text>
-          </View>
-          {photos.length > 0 ? (
+          {isWish ? null : (
+            <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
+              <View style={styles.freeDot} />
+              <Text style={styles.freeText}>Free</Text>
+            </View>
+          )}
+          {!isWish && photos.length > 0 ? (
             <View style={styles.photoBar}>
               {photos.length > 1 ? (
                 <View style={styles.pill}>
@@ -220,7 +233,7 @@ export function ListingEditor({
 
         <View style={styles.body} onLayout={(e) => (bodyY.current = e.nativeEvent.layout.y)}>
           <View style={styles.field} onLayout={onFieldLayout("title")}>
-            <Text style={[type.label, focused === "title" && styles.labelOn]}>What is it?</Text>
+            <Text style={[type.label, focused === "title" && styles.labelOn]}>{titleLabel}</Text>
             <TextInput
               ref={titleRef}
               value={title}
@@ -233,7 +246,7 @@ export function ListingEditor({
               returnKeyType="next"
               submitBehavior="submit"
               onSubmitEditing={() => descriptionRef.current?.focus()}
-              accessibilityLabel="What is it?"
+              accessibilityLabel={titleLabel}
               style={[styles.title, focused === "title" && styles.inputOn]}
             />
           </View>
@@ -246,7 +259,7 @@ export function ListingEditor({
               ref={descriptionRef}
               value={description}
               onChangeText={setDescription}
-              placeholder="Condition, size, anything someone should know"
+              placeholder={isWish ? "Size, color, when you need it" : "Condition, size, anything someone should know"}
               placeholderTextColor={color.inkFaint}
               maxLength={DESCRIPTION_MAX}
               multiline

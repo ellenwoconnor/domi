@@ -91,6 +91,8 @@ function Screens({ state }: { state: ReturnType<typeof useAuthState> }) {
         <Stack.Screen name="listing/edit/[id]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="listing/again/[id]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="wish/[id]" />
+        <Stack.Screen name="wish/new" options={{ presentation: "fullScreenModal" }} />
+        <Stack.Screen name="wish/edit/[id]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="fulfill/[wishId]" options={{ presentation: "fullScreenModal" }} />
         <Stack.Screen name="fulfill/sent" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
         <Stack.Screen name="you" />
