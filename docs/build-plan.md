@@ -88,7 +88,7 @@ Internal testing makes each person accept two emails in order (App Store Connect
 - [ ] Seed the App Review circle on prod and make the review account (steps in `docs/app-review.md`, "Before submitting" step 2).
 - [ ] App Store Connect: App Privacy answers, description, support URL (domicircles.com/support), privacy URL (`docs/app-review.md` steps 3 and 4).
 - [ ] Create the external group, turn on the public link, add the build, and submit for Beta App Review with the review notes (`docs/app-review.md` step 5). Usually takes about a day. Later builds of the same version often skip review.
-- [ ] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml` so the "Get Domi" step on invite, listing and /beta pages works.
+- [ ] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml`, then `cd web && npx wrangler deploy`, so the "Get Domi" step on invite, listing and /beta pages works. Until then step 2 says "Ask <inviter> to send you the Domi test link." (Get it: App Store Connect › Domi › TestFlight › the external group › Public Link, after Beta App Review approves a build. Looks like `https://testflight.apple.com/join/…`.)
 - [ ] Move current internal testers over: send them the public link. Keep the internal group for yourself, since internal builds skip review.
 
 #### 1b. Production backend and website
@@ -103,6 +103,7 @@ Several milestones were built and tested in code, but their checks on a real dev
 - [ ] Write the test script: invite link → install → sign up → post → request → pick → chat → pickup → wish and fulfill → push.
 - [ ] Run it on two iPhones using the TestFlight build on prod. It covers the open device checks: an invite link opens the installed app (M2), the code works on a fresh install (M2), chat and block (M4), wishes (M4b), every push type (M5), and the Circles tab.
 - [ ] Fix anything that blocks the script. Write everything else down for phase 2.
+  - 2026-11-08 run (fresh accounts, sections 0–2 of the checklist): fixes on branch `test-fixes`. Sheets close on swipe down (the wish sheet couldn't be dismissed); delete account asks in a Domi sheet and no longer flashes the signup screen; invite and listing pages show a hint when the open-in-Domi button does nothing (app not installed). Ship: merge, `npm run update:production` (app) and `cd web && npx wrangler deploy` (website).
 
 #### 1d. Easy onboarding
 - [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most.
