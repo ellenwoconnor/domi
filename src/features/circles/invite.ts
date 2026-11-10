@@ -8,6 +8,6 @@ import { inviteUrl } from "../../lib/links";
 export async function shareInvite(circle: { id: Id<"communities">; name: string; emoji: string }) {
   const code = await convex.mutation(api.invites.getOrCreate, { communityId: circle.id });
   await Share.share({
-    message: `Join me in ${circle.emoji} ${circle.name} on Domi, where people give things away for free.\n${inviteUrl(code)}`,
+    message: `Join me in ${circle.emoji} ${circle.name}, a private group for passing things along for free. It runs on Domi, an iPhone app. Tap to join:\n${inviteUrl(code)}`,
   });
 }
