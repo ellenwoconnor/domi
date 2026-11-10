@@ -43,9 +43,13 @@ export const STEPS_CSS = `
 .code-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-radius:12px;padding:10px 12px}
 .code{font-weight:800;font-size:22px;letter-spacing:2px;color:var(--bay)}
 .copy{border:0;background:var(--bay);color:#fff;font:600 15px Figtree,sans-serif;min-height:40px;padding:0 16px;border-radius:999px;cursor:pointer}
-.handoff{display:none;background:var(--blush);border-radius:18px;padding:16px;flex-direction:column;gap:8px}
-.handoff p{margin:0}.handoff .url{font-weight:700;color:var(--bay);word-break:break-all}
-@media (hover:hover) and (pointer:fine){.handoff{display:flex}}`;
+.handoff{display:none;background:var(--blush);border-radius:20px;padding:20px;flex-direction:column;gap:10px}
+.handoff p{margin:0}.handoff-title{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:26px;line-height:1.2}
+.url-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-radius:12px;padding:10px 12px}
+.handoff .meta{font-size:14px;color:var(--soft)}
+.url-row .url{font-weight:700;color:var(--bay);word-break:break-all}
+/* On a computer, Domi can't be installed here: point to the iPhone, and leave out the phone steps. */
+@media (hover:hover) and (pointer:fine){.handoff{display:flex}.get-note,.timeline{display:none}}`;
 
 /**
  * The three steps. With `code` (an invite or share link): every button also
@@ -54,16 +58,17 @@ export const STEPS_CSS = `
  * follows. `pageUrl` is shown to people on a computer, who can only install on
  * an iPhone.
  */
-export function installSteps(env, { pageUrl, openUrl, code, kind, join, domiName, askWho = "the person who invited you" } = {}) {
+export function installSteps(env, { pageUrl, openUrl, code, kind, join, domiName, askWho = "the person who invited you", handoffTitle = "Open this on your iPhone" } = {}) {
   const link = env?.TESTFLIGHT_URL;
   const keep = code ? ` onclick="keepCode()"` : "";
   const script = code
     ? `<script>function keepCode(){try{navigator.sendBeacon("/m",JSON.stringify({kind:"${kind === "i" ? "i" : "c"}",code:"${esc(code)}"}))}catch(e){}try{navigator.clipboard.writeText("${esc(fmt(code))}")}catch(e){}}</script>`
     : "";
   const handoff = pageUrl
-    ? `<div class="handoff"><p><b>On a computer?</b> Domi installs on iPhone. Open this page on your iPhone:</p>
-        <p class="url">${esc(pageUrl.replace(/^https:\/\//, ""))}</p>
-        <button class="copy" style="align-self:flex-start" onclick="${copyJs(pageUrl, "Link copied")}">Copy link</button></div>`
+    ? `<div class="handoff"><p class="handoff-title">${esc(handoffTitle)}</p>
+        <p>Domi is iPhone only for now. Open this page on your iPhone, and it walks you through installing.</p>
+        <div class="url-row"><span class="url">${esc(pageUrl.replace(/^https:\/\//, ""))}</span><button class="copy" onclick="${copyJs(pageUrl, "Copied")}">Copy link</button></div>
+        <p class="meta">Text or email it to yourself, or AirDrop it.</p></div>`
     : "";
   const step2 = link
     ? `<a class="button"${keep} href="${esc(link)}">Get Domi</a>

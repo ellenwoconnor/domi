@@ -144,15 +144,15 @@ function invitePage(p, code, env) {
     title,
     desc,
     body: `
-      <div class="card">
+      <div class="hero-col"><div class="card">
         <div class="disc">${esc(p.emoji)}</div>
         <p class="invited">${esc(p.invitedBy)} invited you to</p>
         <h1>${esc(p.name)}</h1>
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
-      </div>
-      <p class="intro"><b>Domi</b> is a free app for giving things away to people you know. A domi is the group you share with: your neighborhood, or one someone started, like this one.</p>
-      ${installSteps(env, { pageUrl: `https://domicircles.com/c/${fmt(code)}`, openUrl: `domi://c/${code}`, code, kind: "c", domiName: p.name, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
+      </div></div>
+      <div class="act-col"><p class="intro"><b>Domi</b> is a free app for giving things away to people you know. A domi is the group you share with: your neighborhood, or one someone started, like this one.</p>
+      ${installSteps(env, { pageUrl: `https://domicircles.com/c/${fmt(code)}`, openUrl: `domi://c/${code}`, code, kind: "c", domiName: p.name, join: `Join ${p.name}`, askWho: p.invitedBy, handoffTitle: "Join on your iPhone" })}</div>`,
   });
 }
 
@@ -200,7 +200,7 @@ function sharePage(p, code, origin, env) {
     image: photo,
     body: `
       <p class="intro"><b>${esc(p.ownerName)}</b> is giving this away on Domi, an app for sharing things with the people near you.</p>
-      <div class="listing">
+      <div class="hero-col listing">
         ${photo ? `<img class="photo" src="${esc(photo)}" alt="${esc(p.title)}">` : ""}
         <span class="free">Free${p.status === "pending" ? " · pending pickup" : ""}</span>
         <h1>${esc(p.title)}</h1>
@@ -208,7 +208,7 @@ function sharePage(p, code, origin, env) {
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
         <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
       </div>
-      ${installSteps(env, { pageUrl: `https://domicircles.com/i/${fmt(code)}`, openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName })}`,
+      <div class="act-col">${installSteps(env, { pageUrl: `https://domicircles.com/i/${fmt(code)}`, openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName, handoffTitle: "See it on your iPhone" })}</div>`,
   });
 }
 
@@ -259,7 +259,18 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .faq summary{cursor:pointer;font-weight:600;padding:12px 24px 12px 0;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}
 .faq summary:after{content:"+";position:absolute;right:4px;top:10px;color:var(--bay);font-size:20px;line-height:1.2}.faq details[open] summary:after{content:"\\2212"}
 .answer{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;color:var(--soft)}.answer ul{padding-left:20px;margin:0}.legal h2[id]{scroll-margin-top:16px}
+.act-col{display:flex;flex-direction:column;gap:20px}
 ${STEPS_CSS}
+/* Invite and listing pages on a computer: the domi or listing on the left, joining on the right. */
+@media (min-width:900px) and (hover:hover) and (pointer:fine){
+  main{max-width:1120px;padding:24px 32px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:48px;row-gap:28px;align-items:start}
+  main>.logo,main>footer,main>.intro,main>.card,main>.legal{grid-column:1/-1}
+  main>.legal,main>.card{max-width:640px;width:100%;justify-self:center}
+  .hero-col{grid-column:1}.act-col{grid-column:2;align-self:center}
+  .hero-col .card{padding:48px 32px;gap:10px}.hero-col .disc{width:104px;height:104px;font-size:52px}
+  .hero-col h1{font-size:48px;line-height:1.05}
+  footer{justify-content:flex-start;border-top:1px solid var(--line);padding-top:20px}
+}
 </style></head>
 <body><main><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }
