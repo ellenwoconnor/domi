@@ -11,9 +11,9 @@
 // - serves the Terms of Service (/terms) and Privacy Policy (/privacy), which
 //   the app links to (src/features/legal.ts). Their text is in legal.js.
 // - serves the help page and FAQ (/support, text in support.js).
-// - serves /beta, which explains the TestFlight test version and how to
-//   install it; invite and listing pages show the same steps. The TestFlight
-//   public link comes from the TESTFLIGHT_URL var (wrangler.toml).
+// - sends /beta to the home page's Get Domi section (/#get); invite and listing
+//   pages show the same install steps (install.js). The TestFlight public link
+//   comes from the TESTFLIGHT_URL var (wrangler.toml).
 // - remembers which invite or listing a visitor tapped, so the app can find
 //   it on first open (POST and GET /m, see match.js),
 // - emails the developer when someone files a report (POST
@@ -27,12 +27,14 @@ import { privacyBody, termsBody } from "./legal.js";
 import { supportBody } from "./support.js";
 import { reportAlert } from "./alerts.js";
 import { matchCode, rememberCode } from "./match.js";
+import { installSteps, STEPS_CSS, TESTFLIGHT_APP_URL } from "./install.js";
+import { esc, fmt } from "./util.js";
+
+export { esc, TESTFLIGHT_APP_URL };
 
 const IOS_APP_ID = "8XGZ3GZ28Q.com.ellenwoconnor.domi";
 const ANDROID_PACKAGE = "com.ellenwoconnor.domi";
 const CODE = /^[0-9A-Za-z-]{4,16}$/;
-// Apple's TestFlight app in the App Store (needed before a TestFlight link works).
-export const TESTFLIGHT_APP_URL = "https://apps.apple.com/app/testflight/id899247664";
 
 export default {
   async fetch(request, env, ctx) {
@@ -91,8 +93,8 @@ export default {
       return html(sharePage(share, clean, url.origin, env));
     }
 
-    if (path === "/") return html(homeHtml);
-    if (path === "/beta") return html(betaPage(env));
+    if (path === "/") return html(homeHtml(env));
+    if (path === "/beta") return Response.redirect(`${url.origin}/#get`, 302);
     if (path === "/og.png") return ogImage();
     if (path === "/terms") return html(legalPage("Terms of Service", "The rules for using Domi.", termsBody));
     if (path === "/support" || path === "/help") return html(legalPage("Help & support", "Answers to common questions about Domi, and how to reach us.", supportBody));
@@ -133,71 +135,7 @@ function html(body, status = 200) {
   });
 }
 
-export function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-}
-
-const fmt = (code) => (code.length === 8 ? `${code.slice(0, 4)}-${code.slice(4)}` : code);
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-
-/**
- * How to get the test version, kept short: a one-line note, then three steps
- * (TestFlight, Domi through the TestFlight public link in TESTFLIGHT_URL, then
- * back to this link). `join` is the last button's label for invite/share pages.
- */
-// The domi:// button does nothing (or Safari says the address is invalid)
-// when Domi isn't installed yet. If the page is still in front 1.5 s after the
-// tap, show the hint; leaving the page (the app opened) or Safari's "Open in
-// Domi?" prompt taking focus cancels it. Inline, since the page has no script file.
-const OPEN_APP_JS =
-  "var h=document.getElementById('no-app'),t=setTimeout(function(){if(!document.hidden)h.hidden=false},1500)," +
-  "c=function(){clearTimeout(t)};window.addEventListener('pagehide',c,{once:true});" +
-  "window.addEventListener('blur',c,{once:true});document.addEventListener('visibilitychange',c,{once:true})";
-
-export function installSteps(env, { openUrl, code, kind, join, askWho = "the person who invited you", codeBox = false } = {}) {
-  const link = env?.TESTFLIGHT_URL;
-  // With a code: each button also tells match.js about it and copies the code (keepCode, below).
-  const keep = code ? ` onclick="keepCode()"` : "";
-  const getDomi = link
-    ? `<p><b>Get Domi.</b> Tap the button, then tap <b>Accept</b> and <b>Install</b>.</p>
-        <a class="button"${keep} href="${esc(link)}">Get Domi</a>`
-    : `<p><b>Get Domi.</b> Ask ${esc(askWho)} to send you the Domi test link.</p>`;
-  const last = code
-    ? `<li><p><b>Come back to this page</b> and tap the button.</p>
-        <a class="button" onclick="keepCode();${OPEN_APP_JS}" href="${esc(openUrl)}">${esc(join)}</a>
-        <p class="hint" id="no-app" role="status" hidden>Nothing happened? You may not have Domi yet. Do steps 1 and 2 first, then come back and tap again.</p>
-        ${codeBox ? "" : `<p class="meta">Or type this code in Domi: <b class="code-inline">${esc(fmt(code))}</b>
-          <button class="copy" onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>{this.textContent='Copied'})">Copy</button></p>`}</li>`
-    : `<li><p><b>Open Domi</b> and sign in with Apple or Google.</p></li>`;
-  const script = code
-    ? `<script>function keepCode(){try{navigator.sendBeacon("/m",JSON.stringify({kind:"${kind === "i" ? "i" : "c"}",code:"${esc(code)}"}))}catch(e){}try{navigator.clipboard.writeText("${esc(fmt(code))}")}catch(e){}}</script>`
-    : "";
-  const box = code && codeBox
-    ? `<div class="code-box">
-        <div class="code-row"><span class="code">${esc(fmt(code))}</span>
-          <button class="copy" onclick="navigator.clipboard.writeText('${esc(fmt(code))}').then(()=>{this.textContent='Copied'})">Copy</button></div>
-        <p class="meta">Your invite code. Domi usually finds your invite on its own. If it asks, paste or type this code when you sign up.</p>
-      </div>`
-    : "";
-  return `${script}${box}
-    <p class="note">Domi isn't in the App Store yet. It's open to friends and family for now, and we'd love to know what you think. Here's how to get it on your iPhone:</p>
-    <ol class="steps">
-      <li><p><b>Get TestFlight.</b> It's Apple's free app for trying new apps.</p>
-        <a class="button secondary"${keep} href="${TESTFLIGHT_APP_URL}">Get TestFlight</a></li>
-      <li>${getDomi}</li>
-      ${last}
-    </ol>`;
-}
-
-function betaPage(env) {
-  return layout({
-    title: "You're invited to try Domi",
-    desc: "Domi is a free app for giving things away to the people near you. Here's how to get it.",
-    body: `
-      <p class="intro">You're invited to try <b>Domi</b>, a free app for giving things away to the people near you.</p>
-      ${installSteps(env, { askWho: "the person who sent you here" })}`,
-  });
-}
 
 function invitePage(p, code, env) {
   const title = `${p.invitedBy} invited you to ${p.emoji} ${p.name}`;
@@ -206,14 +144,15 @@ function invitePage(p, code, env) {
     title,
     desc,
     body: `
-      <p class="intro">${esc(p.invitedBy)} invited you to join <b>${esc(p.name)}</b> on Domi. A domi is the people near you who share what they have.</p>
       <div class="card">
         <div class="disc">${esc(p.emoji)}</div>
+        <p class="invited">${esc(p.invitedBy)} invited you to</p>
         <h1>${esc(p.name)}</h1>
         ${p.description ? `<p class="caption">${esc(p.description)}</p>` : ""}
         <p class="meta">Invite-only · ${esc(plural(p.memberCount, "member"))}</p>
       </div>
-      ${installSteps(env, { openUrl: `domi://c/${code}`, code, kind: "c", codeBox: true, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
+      <p class="intro"><b>Domi</b> is a free app for giving things away to people you know. A domi is the group you share with: your neighborhood, or one someone started, like this one.</p>
+      ${installSteps(env, { pageUrl: `https://domicircles.com/c/${fmt(code)}`, openUrl: `domi://c/${code}`, code, kind: "c", domiName: p.name, join: `Join ${p.name}`, askWho: p.invitedBy })}`,
   });
 }
 
@@ -269,7 +208,7 @@ function sharePage(p, code, origin, env) {
         <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
         <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
       </div>
-      ${installSteps(env, { openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName })}`,
+      ${installSteps(env, { pageUrl: `https://domicircles.com/i/${fmt(code)}`, openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName })}`,
   });
 }
 
@@ -296,7 +235,8 @@ ${faviconLink}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
-:root{--bay:#1F4E79;--poppy:#F2652B;--blush:#FDE8DE;--fog:#EAF0F4;--ink:#18222E;--soft:#4C5866;--faint:#86919E}
+.invited{margin:4px 0 0;font-size:16px;color:var(--soft)}
+:root{--bay:#1F4E79;--poppy:#F2652B;--blush:#FDE8DE;--fog:#EAF0F4;--ink:#18222E;--soft:#4C5866;--faint:#86919E;--line:#DDE4EA}
 *{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
 main{max-width:440px;margin:0 auto;padding:24px 20px 48px;display:flex;flex-direction:column;gap:20px}
 .logo{align-self:flex-start;font-weight:800;font-size:24px;line-height:1;color:var(--bay);text-decoration:none;white-space:nowrap}
@@ -306,13 +246,9 @@ h1{font-family:Fraunces,serif;font-style:italic;font-weight:600;font-size:34px;l
 .intro{font-size:17px;margin:0}.intro b{font-weight:600}
 .meta{font-size:13.5px;color:var(--soft);margin:0}.body{margin:0}
 .card{background:var(--blush);border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
-.disc{width:88px;height:88px;border-radius:50%;background:var(--fog);display:flex;align-items:center;justify-content:center;font-size:44px}
+.disc{width:88px;height:88px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:44px}
 .listing{display:flex;flex-direction:column;gap:12px}.photo{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:16px;background:var(--fog)}
 .free{align-self:flex-start;background:var(--poppy);color:var(--ink);font-weight:600;font-size:14px;padding:4px 12px;border-radius:999px}
-.button{display:block;text-align:center;background:var(--bay);color:#fff;font-weight:600;font-size:17px;padding:16px;border-radius:14px;text-decoration:none}
-.code-box{background:var(--fog);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.code-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.code{font-weight:800;font-size:26px;letter-spacing:2px;color:var(--bay)}
 .legal{display:flex;flex-direction:column;gap:12px}.legal h1{font-size:30px;line-height:36px}
 .legal h2{font-size:18px;font-weight:600;margin:16px 0 0}.legal p,.legal ul{margin:0}.legal ul{padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .legal a,footer a{color:var(--bay)}
@@ -323,15 +259,7 @@ footer{font-size:13.5px;color:var(--faint);display:flex;gap:16px;justify-content
 .faq summary{cursor:pointer;font-weight:600;padding:12px 24px 12px 0;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}
 .faq summary:after{content:"+";position:absolute;right:4px;top:10px;color:var(--bay);font-size:20px;line-height:1.2}.faq details[open] summary:after{content:"\\2212"}
 .answer{padding:0 0 14px;display:flex;flex-direction:column;gap:8px;color:var(--soft)}.answer ul{padding-left:20px;margin:0}.legal h2[id]{scroll-margin-top:16px}
-.note{margin:0;font-size:17px}
-.steps{list-style:none;counter-reset:step;margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
-.steps li{counter-increment:step;position:relative;padding-left:44px;display:flex;flex-direction:column;gap:10px}
-.steps li p{margin:0;font-size:17px}.steps li p.meta{font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.steps li:before{content:counter(step);position:absolute;left:0;top:-2px;width:32px;height:32px;border-radius:50%;background:var(--bay);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px}
-.button.secondary{background:var(--fog);color:var(--bay)}
-.hint{margin:0;font-size:15px;color:var(--soft);background:var(--fog);border-radius:14px;padding:12px 14px}.hint[hidden]{display:none}
-.code-inline{font-weight:800;color:var(--bay);letter-spacing:1px}
-.copy{border:0;background:var(--fog);color:var(--bay);font:600 15px Figtree,sans-serif;padding:8px 14px;border-radius:999px}
+${STEPS_CSS}
 </style></head>
 <body><main><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>${body}<footer><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></footer></main></body></html>`;
 }

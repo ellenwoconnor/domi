@@ -1,37 +1,65 @@
-// The domicircles.com home page (/). Ported from the "domicircles.com landing
-// page" design canvas (2026-10-25), private-testing version. When Domi is in
-// the App Store, swap the invite buttons for the App Store badge.
+// The domicircles.com home page (/). From the "domicircles.com beta site"
+// design canvas (2026-11-10): the hillside from the app's You page on top,
+// the existing value props, "How Domi works" as a swipe row on phones (three
+// across on computers), and a Get Domi section (#get, also where /beta goes)
+// with the TestFlight steps. When Domi is in the App Store, swap the steps
+// for the App Store badge.
 
 import { faviconLink, poppy } from "./poppy.js";
+import { installSteps, STEPS_CSS } from "./install.js";
 
-const wordmark = (cls) => `${poppy(cls)}domi`;
-const heart = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>`;
+// The domi flower (the app's thank-you poppy, src/features/thanks/thanksPaths.ts), for the hillside.
+const FLOWER = `<g id="flower">
+<path d="M95.68,174.17 C59.72,208.9 45.33,284.17 52.52,300" stroke="#1F4E79" stroke-width="7" stroke-linecap="round" fill="none"/>
+<path fill="#F2652B" stroke="#fff" stroke-width="5" d="M100,170C140.52,146.1 150.2,94.19 136.07,67.93C123.75,56.5 100.36,54.04 85.94,62.66C66.66,85.41 65.33,138.2 100,170Z"/>
+<path fill="#F2652B" stroke="#fff" stroke-width="5" d="M100,170C151.55,170.17 194.8,125.48 199.98,91.92C196.83,73.77 177.96,57.93 159.53,57.98C127.38,68.91 90.88,119.27 100,170Z"/>
+<path fill="#F2652B" stroke="#fff" stroke-width="5" d="M100,170C138.25,199.42 193.99,189.85 215.55,167.16C222.77,151.51 217.08,128.69 203.35,118.26C173.67,108.35 119.96,126.07 100,170Z"/>
+<path fill="#1F4E79" d="M109.7,181.48C107.32,183.79 100.72,180.82 94.96,174.86C89.21,168.9 86.48,162.21 88.86,159.9C91.24,157.6 97.84,160.57 103.6,166.53C109.35,172.49 112.08,179.18 109.7,181.48Z"/></g>`;
+const plant = (x, y, r, s) => `<use href="#flower" transform="translate(${x} ${y}) rotate(${r}) scale(${s}) translate(-52.5 -300)"/>`;
 
-const neighbors = [
-  ["M", 52, 12, "blush"],
-  ["J", 81.4, 29, "bay"],
-  ["P", 84, 57.6, "white"],
-  ["A", 60.8, 78.8, "blush"],
-  ["R", 20, 34.4, "white"],
-]
-  .map(([i, x, y, tone]) => `<span class="face ${tone}" style="left:${x}%;top:${y}%">${i}</span>`)
-  .join("");
+const hillside = `<svg class="hill" viewBox="0 140 390 190" role="img" aria-label="Domi flowers growing on a hillside below a few houses">
+<defs>${FLOWER}</defs>
+<g fill="none" stroke="#1F4E79" stroke-width="2" stroke-linejoin="round">
+<path d="M232 168 v-14 l10 -9 l10 9 v14 z"/><path d="M258 168 v-18 l12 -10 l12 10 v18 z"/><path d="M288 168 v-12 l8 -7 l8 7 v12 z"/></g>
+<path d="M0 190 C 90 140, 180 178, 240 168 S 350 150, 390 160 V 330 H 0 Z" fill="#D6E2EB"/>
+${plant(64, 182, -16, 0.17)}${plant(150, 178, -22, 0.15)}${plant(196, 202, -18, 0.22)}
+<path d="M0 250 C 100 214, 200 240, 280 228 S 360 220, 390 224 V 330 H 0 Z" fill="#fff"/>
+${plant(300, 300, -14, 0.46)}${plant(360, 296, -24, 0.36)}</svg>`;
 
-const steps = [
-  ["fog", poppy("poppy"), "Find your domi", "Share with your neighborhood. Want to share stuff in your building? A group of friends? Collect things for a friend's new baby? Start your own domi and invite others into it."],
-  ["blush", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v4H4z"/><path d="M6 12v8h12v-8"/><path d="M12 8v12"/><path d="M12 8c-1.5-3-5-3.5-5-1.2C7 8 9 8 12 8z"/><path d="M12 8c1.5-3 5-3.5 5-1.2C17 8 15 8 12 8z"/></svg>`, "Give things away", "Snap a photo and post it for your neighbors and friends. Neighbors ask for it, you pick who gets it, and you set up pickup in chat."],
-  ["fog", heart, "Share a wish", "Need a cup of sugar? Ski clothes for a weekend trip? Post a wish, and a neighbor can offer it to you."],
+const domiRow = (emoji, tone, name, count, last = false) =>
+  `<div class="mini-row${last ? "" : " rule"}"><span class="mini-badge ${tone}">${emoji}</span><span class="mini-name">${name}</span><span class="mini-count">${count}</span></div>`;
+
+const cards = [
+  [
+    "fog",
+    `<div class="mini mini-list">${domiRow("📍", "fog", "Kensington", 212)}${domiRow("🍼", "blush", "Maya's baby shower", 14)}${domiRow("🏢", "blush", "Cedar St. building", 9, true)}</div>`,
+    "Find your domi",
+    "Exchange easily in your neighborhood. Or, start your own domi and invite others into it.",
+  ],
+  [
+    "blush",
+    `<div class="mini mini-listing"><div class="mini-photo"><span class="free">Free</span></div><p class="mini-title">Wooden high chair</p><p class="mini-meta">Kensington · 3 neighbors asked</p></div>`,
+    "Give things away",
+    "Snap a photo of stuff that's ready to find a new home. People ask for it, you pick who gets it, and you set up pickup in chat.",
+  ],
+  [
+    "fog",
+    `<div class="mini mini-wish"><p class="mini-title">Kids' bike</p><p class="mini-meta">For a 6-year-old, any color</p><div class="mini-foot"><span class="mini-meta">Maya</span><span class="have"><span class="dot"></span>I have this</span></div></div>`,
+    "Share a wish",
+    "Need a cup of sugar? Ski clothes for a weekend trip? Post a wish, and a neighbor can offer it to you.",
+  ],
 ]
   .map(
-    ([tone, icon, title, text], n) => `<li class="step ${tone}">
-<div class="step-top"><span class="step-icon">${icon}</span><span class="step-num">0${n + 1}</span></div>
-<h3>${title}</h3><p>${text}</p></li>`,
+    ([tone, picture, title, text], n) => `<li class="how-card ${tone}">
+<div class="how-pic" aria-hidden="true">${picture}</div>
+<div class="how-text"><span class="how-num">0${n + 1}</span><h3>${title}</h3><p>${text}</p></div></li>`,
   )
   .join("");
 
 const point = (title, text) => `<div class="point"><p class="point-title">${title}</p><p>${text}</p></div>`;
 
-export const homeHtml = `<!doctype html>
+export function homeHtml(env) {
+  return `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Domi: good things find a new home nearby</title>
@@ -46,218 +74,139 @@ export const homeHtml = `<!doctype html>
 <meta name="twitter:card" content="summary_large_image">
 ${faviconLink}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Fraunces:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 <style>
 :root{--bay:#1F4E79;--bay-dark:#163A5C;--poppy:#F2652B;--blush:#FDE8DE;--fog:#EAF0F4;--ink:#18222E;--soft:#4C5866;--line:#DDE4EA}
-*{box-sizing:border-box}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
 a{color:var(--bay)}a:hover{color:var(--bay-dark)}
 h1,h2,h3,p,ul,ol{margin:0}
-.serif{font-family:Fraunces,Georgia,serif;font-style:italic}
-.wrap{width:100%;max-width:1200px;margin:0 auto;padding-left:24px;padding-right:24px}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:56px}
-.col{flex:1 1 420px;min-width:0;display:flex;flex-direction:column}
-h1,h2{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600}
-h2{font-size:clamp(32px,3.6vw,44px);line-height:1.1}
-.lead{font-size:18px;color:var(--soft);max-width:500px}
-.button{display:inline-flex;align-items:center;min-height:44px;background:var(--bay);color:#fff;text-decoration:none;font-weight:600;border-radius:14px}
-.button:hover{color:#fff;background:var(--bay-dark)}
-.link{color:var(--bay);text-decoration:none;font-weight:600;font-size:17px;padding:16px 8px}
-
-/* header */
-header.wrap{padding-top:24px;padding-bottom:24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
-.logo{display:inline-block;font-weight:800;font-size:28px;line-height:1;color:var(--bay);text-decoration:none;letter-spacing:-.5px;white-space:nowrap}
-/* The "o" mark, sized to Figtree ExtraBold's own o: 0.54em tall, sitting just below the baseline like a round letter. */
-.poppy{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.25em;margin-right:.16em}
-.chip-poppy{display:inline-block;width:16px;height:16px;flex:none}
-nav.main{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;font-weight:500;font-size:15px}
-nav.main a:not(.button){color:var(--ink);text-decoration:none}
-nav.main .button{padding:11px 18px}
-
-/* hero */
-.hero{padding-top:48px;padding-bottom:96px}
-.hero .col{gap:24px}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:14px;letter-spacing:.4px;color:var(--bay)}
+.serif,h1,h2,h3{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 20px}
+.top{background:var(--fog)}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0}
+.logo{font-weight:800;font-size:24px;line-height:1;color:var(--bay);text-decoration:none;white-space:nowrap}
+.logo .poppy{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.25em;margin-right:.16em}
+nav{display:flex;align-items:center;gap:24px;font-weight:500;font-size:15px}
+nav .text{display:none;color:var(--ink);text-decoration:none}
+.pill{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:12px;background:var(--bay);color:#fff;font-weight:600;text-decoration:none}
+.pill:hover{color:#fff;background:var(--bay-dark)}
+.hero{display:flex;flex-direction:column}
+.hill{display:block;width:calc(100% + 40px);margin:0 -20px;height:auto}
+.hero-text{display:flex;flex-direction:column;gap:18px;padding:8px 20px 4px;margin:0 -20px;background:#fff}
+.eyebrow{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--bay)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--poppy);flex:none}
-h1{font-size:clamp(44px,5.4vw,72px);line-height:1.05;letter-spacing:-1px}
-.hero-text{font-size:19px;line-height:1.55;color:var(--soft);max-width:520px}
-.hero-text b{color:var(--ink);font-weight:600}
-.ctas{display:flex;flex-direction:column;gap:14px;padding-top:8px}
-.cta-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.cta-row .button{font-size:17px;padding:16px 24px}
-.note{font-family:Fraunces,Georgia,serif;font-style:italic;color:var(--soft)}
-.art-col{flex:1 1 420px;min-width:0;display:flex;justify-content:center}
-.art{position:relative;width:100%;max-width:540px;aspect-ratio:1/1;background:var(--fog);border-radius:32px;overflow:hidden}
-.orbit{position:absolute;left:18%;top:12%;width:68%;height:68%;border:2px solid #D3DDE5;border-radius:50%}
-.you{position:absolute;left:52%;top:46%;width:20%;height:20%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(31,78,121,.12)}
-.you .poppy{width:62%;height:62%;margin:0}
-.face{position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;font-weight:600;font-size:19px;display:flex;align-items:center;justify-content:center}
-.face.blush{background:var(--blush);color:var(--ink)}.face.bay{background:var(--bay);color:#fff}.face.white{background:#fff;color:var(--bay)}
-.wish{position:absolute;left:6%;top:7%;background:#fff;border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(24,34,46,.06)}
-svg{fill:none;stroke:var(--bay);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.wish svg{width:16px;height:16px;stroke-width:2}
-.card{position:absolute;left:4%;bottom:4%;width:40%;background:#fff;border-radius:16px;padding:8px;box-shadow:0 10px 32px rgba(24,34,46,.10);display:flex;flex-direction:column;gap:8px}
-.card-photo{position:relative;aspect-ratio:4/3;background:var(--blush);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.card-photo svg{width:46%;height:70%;stroke-width:3}
-.free{position:absolute;left:8px;top:8px;background:#fff;border-radius:999px;padding:3px 10px 3px 8px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
-.card-text{padding:0 4px 4px;display:flex;flex-direction:column;gap:2px}
-.card-title{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;line-height:1.25}
-.card-meta{font-size:12.5px;color:var(--soft)}
-
-/* how it works */
-.how{padding-top:24px;padding-bottom:104px;display:flex;flex-direction:column;gap:40px}
-.how .sub{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:19px;color:var(--soft);margin-top:8px}
-.steps{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
-.step{border-radius:24px;padding:28px;display:flex;flex-direction:column;gap:14px}
-.step.fog{background:var(--fog)}.step.blush{background:var(--blush)}
-.step-top{display:flex;align-items:center;justify-content:space-between}
-.step-icon{width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
-.step-icon svg{width:26px;height:26px}
-.step-icon .poppy{width:34px;height:34px;margin:0}
-.step-num{font-weight:600;font-size:14px;color:var(--soft)}
-.step h3{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:24px;line-height:1.2}
-.step p{color:var(--soft)}
-
-/* giving and getting */
-.both{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.both .wrap{padding-top:88px;padding-bottom:88px;display:flex;flex-wrap:wrap;gap:48px}
-.both h2{flex:1 1 320px;min-width:0;max-width:360px}
-.sides{flex:2 1 560px;min-width:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:40px 48px}
-.side{display:flex;flex-direction:column;gap:24px}
-.side h3{display:flex;align-items:center;gap:10px;font-weight:600;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--bay)}
-.side h3 .dot{width:10px;height:10px}
-.side h3 .hollow{width:12px;height:12px;border:2.5px solid var(--bay);border-radius:50%}
-.point{display:flex;flex-direction:column;gap:6px}
-.point p{color:var(--soft)}.point .point-title{color:var(--ink);font-weight:600;font-size:18px}
-
-/* circles */
-.circles{padding-top:104px;padding-bottom:104px}
-.circles .col{gap:20px}
-.chips{list-style:none;padding:4px 0 0;display:flex;flex-wrap:wrap;gap:10px}
-.chips li{background:var(--fog);border-radius:999px;padding:9px 16px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
-.chips li.on{background:var(--bay);color:#fff}
-.invite-col{flex:1 1 380px;min-width:0;display:flex;justify-content:center}
-.invite{width:100%;max-width:440px;background:var(--blush);border-radius:24px;padding:32px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
-.faces{display:flex}
-.faces span{width:48px;height:48px;border-radius:50%;font-weight:600;font-size:18px;display:flex;align-items:center;justify-content:center;border:3px solid var(--blush)}
-.faces span+span{margin-left:-12px}
-.invite-title{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:24px;line-height:1.25}
-.invite-meta{font-size:14px;color:var(--soft)}
-.code-box{width:100%;background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
-.code{font-weight:800;font-size:22px;letter-spacing:2px;color:var(--bay)}
-.code-label{font-weight:600;font-size:14px;color:var(--soft)}
-
-/* closing band */
-.closing{padding-bottom:88px}
-.band{background:var(--bay);color:#fff;border-radius:32px;padding:clamp(40px,6vw,72px) clamp(24px,5vw,72px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:32px}
-.band div{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:12px}
-.band h2{font-size:clamp(34px,4vw,52px);line-height:1.08}
-.band p{font-size:18px;color:#DCE6EF;max-width:520px}
-.band .button{background:#fff;color:var(--bay);font-size:17px;padding:16px 24px}
-.band .button:hover{background:var(--fog);color:var(--bay)}
-
-/* footer */
-footer.wrap{padding-top:32px;padding-bottom:48px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;font-size:14px;color:var(--soft)}
-.foot-left{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
-.foot-logo{font-weight:800;font-size:20px;line-height:1;color:var(--bay);white-space:nowrap}
-footer nav{display:flex;flex-wrap:wrap;gap:8px 24px}
-footer nav a{color:var(--soft)}
+h1{font-size:clamp(40px,6vw,64px);line-height:1.08;letter-spacing:-.5px}
+.lead{font-size:18px;line-height:1.5;color:var(--soft);max-width:540px}.lead b{color:var(--ink);font-weight:600}
+.cta{display:flex;align-items:center;justify-content:center;min-height:56px;border-radius:14px;background:var(--bay);color:#fff;font-weight:600;font-size:17px;text-decoration:none}
+.cta:hover{color:#fff;background:var(--bay-dark)}
+.cta-sub{display:flex;flex-direction:column;align-items:center;gap:6px}
+.cta-sub a{font-weight:600;text-decoration:none;padding:4px}
+.note{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:15px;color:var(--soft);text-align:center}
+section{padding-top:56px}
+h2{font-size:clamp(30px,4vw,40px);line-height:1.15}
+.sub{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:17px;color:var(--soft);margin-top:4px}
+.how-row{list-style:none;padding:0 20px 4px;margin:16px -20px 0;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 20px;scrollbar-width:none}
+.how-row::-webkit-scrollbar{display:none}
+.how-card{flex:none;width:min(300px,82vw);scroll-snap-align:start;border-radius:24px;overflow:hidden;display:flex;flex-direction:column}
+.how-card.fog{background:var(--fog)}.how-card.blush{background:var(--blush)}
+.how-pic{height:150px;display:flex;align-items:center;justify-content:center}
+.how-text{padding:0 22px 24px;display:flex;flex-direction:column;gap:6px}
+.how-num{font-size:13px;font-weight:700;letter-spacing:1px;color:var(--bay)}
+.how-text h3{font-size:24px}.how-text p{font-size:16px;line-height:1.5;color:var(--soft)}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:12px}.dots span{width:8px;height:8px;border-radius:4px;background:var(--line)}.dots span:first-child{width:20px;background:var(--bay)}
+.mini{background:#fff;border-radius:16px}
+.mini-list{width:210px;padding:6px 12px}
+.mini-row{display:flex;align-items:center;gap:9px;height:38px}.mini-row.rule{border-bottom:1px solid var(--fog)}
+.mini-badge{width:24px;height:24px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center}.mini-badge.fog{background:var(--fog)}.mini-badge.blush{background:var(--blush)}
+.mini-name{flex:1;font-weight:600;font-size:13px}.mini-count{font-size:11px;color:var(--soft)}
+.mini-listing{width:160px;padding:10px;display:flex;flex-direction:column;gap:6px;transform:rotate(-2deg)}
+.mini-photo{height:70px;border-radius:10px;background:var(--fog);position:relative}
+.free{position:absolute;left:6px;top:6px;height:20px;padding:0 8px;border-radius:999px;background:var(--poppy);font-weight:700;font-size:11px;display:flex;align-items:center}
+.mini-title{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:15px}
+.mini-meta{font-size:11px;line-height:1.35;color:var(--soft)}
+.mini-wish{width:180px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;transform:rotate(1.5deg)}
+.mini-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.have{height:24px;padding:0 9px;border-radius:999px;background:var(--fog);color:var(--bay);font-weight:600;font-size:11px;display:flex;align-items:center;gap:5px}.have .dot{width:6px;height:6px}
+.give-get{display:flex;flex-direction:column;gap:22px}
+.points{display:flex;flex-direction:column;gap:14px}
+.label{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;letter-spacing:1px;color:var(--bay)}
+.ring{width:8px;height:8px;border-radius:50%;border:2px solid var(--bay)}
+.point-title{font-weight:600;font-size:17px}.point p:not(.point-title){font-size:15px;color:var(--soft)}
+.domis{display:flex;flex-direction:column;gap:18px}
+.domis p.lead{font-size:17px}
+.invite{background:var(--blush);border-radius:24px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.faces{display:flex}.faces span{width:34px;height:34px;border-radius:50%;border:2px solid var(--blush);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bay);background:#fff}
+.faces span+span{margin-left:-8px}.faces .bay{background:var(--bay);color:#fff}.faces .fog{background:var(--fog)}
+.invite-title{font-family:Fraunces,Georgia,serif;font-style:italic;font-weight:600;font-size:21px}.invite small{font-size:13px;color:var(--soft)}
+.get{margin-top:56px;background:var(--fog);padding:36px 0 40px}
+.get-inner{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.get .button.secondary{background:#fff}
+.get .timeline .body{padding-bottom:22px}
+.trouble{align-self:center;font-weight:600;font-size:15px}
+footer{display:flex;flex-wrap:wrap;gap:18px;padding:24px 0 32px;font-size:14px}footer span{color:var(--soft);margin-left:auto}
+${STEPS_CSS}
+@media (min-width:900px){
+  .wrap{padding:0 32px}
+  header{padding:24px 0}.logo{font-size:28px}nav .text{display:inline}
+  .hero{flex-direction:row-reverse;align-items:flex-end;gap:48px}
+  .hill{flex:1 1 420px;min-width:0;width:auto;margin:0 0 56px;border-radius:28px}
+  .hero-text{flex:1 1 460px;padding:24px 0 72px;margin:0;background:none;gap:20px}
+  .lead{font-size:19px}
+  .cta{align-self:flex-start;padding:0 28px}.cta-sub{align-items:flex-start}.note{text-align:left}
+  section{padding-top:80px}
+  .how-row{overflow:visible;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+  .how-card{width:auto}.dots{display:none}
+  .give-get{flex-direction:row;gap:48px}.give-get h2{flex:1 1 300px}.points{flex:1 1 260px}
+  .domis{flex-direction:row;align-items:center;gap:48px}.domis>div{flex:1 1 420px}.invite{flex:1 1 360px;padding:32px}
+}
 </style></head>
 <body>
-<header class="wrap">
-<a class="logo" href="/" aria-label="Domi home">${wordmark("poppy")}</a>
-<nav class="main" aria-label="Main">
-<a href="#how">How it works</a>
-<a href="#circles">Domis</a>
-<a class="button" href="#invite">Get Domi</a>
-</nav>
-</header>
+<div class="top"><div class="wrap">
+<header><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>
+<nav><a class="text" href="#how">How it works</a><a class="text" href="#circles">Domis</a><a class="pill" href="#get">Get Domi</a></nav></header>
+<div class="hero">${hillside}
+<div class="hero-text">
+<span class="eyebrow"><span class="dot"></span>Free things, from neighbors</span>
+<h1>Good things find a new home nearby.</h1>
+<p class="lead">Help your stuff find its next owner. <b>Domi</b> is a free app for exchanging things locally. Post what you don't need, ask for what you don't have, and connect to your village.</p>
+<a class="cta" href="#get">Get Domi for iPhone</a>
+<div class="cta-sub"><a href="#how">See how it works</a><p class="note">Domi is in testing. Free, iPhone only for now.</p></div>
+</div></div>
+</div></div>
 
-<main>
-<section class="wrap row hero" aria-labelledby="hero-title">
-<div class="col">
-<p class="eyebrow"><span class="dot"></span>Free things, from neighbors</p>
-<h1 id="hero-title">Good things find a new home nearby.</h1>
-<p class="hero-text">Help your stuff find its next owner. <b>Domi</b> is a free app for exchanging things locally. Post what you don't need, ask for what you don't have, and connect to your village.</p>
-<div class="ctas">
-<div class="cta-row"><a class="button" href="#invite">I have an invite</a><a class="link" href="#how">See how it works</a></div>
-<p class="note">Domi is in private testing. Join by invite.</p>
-</div>
-</div>
-<div class="art-col">
-<div class="art" role="img" aria-label="You in the middle of your neighbors, with a free wooden high chair posted">
-<div class="orbit"></div>
-<div class="you">${poppy("poppy")}</div>
-${neighbors}
-<div class="wish">${heart}Wish: a kids' bike</div>
-<div class="card">
-<div class="card-photo">
-<svg viewBox="0 0 60 80" aria-hidden="true"><path d="M18 6h24"/><path d="M20 6v30"/><path d="M40 6v30"/><path d="M12 36h36"/><path d="M8 30h12"/><path d="M20 36L10 76"/><path d="M40 36l10 40"/><path d="M15 56h30"/></svg>
-<span class="free"><span class="dot"></span>Free</span>
-</div>
-<div class="card-text"><span class="card-title">Wooden high chair</span><span class="card-meta">Kensington · 3 neighbors asked</span></div>
-</div>
-</div>
-</div>
+<main class="wrap">
+<section id="how">
+<h2>How Domi works</h2>
+<p class="sub">Three things, all free.</p>
+<ol class="how-row">${cards}</ol>
+<div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
 </section>
 
-<section class="wrap how" id="how" aria-labelledby="how-title">
-<div><h2 id="how-title">How Domi works</h2><p class="sub">Three things, all free.</p></div>
-<ol class="steps">${steps}</ol>
-</section>
-
-<section class="both" aria-labelledby="both-title">
-<div class="wrap">
-<h2 id="both-title">Easy to give. <br>Nice to get.</h2>
-<div class="sides">
-<div class="side">
-<h3><span class="dot"></span>Giving</h3>
+<section class="give-get">
+<h2>Easy to give.<br>Nice to get.</h2>
+<div class="points"><span class="label"><span class="dot"></span>GIVING</span>
 ${point("Share with community, not a drop-off bin.", "Pick the person who'll use it next.")}
-${point("Streamline neighborhood pickup.", "No comment threads, no trash on your sidewalk.")}
-</div>
-<div class="side">
-<h3><span class="hollow"></span>Getting</h3>
+${point("Streamline neighborhood pickup.", "No comment threads, no trash on your sidewalk.")}</div>
+<div class="points"><span class="label"><span class="ring"></span>GETTING</span>
 ${point("Why buy new?", "Someone nearby has one they're done with.")}
-${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to the next neighbor.")}
-</div>
-</div>
-</div>
+${point("Ask privately, pass it on later.", "When you've outgrown it, it goes to the next neighbor.")}</div>
 </section>
 
-<section class="wrap row circles" id="circles" aria-labelledby="circles-title">
-<div class="col">
-<h2 id="circles-title">Your neighborhood, and the people you choose.</h2>
-<p class="lead">Your village isn't just the people who live next door. Start as many domis as you want and invite friends in easily with a link.</p>
-<ul class="chips" aria-label="Examples">
-<li class="on">${poppy("chip-poppy", "white")}Kensington</li>
-<li>Maya's baby shower</li>
-<li>Cedar St. building</li>
-<li>Thursday soccer parents</li>
-</ul>
-</div>
-<div class="invite-col">
-<div class="invite">
-<div class="faces" aria-hidden="true"><span style="background:var(--bay);color:#fff">M</span><span style="background:#fff;color:var(--bay)">J</span><span style="background:var(--fog);color:var(--bay)">A</span></div>
-<p class="invite-title">Maya invited you to<br>Maya's baby shower</p>
-<p class="invite-meta">14 people · invite only</p>
-<div class="code-box"><span class="code">K7Q2-M9</span><span class="code-label">Invite code</span></div>
-</div>
-</div>
-</section>
-
-<section class="wrap closing" id="invite" aria-labelledby="invite-title">
-<div class="band">
-<div>
-<h2 id="invite-title">Outgrown, not outrun.</h2>
-<p>Domi is in private testing. Got an invite link from a neighbor? Open it on your phone to join their domi.</p>
-</div>
-<a class="button" href="mailto:support@domicircles.com?subject=Domi%20invite">Ask for an invite</a>
-</div>
+<section id="circles" class="domis">
+<div><h2>Your neighborhood, and the people you choose.</h2>
+<p class="lead" style="margin-top:16px">Your village isn't just the people who live next door. Start as many domis as you want and invite friends in easily with a link.</p></div>
+<div class="invite"><div class="faces"><span class="bay">M</span><span>J</span><span class="fog">A</span></div>
+<p class="invite-title">Maya invited you to Maya's baby shower</p><small>14 people · invite only</small></div>
 </section>
 </main>
 
-<footer class="wrap">
-<div class="foot-left"><span class="foot-logo">${wordmark("poppy")}</span><span>© 2026 Domi. Free things, close to home.</span></div>
-<nav aria-label="Footer"><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:support@domicircles.com">support@domicircles.com</a></nav>
-</footer>
+<section id="get" class="get"><div class="wrap"><div class="get-inner">
+<h2>Get Domi</h2>
+${installSteps(env, { pageUrl: "https://domicircles.com", askWho: "the person who sent you here" })}
+<a class="trouble" href="/support">Trouble installing?</a>
+</div></div></section>
+
+<footer class="wrap"><a href="/support">Help</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><span>© 2026 Domi. Free things, close to home.</span></footer>
 </body></html>`;
+}

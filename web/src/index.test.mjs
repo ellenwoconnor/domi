@@ -44,7 +44,8 @@ test("invite page shows the domi, the code, and a link preview", async () => {
   assert.match(html, /7K2M-QX9P/);
   assert.match(html, /domi:\/\/c\/7K2MQX9P/);
   assert.match(html, /12 members/);
-  assert.match(html, /Sam invited you to join <b>Baby Shower<\/b> on Domi\. A domi is the people near you who share what they have\./);
+  assert.match(html, /<p class="invited">Sam invited you to<\/p>/);
+  assert.match(html, /<b>Domi<\/b> is a free app for giving things away to people you know\./);
   assert.equal((await get("/c/NOPENOPE")).status, 404);
 });
 
@@ -158,14 +159,17 @@ test("support page is served with the FAQ and contact email, and pages link to i
   assert.match(await (await get("/terms")).text(), /href="\/support"/);
 });
 
-test("/beta is short: what Domi is, a note, and the steps; the Domi link comes from TESTFLIGHT_URL", async () => {
-  const without = await (await get("/beta")).text();
-  assert.match(without, /You're invited to try <b>Domi<\/b>/);
-  assert.match(without, /open to friends and family for now/);
+test("/beta now goes to the Get Domi section of the home page, whose Domi link comes from TESTFLIGHT_URL", async () => {
+  const beta = await get("/beta");
+  assert.equal(beta.status, 302);
+  assert.equal(beta.headers.get("location"), "https://domicircles.com/#get");
+
+  const without = await (await get("/")).text();
+  assert.match(without, /id="get"/);
   assert.match(without, /apps\.apple\.com\/app\/testflight\/id899247664/);
   assert.match(without, /Ask the person who sent you here to send you the Domi test link/);
 
-  const res = await worker.fetch(new Request("https://domicircles.com/beta"), {
+  const res = await worker.fetch(new Request("https://domicircles.com/"), {
     ...env,
     TESTFLIGHT_URL: "https://testflight.apple.com/join/AbC123",
   });
@@ -188,7 +192,6 @@ test("invite and listing pages show the steps, ask the inviter or owner for the 
   const listing = await (await get("/i/AAAABBBB")).text();
   assert.match(listing, /Ask Ellen to send you the Domi test link/);
   assert.match(listing, /href="domi:\/\/i\/AAAABBBB">See it in Domi/);
-  assert.match(listing, /Or type this code in Domi/);
 });
 
 test("the open-in-Domi button has a hidden hint for when Domi isn't installed", async () => {
@@ -196,7 +199,7 @@ test("the open-in-Domi button has a hidden hint for when Domi isn't installed", 
     "invites:preview": ({ code }) => ({ code, name: "Baby Shower", emoji: "🍼", description: null, memberCount: 3, invitedBy: "Sam" }),
   });
   const invite = await (await get("/c/7K2MQX9P")).text();
-  assert.match(invite, /<a class="button" onclick="[^"]*no-app[^"]*" href="domi:/);
+  assert.match(invite, /<a class="button give" onclick="[^"]*no-app[^"]*" href="domi:/);
   assert.match(invite, /<p class="hint" id="no-app" role="status" hidden>Nothing happened\? You may not have Domi yet/);
 });
 
