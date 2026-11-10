@@ -17,6 +17,7 @@ import { useAuthState } from "../src/features/auth/useAuthState";
 import { useRedeemSavedCodes } from "../src/features/auth/useRedeemSavedCodes";
 import { usePushSetup } from "../src/features/push/usePushSetup";
 import { secureStorage } from "../src/lib/authStorage";
+import { ConnectionNotice } from "../src/ui/ConnectionNotice";
 import { convex, queryClient } from "../src/lib/convex";
 import { color, space, type } from "../src/ui/theme";
 
@@ -69,6 +70,7 @@ function AppStack() {
   return (
     <>
       {loading ? null : <Screens state={state} />}
+      {loading || state === "signedOut" ? null : <ConnectionNotice />}
       {closing ? (
         <View style={styles.closing} accessibilityLiveRegion="polite">
           <ActivityIndicator color={color.bay} />
