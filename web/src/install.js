@@ -58,7 +58,7 @@ export const STEPS_CSS = `
  * follows. `pageUrl` is shown to people on a computer, who can only install on
  * an iPhone.
  */
-export function installSteps(env, { pageUrl, openUrl, code, kind, join, domiName, askWho = "the person who invited you", handoffTitle = "Open this on your iPhone" } = {}) {
+export function installSteps(env, { pageUrl, openUrl, code, kind, join, domiName, askWho = "the person who invited you", handoffTitle = "Open this on your iPhone", handoffText = "Domi is iPhone only for now. Open this page on your iPhone, and it walks you through installing." } = {}) {
   const link = env?.TESTFLIGHT_URL;
   const keep = code ? ` onclick="keepCode()"` : "";
   const script = code
@@ -66,7 +66,7 @@ export function installSteps(env, { pageUrl, openUrl, code, kind, join, domiName
     : "";
   const handoff = pageUrl
     ? `<div class="handoff"><p class="handoff-title">${esc(handoffTitle)}</p>
-        <p>Domi is iPhone only for now. Open this page on your iPhone, and it walks you through installing.</p>
+        <p>${esc(handoffText)}</p>
         <div class="url-row"><span class="url">${esc(pageUrl.replace(/^https:\/\//, ""))}</span><button class="copy" onclick="${copyJs(pageUrl, "Copied")}">Copy link</button></div>
         <p class="meta">Text or email it to yourself, or AirDrop it.</p></div>`
     : "";

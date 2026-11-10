@@ -194,21 +194,36 @@ function sharePage(p, code, origin, env) {
   const title = `Free: ${p.title}`;
   const desc = `${p.description}`.slice(0, 200);
   const photo = p.photoUrl ? `${origin}/p/${code}` : null;
+  const details = `<div class="listing">
+        <span class="free">Free${p.status === "pending" ? " · pending pickup" : ""}</span>
+        <h1>${esc(p.title)}</h1>
+        <p class="body">${esc(p.description)}</p>
+        <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
+        <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
+      </div>`;
+  const steps = installSteps(env, {
+    pageUrl: `https://domicircles.com/i/${fmt(code)}`,
+    openUrl: `domi://i/${code}`,
+    code,
+    kind: "i",
+    join: "See it in Domi",
+    askWho: p.ownerName,
+    handoffTitle: `Ask ${p.ownerName} for it on your iPhone`,
+    handoffText: `Asking happens in the Domi app, which is iPhone only for now. Send this link to your iPhone and open it there. It walks you through installing Domi and asking for it.`,
+  });
+  // With a photo: the photo on the left on a computer; the details, then the steps, on the right.
+  // On a phone the same order reads top to bottom: photo, details, steps.
   return layout({
     title,
     desc,
     image: photo,
     body: `
       <p class="intro"><b>${esc(p.ownerName)}</b> is giving this away on Domi, an app for sharing things with the people near you.</p>
-      <div class="hero-col listing">
-        ${photo ? `<img class="photo" src="${esc(photo)}" alt="${esc(p.title)}">` : ""}
-        <span class="free">Free${p.status === "pending" ? " · pending pickup" : ""}</span>
-        <h1>${esc(p.title)}</h1>
-        <p class="body">${esc(p.description)}</p>
-        <p class="meta">From ${esc(p.ownerName)}${p.circleName ? ` in ${esc(p.circleName)}` : ""}</p>
-        <p class="body"><b>${esc(p.ownerName)} picks who gets it.</b></p>
-      </div>
-      <div class="act-col">${installSteps(env, { pageUrl: `https://domicircles.com/i/${fmt(code)}`, openUrl: `domi://i/${code}`, code, kind: "i", join: "See it in Domi", askWho: p.ownerName, handoffTitle: "See it on your iPhone" })}</div>`,
+      ${photo
+        ? `<div class="hero-col"><img class="photo" src="${esc(photo)}" alt="${esc(p.title)}"></div>
+      <div class="act-col share-col">${details}${steps}</div>`
+        : `<div class="hero-col">${details}</div>
+      <div class="act-col">${steps}</div>`}`,
   });
 }
 
@@ -269,6 +284,9 @@ ${STEPS_CSS}
   .hero-col{grid-column:1}.act-col{grid-column:2;align-self:center}
   .hero-col .card{padding:48px 32px;gap:10px}.hero-col .disc{width:104px;height:104px;font-size:52px}
   .hero-col h1{font-size:48px;line-height:1.05}
+  /* Shared listing: a photo no taller than the window, details beside it, read from the top. */
+  .hero-col .photo{max-height:calc(100vh - 180px);max-width:520px;justify-self:end;display:block;margin-left:auto}
+  .share-col{align-self:start;gap:28px}.share-col h1{font-size:44px;line-height:1.1}
   footer{justify-content:flex-start;border-top:1px solid var(--line);padding-top:20px}
 }
 </style></head>
