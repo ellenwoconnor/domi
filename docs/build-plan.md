@@ -86,9 +86,9 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 #### 1a. Switch to an external TestFlight group with a public link
 Internal testing makes each person accept two emails in order (App Store Connect, then TestFlight). An external group with a public link needs neither: tap link → install TestFlight → install Domi.
 - [ ] Seed the App Review circle on prod and make the review account (steps in `docs/app-review.md`, "Before submitting" step 2).
-- [ ] App Store Connect: App Privacy answers, description, support URL (domicircles.com/support), privacy URL (`docs/app-review.md` steps 3 and 4).
-- [ ] Create the external group, turn on the public link, add the build, and submit for Beta App Review with the review notes (`docs/app-review.md` step 5). Usually takes about a day. Later builds of the same version often skip review.
-- [ ] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml`, then `cd web && npx wrangler deploy`, so the "Get Domi" step on invite, listing and /beta pages works. Until then step 2 says "Ask <inviter> to send you the Domi test link." (Get it: App Store Connect › Domi › TestFlight › the external group › Public Link, after Beta App Review approves a build. Looks like `https://testflight.apple.com/join/…`.)
+- [x] App Store Connect: App Privacy answers, description, support URL (domicircles.com/support), privacy URL (`docs/app-review.md` steps 3 and 4).
+- [x] (Approved 2026-11-10; group "dominos", public link https://testflight.apple.com/join/ZNuE3qN7.) Create the external group, turn on the public link, add the build, and submit for Beta App Review with the review notes (`docs/app-review.md` step 5). Usually takes about a day. Later builds of the same version often skip review.
+- [x] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml`, then `cd web && npx wrangler deploy`, so the "Get Domi" step on invite, listing and /beta pages works. Until then step 2 says "Ask <inviter> to send you the Domi test link." (Get it: App Store Connect › Domi › TestFlight › the external group › Public Link, after Beta App Review approves a build. Looks like `https://testflight.apple.com/join/…`.)
 - [ ] Move current internal testers over: send them the public link. Keep the internal group for yourself, since internal builds skip review.
 
 #### 1b. Production backend and website

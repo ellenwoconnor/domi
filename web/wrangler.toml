@@ -12,7 +12,7 @@ CONVEX_URL = "https://rugged-dragon-667.convex.cloud"
 ANDROID_SHA256 = ""
 # TestFlight public link for the external tester group (testflight.apple.com/join/...).
 # Shown on /beta and on invite and listing pages. Empty: they say to ask for the link.
-TESTFLIGHT_URL = ""
+TESTFLIGHT_URL = "https://testflight.apple.com/join/ZNuE3qN7"
 
 # Report alerts (src/alerts.js): sends from alerts@domicircles.com through
 # Cloudflare Email Routing. The recipient is the REPORT_ALERT_TO secret.
