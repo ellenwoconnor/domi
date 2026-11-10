@@ -66,7 +66,11 @@ export async function endSelection(
 ) {
   await ctx.db.patch(request._id, { status: how === "unpicked" ? "cancelled" : "withdrawn", updatedAt: now });
   await closeConversationsFor(ctx, request._id, now);
-  if (item.status === "pending") await ctx.db.patch(item._id, { status: "available", updatedAt: now });
+  if (item.status === "pending") {
+    // An un-picked offer (a private listing for one wish) ends: un-picking it means the giver can't give it.
+    const ends = how === "unpicked" && item.visibility === "private";
+    await ctx.db.patch(item._id, { status: ends ? "removed" : "available", updatedAt: now });
+  }
   if (!notify) return;
 
   const t = item.title;
@@ -79,11 +83,9 @@ export async function endSelection(
       itemId: item._id,
       requestId: request._id,
       title: t,
-      body: noShow
-        ? `${owner} said the pickup for the ${t} didn't happen, so it's available again.`
-        : item.visibility === "private"
-          ? `${owner} can't give you the ${t} anymore.`
-          : `${owner} has cancelled this exchange.`, // the push title names the item
+      // One gentle line for every un-pick, no-shows included (the push title names the item).
+      // The person can't ask for it again; the listing shows as closed for them.
+      body: `${owner} cancelled this exchange.`,
     });
   } else {
     const who = await displayName(ctx, request.requesterId);
@@ -105,7 +107,10 @@ export async function withdrawRequest(ctx: Ctx, request: Doc<"requests">, now: n
     await ctx.db.patch(request._id, { status: "withdrawn", updatedAt: now });
   } else if (request.status === "selected") {
     const item = await ctx.db.get(request.itemId);
-    if (item) await endSelection(ctx, item, request, "withdrew", now, { notify });
+    // Already picked up: the exchange is done, so there's nothing to undo. Leaving a domi or a
+    // suspension afterwards must not close the thank-you chat or tell the giver they "can't take it".
+    if (!item || item.status === "gone") return;
+    await endSelection(ctx, item, request, "withdrew", now, { notify });
   }
 }
 

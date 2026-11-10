@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { api } from "./_generated/api";
-import { doc, eventsFor, newUser, post, setup } from "./lib/testing.helpers";
+import { circle, doc, eventsFor, invite, newUser, post, setup } from "./lib/testing.helpers";
 
 describe("requests and the item lifecycle (M4)", () => {
   test("request with a note; the owner sees it; you can't request your own item or twice", async () => {
@@ -59,11 +59,39 @@ describe("requests and the item lifecycle (M4)", () => {
     expect((await doc(t, itemId))?.status).toBe("available");
     expect((await doc(t, rMaya))?.status).toBe("cancelled");
     expect((await doc(t, conv))?.closedAt).toBeDefined();
-    expect((await eventsFor(t, maya.userId)).at(-1)?.type).toBe("unpicked");
+    expect((await eventsFor(t, maya.userId)).at(-1)).toMatchObject({ type: "unpicked", body: "Ellen cancelled this exchange." });
+
+    // Un-picked: the listing is closed for Maya. She can't ask again; her screens say why.
+    await expect(maya.as.mutation(api.requests.create, { itemId })).rejects.toThrow("Ellen cancelled this exchange");
+    expect((await maya.as.query(api.items.get, { itemId })).myRequest?.status).toBe("cancelled");
+    expect((await maya.as.query(api.conversations.get, { conversationId: conv })).ending).toBe("cancelled");
+    expect((await maya.as.query(api.mystuff.getting, {})).find((r) => r.itemId === itemId)?.status).toBe(
+      "Ellen cancelled this exchange",
+    );
 
     // The owner picks the next person from the same line.
     await ellen.as.mutation(api.items.selectRecipient, { requestId: rSam });
     expect((await doc(t, itemId))?.status).toBe("pending");
+  });
+
+  test("after pickup, leaving the domi changes nothing: the chat stays open and the giver isn't told anything", async () => {
+    const t = await setup();
+    const ellen = await newUser(t, "Ellen");
+    const maya = await newUser(t, "Maya");
+    const domi = await circle(ellen);
+    await invite(ellen, maya, domi);
+    const itemId = await post(t, ellen, [domi]);
+    const r = await maya.as.mutation(api.requests.create, { itemId });
+    const conv = await ellen.as.mutation(api.items.selectRecipient, { requestId: r });
+    await ellen.as.mutation(api.items.markPickedUp, { itemId });
+    const before = (await eventsFor(t, ellen.userId)).length;
+    await expect(maya.as.mutation(api.requests.withdraw, { requestId: r })).rejects.toThrow("already picked up");
+
+    await maya.as.mutation(api.communities.leave, { communityId: domi });
+    expect((await doc(t, itemId))?.status).toBe("gone");
+    expect((await doc(t, r))?.status).toBe("selected");
+    expect((await doc(t, conv))?.closedAt).toBeUndefined();
+    expect(await eventsFor(t, ellen.userId)).toHaveLength(before);
   });
 
   test("recipient withdraws → owner is told and the item is available", async () => {
@@ -76,6 +104,8 @@ describe("requests and the item lifecycle (M4)", () => {
     await maya.as.mutation(api.requests.withdraw, { requestId: r });
     expect((await doc(t, itemId))?.status).toBe("available");
     expect((await eventsFor(t, ellen.userId)).at(-1)?.body).toBe("Maya can't take the Crib anymore.");
+    // Withdrawing isn't being un-picked: Maya can ask again, on the same request.
+    expect(await maya.as.mutation(api.requests.create, { itemId })).toBe(r);
   });
 
   test("mark picked up → gone; recipient and the line hear about it", async () => {

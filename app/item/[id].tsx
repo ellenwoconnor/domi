@@ -85,7 +85,9 @@ export default function ItemDetail() {
   const owner = item.owner.displayName;
   const away = distanceLabel(me, item);
   const yours = !item.isOwner && item.myRequest?.status === "selected" && (pending || item.status === "gone");
-  const ownerBarHidden = item.isOwner && item.status === "available" && !chosen;
+  // Un-picked: the owner cancelled the exchange, and the listing is closed for this person (they can't ask again).
+  const cancelled = !item.isOwner && item.myRequest?.status === "cancelled";
+  const ownerBarHidden = (item.isOwner && item.status === "available" && !chosen) || cancelled;
   const asked = item.myRequest && (item.myRequest.status === "open" || item.myRequest.status === "selected") ? item.myRequest : null;
 
   const send = async () => {
@@ -135,7 +137,7 @@ export default function ItemDetail() {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
         <View>
-          <PhotoPager urls={item.photoUrls} dimmed={pending} />
+          <PhotoPager urls={item.photoUrls} dimmed={pending || cancelled} height={cancelled ? 260 : undefined} />
           <Pressable
             onPress={() => router.back()}
             accessibilityLabel="Back"
@@ -144,7 +146,7 @@ export default function ItemDetail() {
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
           {item.isOwner ? <OwnerPhotoActions item={item} top={insets.top + space.sm} /> : null}
-          {item.status === "available" && !item.isOwner && (
+          {item.status === "available" && !item.isOwner && !cancelled && (
             <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
               <View style={styles.freeDot} />
               <Text style={styles.freeText}>Free</Text>
@@ -165,7 +167,9 @@ export default function ItemDetail() {
             </>
           ) : null}
 
-          {item.isOwner ? null : <View style={styles.owner}>
+          {cancelled ? (
+            <Text style={[type.meta, { marginTop: -space.lg }]}>From {owner}</Text>
+          ) : item.isOwner ? null : <View style={styles.owner}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{owner.charAt(0)}</Text>
             </View>
@@ -191,12 +195,32 @@ export default function ItemDetail() {
             </View>
           ) : null}
 
-          {!item.isOwner ? <PastChats item={item} /> : null}
+          {/* Closed for you (design 2d, 2026-11-10): one card says why, with the way back to the chat. Nothing else to read. */}
+          {cancelled ? (
+            <View style={styles.closedCard}>
+              <View style={{ padding: space.md, gap: 4 }}>
+                <Text style={[type.label, { fontSize: 16, lineHeight: 21 }]}>{owner} cancelled this exchange.</Text>
+                <Text style={type.meta}>This listing is closed for you.</Text>
+              </View>
+              {item.pastChats[0] ? (
+                <Pressable
+                  onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.pastChats[0].id } })}
+                  accessibilityRole="button"
+                  style={styles.closedChatRow}
+                >
+                  <Text style={[type.label, { color: color.bay, fontSize: 15 }]}>See your chat</Text>
+                  <Ionicons name="chevron-forward" size={18} color={color.bay} />
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
 
-          {item.description ? <Text style={type.body}>{item.description}</Text> : null}
+          {!item.isOwner && !cancelled ? <PastChats item={item} /> : null}
+
+          {item.description && !cancelled ? <Text style={type.body}>{item.description}</Text> : null}
 
           {/* Offers for a wish go to one person, not to circles. */}
-          {item.circles.length > 0 ? (
+          {item.circles.length > 0 && !cancelled ? (
             <View style={{ gap: space.sm }}>
               <Text style={type.label}>{item.isOwner ? "Posted in" : "Shared with"}</Text>
               <View style={styles.circleRow}>
@@ -209,7 +233,7 @@ export default function ItemDetail() {
             </View>
           ) : null}
 
-          {item.isOwner ? null : <View style={styles.privacy}>
+          {item.isOwner || cancelled ? null : <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
               {item.isOwner
@@ -415,6 +439,16 @@ const styles = StyleSheet.create({
     backgroundColor: color.bay,
     alignItems: "center",
     justifyContent: "center",
+  },
+  closedCard: { backgroundColor: color.fog, borderRadius: radius.thing, overflow: "hidden" },
+  closedChatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: space.md,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: color.line,
   },
   yours: { backgroundColor: color.blush, borderRadius: radius.sheet, padding: space.xl, alignItems: "center", gap: space.md },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },

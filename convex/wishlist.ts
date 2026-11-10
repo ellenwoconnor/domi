@@ -290,6 +290,7 @@ export const pickOffer = mutation({
       .query("requests")
       .withIndex("by_item_requester", (q) => q.eq("itemId", item._id).eq("requesterId", userId))
       .first();
+    if (existing?.status === "cancelled") fail(`${await displayName(ctx, item.ownerId)} cancelled this exchange`);
     const requestId =
       existing?._id ?? (await ctx.db.insert("requests", { itemId: item._id, requesterId: userId, status: "open", updatedAt: now }));
     const conversationId = await openSelection(ctx, item, requestId, userId, now);

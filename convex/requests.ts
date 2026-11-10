@@ -28,6 +28,8 @@ export const create = mutation({
       .withIndex("by_item_requester", (q) => q.eq("itemId", item._id).eq("requesterId", userId))
       .first();
     if (existing && (existing.status === "open" || existing.status === "selected")) fail("You've already requested this");
+    // Un-picked (the owner cancelled the exchange): this listing is closed for them.
+    if (existing?.status === "cancelled") fail(`${await displayName(ctx, item.ownerId)} cancelled this exchange`);
 
     // Cap: open requests on live items.
     const open = await ctx.db
@@ -82,6 +84,7 @@ export const withdraw = mutation({
     const request = await ctx.db.get(requestId);
     if (!request || request.requesterId !== userId) fail("Request not found");
     if (request.status !== "open" && request.status !== "selected") fail("This request is already closed");
+    if ((await ctx.db.get(request.itemId))?.status === "gone") fail("This was already picked up");
     await withdrawRequest(ctx, request, Date.now());
   },
 });

@@ -89,6 +89,27 @@ describe("wishes and offers", () => {
     expect((await doc(t, joOffer))?.status).toBe("pending");
   });
 
+  test("the offerer un-picks: the offer ends, the wisher is told gently and can pick another", async () => {
+    const t = await setup();
+    const maya = await newUser(t, "Maya");
+    const sam = await newUser(t, "Sam");
+    const jo = await newUser(t, "Jo");
+    const wishId = await maya.as.mutation(api.wishlist.create, { title: "Cello", communityIds: [maya.zipCircle] });
+    const samOffer = await offer(t, sam, wishId, "Cello");
+    const joOffer = await offer(t, jo, wishId, "Cello");
+    await maya.as.mutation(api.wishlist.pickOffer, { itemId: samOffer });
+    await sam.as.mutation(api.items.unpick, { itemId: samOffer });
+
+    expect((await doc(t, samOffer))?.status).toBe("removed");
+    expect((await eventsFor(t, maya.userId)).at(-1)).toMatchObject({ type: "unpicked", body: "Sam cancelled this exchange." });
+    await expect(maya.as.mutation(api.wishlist.pickOffer, { itemId: samOffer })).rejects.toThrow();
+    // Maya still sees the ended offer (closed for her), but it's gone from her wish's offers.
+    expect((await maya.as.query(api.items.get, { itemId: samOffer })).myRequest?.status).toBe("cancelled");
+    expect((await maya.as.query(api.wishlist.offers, { wishId })).map((o) => o.id)).toEqual([joOffer]);
+    await maya.as.mutation(api.wishlist.pickOffer, { itemId: joOffer });
+    expect((await doc(t, joOffer))?.status).toBe("pending");
+  });
+
   test("removing a wish removes its offers and tells the offerers", async () => {
     const t = await setup();
     const maya = await newUser(t, "Maya");

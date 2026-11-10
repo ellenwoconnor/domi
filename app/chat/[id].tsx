@@ -364,7 +364,7 @@ export default function Chat() {
         <View style={[styles.ended, { paddingBottom: insets.bottom + space.md }]}>
           <Ionicons name="lock-closed-outline" size={18} color={color.inkSoft} />
           <View style={{ flex: 1 }}>
-            <Text style={type.label}>This chat has ended.</Text>
+            <Text style={type.label}>{endedLine(conv.ending, owner, other)}</Text>
             <Text style={type.meta}>You can still read it here and from the listing.</Text>
           </View>
         </View>
@@ -470,3 +470,10 @@ const styles = StyleSheet.create({
     paddingTop: space.lg,
   },
 });
+
+/** Why a closed chat ended, in the same gentle words as the push. Older servers send no reason. */
+function endedLine(ending: "cancelled" | "withdrawn" | null | undefined, owner: boolean, other: string) {
+  if (ending === "cancelled") return owner ? "You cancelled this exchange." : `${other} cancelled this exchange.`;
+  if (ending === "withdrawn") return owner ? `${other} can't take it anymore.` : "You said you can't take it.";
+  return "This chat has ended.";
+}

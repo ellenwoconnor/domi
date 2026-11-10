@@ -19,6 +19,11 @@ async function requireParticipant(ctx: QueryCtx, conversationId: Id<"conversatio
   return c;
 }
 
+async function chatEnding(ctx: QueryCtx, c: Doc<"conversations">): Promise<"cancelled" | "withdrawn" | null> {
+  const request = await ctx.db.get(c.requestId);
+  return request?.status === "cancelled" || request?.status === "withdrawn" ? request.status : null;
+}
+
 async function summary(ctx: QueryCtx, c: Doc<"conversations">, userId: Id<"users">) {
   const otherId = c.ownerId === userId ? c.recipientId : c.ownerId;
   const item = await ctx.db.get(c.itemId);
@@ -42,6 +47,9 @@ async function summary(ctx: QueryCtx, c: Doc<"conversations">, userId: Id<"users
       ? { id: item._id, title: item.title, status: item.status, photoUrl: await firstThumbUrl(ctx, item) }
       : null,
     closed: c.closedAt !== undefined,
+    // Why a closed chat ended, so each side gets a plain reason: the owner un-picked ("cancelled"),
+    // the recipient couldn't take it ("withdrawn"), or null (the listing ended, or a block).
+    ending: c.closedAt === undefined ? null : await chatEnding(ctx, c),
     // The domi flower, once the person who got the item has sent it.
     thanks: c.thankedAt !== undefined ? { at: c.thankedAt, note: c.thankNote ?? null } : null,
     lastMessage: last ? { body: last.body, senderId: last.senderId, at: last._creationTime } : null,

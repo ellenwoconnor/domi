@@ -197,7 +197,12 @@ export async function gettingRows(ctx: QueryCtx, userId: Id<"users">): Promise<S
       } else {
         // Endings: shown briefly, gently, then gone.
         if (now - r.updatedAt > RECENT_MS) continue;
-        line = item.status === "gone" ? "Went to someone else" : "No longer available";
+        line =
+          status === "cancelled"
+            ? `${owner} cancelled this exchange`
+            : item.status === "gone"
+              ? "Went to someone else"
+              : "No longer available";
         ended = true;
       }
 

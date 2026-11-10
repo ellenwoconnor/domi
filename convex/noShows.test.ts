@@ -32,7 +32,7 @@ describe("missed pickups", () => {
     expect((await doc(t, rSam))?.status).toBe("open");
     const last = (await eventsFor(t, maya.userId)).at(-1);
     expect(last?.type).toBe("unpicked");
-    expect(last?.body).toBe("Ellen said the pickup for the Crib didn't happen, so it's available again.");
+    expect(last?.body).toBe("Ellen cancelled this exchange.");
     const rows = await t.run((ctx) => ctx.db.query("noShows").collect());
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ requesterId: maya.userId, ownerId: ellen.userId, itemId });
@@ -47,7 +47,7 @@ describe("missed pickups", () => {
     await ellen.as.mutation(api.items.selectRecipient, { requestId: r });
     await ellen.as.mutation(api.items.unpick, { itemId });
     expect(await t.run((ctx) => ctx.db.query("noShows").collect())).toHaveLength(0);
-    expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe("Ellen has cancelled this exchange.");
+    expect((await eventsFor(t, maya.userId)).at(-1)?.body).toBe("Ellen cancelled this exchange.");
   });
 
   test("only the owner can mark a no-show", async () => {

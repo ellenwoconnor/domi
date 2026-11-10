@@ -4,11 +4,13 @@ import { PhotoTile } from "../../ui/PhotoTile";
 import { color } from "../../ui/theme";
 
 /** Full-width photos you swipe through, with dots when there's more than one. */
-export function PhotoPager({ urls, dimmed = false }: { urls: string[]; dimmed?: boolean }) {
+export function PhotoPager({ urls, dimmed = false, height }: { urls: string[]; dimmed?: boolean; height?: number }) {
   const { width } = useWindowDimensions();
+  // Square by default; a fixed height crops it (a listing that's closed for you shows a shorter photo).
+  const size = height ? { width, height } : { width, aspectRatio: 1 };
   const [page, setPage] = useState(0);
   if (urls.length <= 1) {
-    return <PhotoTile uri={urls[0]} rounded={false} dimmed={dimmed} style={{ width, aspectRatio: 1 }} />;
+    return <PhotoTile uri={urls[0]} rounded={false} dimmed={dimmed} style={size} />;
   }
   return (
     <View>
@@ -20,7 +22,7 @@ export function PhotoPager({ urls, dimmed = false }: { urls: string[]; dimmed?: 
         accessibilityLabel={`Photo ${page + 1} of ${urls.length}`}
       >
         {urls.map((uri) => (
-          <PhotoTile key={uri} uri={uri} rounded={false} dimmed={dimmed} style={{ width, aspectRatio: 1 }} />
+          <PhotoTile key={uri} uri={uri} rounded={false} dimmed={dimmed} style={size} />
         ))}
       </ScrollView>
       <View style={styles.dots} pointerEvents="none">
