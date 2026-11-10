@@ -69,7 +69,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 
 **This is the one to-do list for launch.** Tick items here. It replaces the M6 checklist, the open "Cost controls" items and the "To do" list (2026-10-25), which are all folded in below.
 
-**Rule for scope:** an item goes in a phase only if that phase's goal fails without it. Everything else waits in "Later".
+**Rule for scope:** an item goes in a phase only if that phase's goal fails without it. Everything else lives in the [Domi backlog](https://claude.ai/artifact/GB4FgkQLYB6MC6aUHXGf77) (since 2026-11-10), each item with the trigger that pulls it into a phase.
 
 **Target dates (set 2026-11-03):**
 
@@ -95,7 +95,7 @@ Internal testing makes each person accept two emails in order (App Store Connect
 Prod (`rugged-dragon-667`) exists and `wrangler.toml` already points at it (not committed yet).
 - [ ] Check prod: full zip table loaded, `DEV_PASSWORD_AUTH` not set, report alerts sent and received (`web/README.md`).
 - [ ] Commit `web/wrangler.toml` and `convex/_generated`, then `cd web && npx wrangler deploy`.
-- [ ] Move Convex to Starter (pay as you go, $0 base) **before** sending the public link. On the free plan, a hit cap breaks the app for everyone.
+- [x] (Done 2026-11-10, $40/month limit.) Move Convex to Starter (pay as you go, $0 base) **before** sending the public link. On the free plan, a hit cap breaks the app for everyone.
 - [ ] Merge branch `zip-limit-no-shows` (zip change limit, mark missed pickup) once tests pass, and ship it with `npm run update:production`.
 
 #### 1c. Stability: one full run on real phones
@@ -117,9 +117,6 @@ Settle what testers see first: the app icon, the TestFlight description, the web
 - [ ] Pick the tagline ("Pass it on, close to home." / "Good things stay in the neighborhood." / "Give it a new home nearby.") and use it on the home page, the TestFlight and App Store description, and invite pages.
 - [ ] Replace or keep the home page headline "Outgrown, not outrun." (`web/src/home.js`). It reads as confusing.
 - [ ] Lock the logo and app icon for the TestFlight build (icon changes need a new build). A designer's pass on the logo can come later.
-- [ ] Functional colors for success, errors and item states, so they never borrow Poppy. Add them to `src/ui/theme.ts`.
-- [ ] Trademark search on "Domi" and "Domi Circles" (USPTO), plus a short backup domain. Do it before paying for more brand assets.
-- [ ] Update the Brand Strategy doc to match the MVP: mark the decisions above, and drop selling, bids, price drops and karma, which aren't in the launch build. Retire "Corcles" in the product doc and white paper.
 
 #### 1f. Feedback for this phase
 - **Decision:** don't build anything. Use TestFlight's built-in feedback (screenshot, then Share Beta Feedback) plus a group text. Tell testers how in the invite message.
@@ -135,7 +132,6 @@ Settle what testers see first: the app icon, the TestFlight description, the web
 #### 2a. Instrumentation
 - [ ] **First, write down 5–8 questions**, for example: share of invitees who finish signup; first post within 7 days; requests per listing; time to first request; share of listings picked up; weekly return; who invites whom.
 - [ ] **Decision to make (recommendation):** answer most of these from data Convex already has (the `events` table, items, requests, memberships) with one `analytics` query you run with `npx convex run`. No new vendor. Add PostHog (free tier, Expo SDK) only for what Convex can't see: screen views and where people drop off in onboarding. Adding a vendor needs your OK, and the privacy policy and App Privacy answers would need updating.
-- [ ] Crash reporting: TestFlight already collects crash reports. Check them weekly. Add Sentry only if crashes are hard to diagnose from those.
 
 #### 2b. Feedback mechanisms
 - [ ] "Send feedback" item in You: a text box that saves to Convex and emails you, reusing the report-alert path (`convex/moderation.ts` → Worker email). Include app version and user ID automatically.
@@ -170,13 +166,11 @@ Many Buy Nothing members use Android, and Google requires a closed test (current
 - [ ] Sign in with Facebook on Android: add the key hash to the Meta app (2d).
 - [ ] Play Console forms: Data safety, content rating (match the 18+ Terms), target audience, US only, privacy URL.
 - [ ] Closed test track with an opt-in link; make the "Get Domi" button send Android phones there.
-- [ ] Optional: read the invite code from the Play install referrer on first launch, so Android users skip the code box.
 - [ ] Run the phase 1 test script on an Android phone.
 
 #### 2f. Growth features the superusers will use
 - [ ] Invite QR code (plan in `docs/build-plan.md`, "To do"). Superusers invite in person, and it ships without a new build. Needs a small QR library: ask first.
 - [ ] End the create-circle flow on an "Invite your first members" step (share, copy link, QR).
-- [ ] **Decision to make:** a wait before picking ("You can pick tomorrow at 6:30 pm"; mocked 2026-10-25, not built). Buy Nothing people care about fairness ("simmer"). Recommendation: build it if the first ~5 popular listings in phase 2 go to whoever was fastest.
 
 #### 2g. Neighbor card and thank-you tokens
 Strangers arrive in phase 2, and the giver picks who gets each item, so "who is this person?" needs an answer. The thank-you token is the handoff celebration from the Buy Nothing research (2026-11-03): the most-loved part of Buy Nothing was gratitude. Scope change: the spec lists "karma/points" as out of scope. Tokens are thanks you can't lose, not a score, so they're allowed; update `docs/spec.md` (scope line and decision log) when this is built.
@@ -200,8 +194,7 @@ Strangers arrive in phase 2, and the giver picks who gets each item, so "who is 
 - [x] Rate limits on posting, wishes, chat and code redemption; cap of 10 circles per person (done 2026-10-27).
 - [x] Photo thumbnails, disk caching, upload limits, daily cleanup of unused uploads (done 2026-10-24).
 - [ ] Cloudflare rate-limiting rule on `/c/*` and `/i/*`, plus short caching of the "link not working" pages (Cloudflare dashboard, free plan).
-- [ ] Convex spending alert or cap in billing. Check the usage page weekly for the first month.
-- [ ] Watch `browse` function calls. Switch to a paginated feed only if calls or database bandwidth climb.
+- [x] (Done 2026-11-10: Starter with a $40/month limit.) Convex spending alert or cap in billing. Check the usage page weekly for the first month.
 - [ ] Habit: ship JS-only changes with `update:production`, not a new build (15 free iOS builds a month).
 
 #### 3b. App Store and Google Play submission
@@ -212,16 +205,11 @@ Strangers arrive in phase 2, and the giver picks who gets each item, so "who is 
 - [ ] Google Play: apply for production access once the closed test has run its 14 days, then release.
 - [x] iPhone install match: done early, in phase 1d.
 
-#### 3c. Support at volume
-- [ ] Support agent auto-sends only non-urgent emails the FAQ fully covers, with ~10% spot checks. Only after accept rate is high in phase 2.
-
 ---
 
 ### Later (decided: not before launch)
 
-- Location picker (map pin). The zip center is the fallback and fine for a launch in one or two zips. Revisit when distance matters ("12 mi from you").
-- Referral links for zip circles, crediting sharers, distance on listings, direct invites from your circles.
-- Paste button on the code field, "Add another code" copy, "Sent to you" in My stuff.
+Moved to the [Domi backlog](https://claude.ai/artifact/GB4FgkQLYB6MC6aUHXGf77) on 2026-11-10.
 
 ### Launch work already done
 Circles tab (2026-10-25). Terms re-acceptance screen. Content filter, report emails, iPhone only (App Review fixes). Single-use share links. `ITSAppUsesNonExemptEncryption` set. Prod Convex deployment and App Store Connect app record exist.
@@ -250,19 +238,21 @@ Rate limits (with the above, or by M6):
 - [ ] Website: one Cloudflare rate-limiting rule (free plan) on `/c/*` and `/i/*`, and short Cloudflare caching of the "link not working" pages, so scraping can't run up Convex calls or use up the Worker's 100k requests/day.
 
 Account settings (at the prod deployment, M6):
-- [ ] Move Convex to Starter and set a spending alert or cap in billing, if Convex offers one.
+- [x] Move Convex to Starter and set a spending alert or cap in billing (done 2026-11-10, $40/month).
 - [ ] Confirm `DEV_PASSWORD_AUTH` is not set on prod.
 - [ ] Habit: ship JS-only changes with `npm run update:preview` rather than a build (15 free iOS builds/month).
 
 When building push (M5):
 - [x] Send to Expo in batches (up to 100 messages per request), not one call per event.
 
-As usage grows (not urgent):
+As usage grows (not urgent; now tracked in the backlog, #5):
 - [ ] `browse` is a live query that re-runs for every viewer whenever any listing in their circles changes, reading up to `limit × 2` rows per circle. Move to a paginated feed if function calls or database bandwidth climb.
 
 Already fine: search is debounced, open requests are capped at 5, `browse` returns at most 100, and all text fields have length limits.
 
 ## Possible follow-ups: invites and installs (noted 2026-10-24)
+
+History. Open ideas from this list now live in the [Domi backlog](https://claude.ai/artifact/GB4FgkQLYB6MC6aUHXGf77).
 
 Not scheduled; the ones that are scheduled now appear in the launch plan. Ideas from reviewing the invite flow end to end; pick up when they become useful or possible. Already done: returning users who sign in from a link get their saved codes redeemed (`profiles.redeemSavedCodes`), and the invite and listing pages say what Domi is.
 
