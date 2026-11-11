@@ -18,13 +18,13 @@ const FLOWER = `<g id="flower">
 <path fill="#1F4E79" d="M109.7,181.48C107.32,183.79 100.72,180.82 94.96,174.86C89.21,168.9 86.48,162.21 88.86,159.9C91.24,157.6 97.84,160.57 103.6,166.53C109.35,172.49 112.08,179.18 109.7,181.48Z"/></g>`;
 const plant = (x, y, r, s) => `<use href="#flower" transform="translate(${x} ${y}) rotate(${r}) scale(${s}) translate(-52.5 -300)"/>`;
 
-const hillside = `<svg class="hill" viewBox="0 140 390 190" role="img" aria-label="Domi flowers growing on a hillside below a few houses">
+const hillside = `<svg class="hill" viewBox="0 140 390 190" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Domi flowers growing on a hillside below a few houses">
 <defs>${FLOWER}</defs>
 <g fill="none" stroke="#1F4E79" stroke-width="2" stroke-linejoin="round">
 <path d="M232 168 v-14 l10 -9 l10 9 v14 z"/><path d="M258 168 v-18 l12 -10 l12 10 v18 z"/><path d="M288 168 v-12 l8 -7 l8 7 v12 z"/></g>
-<path d="M0 190 C 90 140, 180 178, 240 168 S 350 150, 390 160 V 330 H 0 Z" fill="#D6E2EB"/>
+<path d="M-1200 200 C -900 170, -500 215, -250 205 S -90 240, 0 190 C 90 140, 180 178, 240 168 S 350 150, 390 160 C 430 170, 700 185, 900 172 S 1300 150, 1600 168 V 330 H -1200 Z" fill="#D6E2EB"/>
 ${plant(64, 182, -16, 0.17)}${plant(150, 178, -22, 0.15)}${plant(196, 202, -18, 0.22)}
-<path d="M0 250 C 100 214, 200 240, 280 228 S 360 220, 390 224 V 330 H 0 Z" fill="#fff"/>
+<path d="M-1200 236 C -800 220, -400 250, -250 262 S -100 286, 0 250 C 100 214, 200 240, 280 228 S 360 220, 390 224 C 420 228, 700 240, 950 232 S 1300 220, 1600 236 V 330 H -1200 Z" fill="#fff"/>
 ${plant(300, 300, -14, 0.46)}${plant(360, 296, -24, 0.36)}</svg>`;
 
 const domiRow = (emoji, tone, name, count, last = false) =>
@@ -103,14 +103,13 @@ nav{display:flex;align-items:center;gap:24px;font-weight:500;font-size:15px}
 nav .text{display:none;color:var(--ink);text-decoration:none}
 .pill{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:12px;background:var(--bay);color:#fff;font-weight:600;text-decoration:none}
 .pill:hover{color:#fff;background:var(--bay-dark)}
-.hero{display:flex;flex-direction:column}
-.hill{display:block;width:calc(100% + 40px);margin:0 -20px;height:auto}
-.hero-text{display:flex;flex-direction:column;gap:18px;padding:8px 20px 4px;margin:0 -20px;background:#fff}
+.hill{display:block;width:100%;height:clamp(170px,24vw,300px)}
+.hero-text{display:flex;flex-direction:column;align-items:flex-start;gap:18px;padding-top:8px;max-width:760px}
 .eyebrow{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--bay)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--poppy);flex:none}
 h1{font-size:clamp(40px,6vw,64px);line-height:1.08;letter-spacing:-.5px}
-.lead{font-size:18px;line-height:1.5;color:var(--soft);max-width:540px}.lead b{color:var(--ink);font-weight:600}
-.cta{display:flex;align-items:center;justify-content:center;min-height:56px;border-radius:14px;background:var(--bay);color:#fff;font-weight:600;font-size:17px;text-decoration:none}
+.lead{font-size:18px;line-height:1.5;color:var(--soft)}.lead b{color:var(--ink);font-weight:600}
+.cta{display:flex;align-items:center;justify-content:center;min-height:56px;padding:0 24px;border-radius:14px;background:var(--bay);color:#fff;font-weight:600;font-size:17px;text-decoration:none}
 .cta:hover{color:#fff;background:var(--bay-dark)}
 .cta-sub{display:flex;flex-direction:column;align-items:center;gap:6px}
 .cta-sub a{font-weight:600;text-decoration:none;padding:4px}
@@ -158,7 +157,8 @@ h2{font-size:clamp(30px,4vw,40px);line-height:1.15}
 .trouble{align-self:center;font-weight:600;font-size:15px}
 footer{display:flex;flex-wrap:wrap;gap:18px;padding:24px 0 32px;font-size:14px}footer span{color:var(--soft);margin-left:auto}
 ${STEPS_CSS}
-.ctas{display:flex;flex-direction:column;gap:10px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;align-self:stretch}
+@media (max-width:560px){.ctas .cta{flex:1 1 100%}}
 .cta.outline{background:#fff;color:var(--bay);border:2px solid var(--bay)}.cta.outline:hover{background:var(--fog);color:var(--bay-dark)}
 .note{text-align:left}
 .examples{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));column-gap:32px;row-gap:18px}
@@ -167,7 +167,7 @@ ${STEPS_CSS}
 .examples p{font-size:15px;color:var(--soft)}
 .toss{display:flex;flex-direction:column;gap:20px}
 .toss .lead{font-size:18px}
-.thanks{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:20px;padding:16px 18px;max-width:360px}
+.thanks{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:20px;padding:16px 18px}
 .thanks .poppy{width:32px;height:32px;flex:none}
 .thanks-title{font-weight:600;font-size:15px}.thanks-note{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:15px;color:var(--soft)}
 .made{max-width:620px;margin:0 auto;border-top:1px solid var(--line);padding-top:48px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
@@ -178,13 +178,10 @@ ${STEPS_CSS}
 @media (min-width:900px){
   .wrap{padding:0 32px}
   header{padding:24px 0}.logo{font-size:28px}nav .text{display:inline}
-  .hero{flex-direction:row-reverse;align-items:center;gap:56px;padding:16px 0 64px}
-  .hill{flex:1 1 420px;min-width:0;width:auto;margin:0;border-radius:28px}
-  .hero-text{flex:1 1 520px;padding:0;margin:0;background:none;gap:20px}
-  h1{font-size:clamp(44px,4.4vw,60px)}
+  .hero-text{gap:20px}
+  h1{font-size:clamp(44px,4.6vw,64px)}
   .lead{font-size:19px}
   .cta{align-self:flex-start;padding:0 28px}.cta-sub{align-items:flex-start}.note{text-align:left}
-  .ctas{flex-direction:row;gap:12px}
   .toss{flex-direction:row;align-items:center;gap:48px}.toss>div:first-child{flex:1 1 460px}.thanks{flex:0 1 340px}
   section{padding-top:80px}
   .how-row{overflow:visible;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
@@ -197,14 +194,12 @@ ${STEPS_CSS}
 <div class="top"><div class="wrap">
 <header><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>
 <nav><a class="text" href="#domis">Domis</a><a class="text" href="#how">How it works</a><a class="pill" href="#get">Get Domi</a></nav></header>
-<div class="hero">${hillside}
-<div class="hero-text">
+</div>${hillside}</div>
+<div class="wrap"><div class="hero-text">
 <span class="eyebrow"><span class="dot"></span>Free things, from your people</span>
 <h1>Good things find a new home nearby.</h1>
 <p class="lead">Start a domi for the people you already share with: your building, your kid's class, your family. Post what you don't need, they ask privately, and you pick who gets it. <b>Your whole neighborhood is there too.</b></p>
 <div class="ctas"><a class="cta" href="#get">Get Domi for iPhone</a><a class="cta outline" href="#domis">Start a domi</a></div>
-<p class="note">Free. iPhone only while we test.<br>Starting in Berkeley, El Cerrito, Albany and Kensington.</p>
-</div></div>
 </div></div>
 
 <main class="wrap">
@@ -227,7 +222,6 @@ ${STEPS_CSS}
 
 <section id="how">
 <h2>How Domi works</h2>
-<p class="sub">Three things, all free.</p>
 <ol class="how-row">${cards}</ol>
 <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
 </section>
