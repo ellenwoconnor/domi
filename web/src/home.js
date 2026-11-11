@@ -1,8 +1,9 @@
-// The domicircles.com home page (/). From the "domicircles.com beta site"
-// design canvas (2026-11-10): the hillside from the app's You page on top,
-// the existing value props, "How Domi works" as a swipe row on phones (three
-// across on computers), and a Get Domi section (#get, also where /beta goes)
-// with the TestFlight steps. When Domi is in the App Store, swap the steps
+// The domicircles.com home page (/). From the "Domi homepage: domi-first
+// mockup" canvas (2026-11-10), after a persona panel on the beta page: the
+// hillside on top, domis first (private groups are what sets Domi apart),
+// "Too good to toss", "How Domi works" as a swipe row on phones (three across
+// on computers), "No race. No pile-on.", "Made locally, with love", and a
+// Get Domi section (#get, also where /beta goes) with the TestFlight steps. When Domi is in the App Store, swap the steps
 // for the App Store badge.
 
 import { faviconLink, poppy } from "./poppy.js";
@@ -32,21 +33,21 @@ const domiRow = (emoji, tone, name, count, last = false) =>
 const cards = [
   [
     "fog",
-    `<div class="mini mini-list">${domiRow("📍", "fog", "Kensington", "212 neighbors")}${domiRow("🍼", "blush", "Maya's baby shower", "14 people")}${domiRow("🏢", "blush", "Cedar St. building", "9 people", true)}</div>`,
-    "Find your domi",
-    "A domi is your circle of people. You start in your neighborhood, and you can make private domis for friends, family or your building.",
-  ],
-  [
-    "blush",
-    `<div class="mini mini-listing"><div class="mini-photo"><span class="free">Free</span></div><p class="mini-title">Cordless drill</p><p class="mini-meta">Kensington · 3 neighbors asked</p></div>`,
-    "Give things away",
-    "Snap a photo of stuff that's ready to find a new home. People ask for it, you pick who gets it, and you set up pickup in chat.",
+    `<div class="mini mini-list">${domiRow("🌱", "blush", "Hopkins St. gardeners", "23 people")}${domiRow("🏢", "blush", "Cedar St. building", "9 people")}${domiRow("📍", "fog", "Kensington", "212 neighbors", true)}</div>`,
+    "Start a domi",
+    "Name it, send the link to your people, and share with just them. Your neighborhood is always there too.",
   ],
   [
     "fog",
-    `<div class="mini mini-wish"><p class="mini-title">Moving boxes</p><p class="mini-meta">About 20, by Saturday</p><div class="mini-foot"><span class="mini-meta">Maya</span><span class="have"><span class="dot"></span>I have this</span></div></div>`,
+    `<div class="mini mini-listing"><div class="mini-photo"><span class="free">Free</span></div><p class="mini-title">Cordless drill</p><p class="mini-meta">Cedar St. building · 2 asked</p></div>`,
+    "Give things away",
+    "Snap a photo. People ask privately, you pick who gets it, and you set up pickup in one chat.",
+  ],
+  [
+    "fog",
+    `<div class="mini mini-wish"><p class="mini-title">Moving boxes</p><p class="mini-meta">About 20, by Saturday</p><div class="mini-foot"><span class="mini-meta">Jordan</span><span class="have"><span class="dot"></span>I have this</span></div></div>`,
     "Share a wish",
-    "Furnishing a new place? Ski clothes for one trip? Post a wish, and a neighbor can offer it to you.",
+    "Furnishing a new place? Ski clothes for one trip? Post a wish, and someone can offer it to you.",
   ],
 ]
   .map(
@@ -56,6 +57,17 @@ const cards = [
   )
   .join("");
 
+const examples = [
+  ["Your building", "The lobby giveaway, without the lobby."],
+  ["Your kid's class", "Share stuff with other parents, or their teachers."],
+  ["Your church", "Keep the coat drive going all year long."],
+  ["Move-out week", "The couch goes to the next tenant, not the curb."],
+  ["Your crew", "Camping gear, tools, the ski jacket for one trip."],
+  ["Family", "The cousin hand-me-down chain, organized."],
+]
+  .map(([name, text]) => `<li><span class="ex-name">${name}</span><p>${text}</p></li>`)
+  .join("");
+
 const point = (title, text) => `<div class="point"><p class="point-title">${title}</p><p>${text}</p></div>`;
 
 export function homeHtml(env) {
@@ -63,7 +75,7 @@ export function homeHtml(env) {
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Domi: good things find a new home nearby</title>
-<meta name="description" content="Domi is a free app for giving and getting things nearby. Post what you don't need, ask for what you don't have, and get to know your neighbors.">
+<meta name="description" content="Domi is a free app for passing things on to your people: your building, your kid's class, your family, and your neighborhood.">
 <meta property="og:site_name" content="Domi">
 <meta property="og:title" content="Domi: good things find a new home nearby">
 <meta property="og:description" content="A free app for giving and getting things nearby, with your neighbors and the people you choose.">
@@ -116,7 +128,7 @@ h2{font-size:clamp(30px,4vw,40px);line-height:1.15}
 .how-text h3{font-family:Figtree,system-ui,sans-serif;font-style:normal;font-weight:700;font-size:21px}.how-text p{font-size:16px;line-height:1.5;color:var(--soft)}
 .dots{display:flex;justify-content:center;gap:8px;margin-top:12px}.dots span{width:8px;height:8px;border-radius:4px;background:var(--line)}.dots span:first-child{width:20px;background:var(--bay)}
 .mini{background:#fff;border-radius:16px}
-.mini-list{width:236px;padding:6px 12px}
+.mini-list{width:262px;padding:6px 12px}
 .mini-row{display:flex;align-items:center;gap:9px;height:38px}.mini-row.rule{border-bottom:1px solid var(--fog)}
 .mini-badge{width:24px;height:24px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center}.mini-badge.fog{background:var(--fog)}.mini-badge.blush{background:var(--blush)}
 .mini-name{flex:1;font-weight:600;font-size:13px}.mini-count{font-size:11px;color:var(--soft)}
@@ -146,6 +158,23 @@ h2{font-size:clamp(30px,4vw,40px);line-height:1.15}
 .trouble{align-self:center;font-weight:600;font-size:15px}
 footer{display:flex;flex-wrap:wrap;gap:18px;padding:24px 0 32px;font-size:14px}footer span{color:var(--soft);margin-left:auto}
 ${STEPS_CSS}
+.ctas{display:flex;flex-direction:column;gap:10px}
+.cta.outline{background:#fff;color:var(--bay);border:2px solid var(--bay)}.cta.outline:hover{background:var(--fog);color:var(--bay-dark)}
+.note{text-align:left}
+.examples{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));column-gap:32px;row-gap:18px}
+.examples li{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:2px}
+.ex-name{font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--bay)}
+.examples p{font-size:15px;color:var(--soft)}
+.toss{display:flex;flex-direction:column;gap:20px}
+.toss .lead{font-size:18px}
+.thanks{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:20px;padding:16px 18px;max-width:360px}
+.thanks .poppy{width:32px;height:32px;flex:none}
+.thanks-title{font-weight:600;font-size:15px}.thanks-note{font-family:Fraunces,Georgia,serif;font-style:italic;font-size:15px;color:var(--soft)}
+.made{max-width:620px;margin:0 auto;border-top:1px solid var(--line);padding-top:48px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.made .poppy{width:36px;height:36px}
+.made h2{font-size:clamp(28px,3.4vw,34px)}
+.made p{font-size:17px;color:var(--soft)}
+.made .tag{font-family:Fraunces,Georgia,serif;font-style:italic;color:var(--bay)}
 @media (min-width:900px){
   .wrap{padding:0 32px}
   header{padding:24px 0}.logo{font-size:28px}nav .text{display:inline}
@@ -154,6 +183,8 @@ ${STEPS_CSS}
   .hero-text{flex:1 1 460px;padding:24px 0 72px;margin:0;background:none;gap:20px}
   .lead{font-size:19px}
   .cta{align-self:flex-start;padding:0 28px}.cta-sub{align-items:flex-start}.note{text-align:left}
+  .ctas{flex-direction:row;gap:12px}
+  .toss{flex-direction:row;align-items:center;gap:48px}.toss>div:first-child{flex:1 1 460px}.thanks{flex:0 1 340px}
   section{padding-top:80px}
   .how-row{overflow:visible;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
   .how-card{width:auto}.dots{display:none}
@@ -164,18 +195,35 @@ ${STEPS_CSS}
 <body>
 <div class="top"><div class="wrap">
 <header><a class="logo" href="/" aria-label="Domi home">${poppy("poppy")}domi</a>
-<nav><a class="text" href="#how">How it works</a><a class="text" href="#circles">Domis</a><a class="pill" href="#get">Get Domi</a></nav></header>
+<nav><a class="text" href="#domis">Domis</a><a class="text" href="#how">How it works</a><a class="pill" href="#get">Get Domi</a></nav></header>
 <div class="hero">${hillside}
 <div class="hero-text">
-<span class="eyebrow"><span class="dot"></span>Free things, from neighbors</span>
+<span class="eyebrow"><span class="dot"></span>Free things, from your people</span>
 <h1>Good things find a new home nearby.</h1>
-<p class="lead">Help your stuff find its next owner. <b>Domi</b> is a free app for giving and getting things nearby. Post what you don't need, ask for what you don't have, and get to know your neighbors.</p>
-<a class="cta" href="#get">Get Domi for iPhone</a>
-<div class="cta-sub"><a href="#how">See how it works</a><p class="note">Free. iPhone only while we test.<br>Starting in Berkeley, El Cerrito, Albany and Kensington.</p></div>
+<p class="lead">Start a domi for the people you already share with: your building, your kid's class, your family. Post what you don't need, they ask privately, and you pick who gets it. <b>Your whole neighborhood is there too.</b></p>
+<div class="ctas"><a class="cta" href="#get">Get Domi for iPhone</a><a class="cta outline" href="#domis">Start a domi</a></div>
+<p class="note">Free. iPhone only while we test.<br>Starting in Berkeley, El Cerrito, Albany and Kensington.</p>
 </div></div>
 </div></div>
 
 <main class="wrap">
+<section id="domis">
+<div class="domis">
+<div><h2>Your neighborhood, and the people you choose.</h2>
+<p class="lead" style="margin-top:16px">A domi is your circle of people. You start in your neighborhood, and you can make private domis for the people you already share with. Invite them with a link in the group chat you already have.</p>
+<p class="sub" style="margin-top:12px">Domi is Latin for “at home.”</p></div>
+<div class="invite"><div class="faces"><span class="bay">S</span><span>J</span><span class="fog">A</span></div>
+<p class="invite-title">Sam invited you to Hopkins St. gardeners</p><small>23 people · invite only</small></div>
+</div>
+<ul class="examples">${examples}</ul>
+</section>
+
+<section class="toss">
+<div><h2>Too good to toss.</h2>
+<p class="lead" style="margin-top:16px">Bin's full? Missed the return window? Outgrown, but loved? Pass it on to someone nearby, and know where it went.</p></div>
+<div class="thanks">${poppy("poppy")}<div><p class="thanks-title">Maya sent you a thank-you.</p><p class="thanks-note">“Ellie hasn't taken the jacket off since Saturday!”</p></div></div>
+</section>
+
 <section id="how">
 <h2>How Domi works</h2>
 <p class="sub">Three things, all free.</p>
@@ -184,30 +232,20 @@ ${STEPS_CSS}
 </section>
 
 <section class="give-get">
-<h2>Easy to give.<br>Nice to get.</h2>
-<div class="points"><span class="label"><span class="dot"></span>GIVING</span>
-${point("Give to a neighbor, not a drop-off bin.", "Pick the person who'll use it next.")}
-${point("Set up pickup in one chat.", "No comment threads, no trash on your sidewalk.")}</div>
-<div class="points"><span class="label"><span class="ring"></span>GETTING</span>
-${point("Why buy new?", "Someone nearby has one they're done with.")}
-${point("Ask privately.", "Your request goes to the giver, not a public thread. Done with it later? Pass it on.")}</div>
+<h2>No race.<br>No pile-on.</h2>
+<div class="points"><span class="label"><span class="dot"></span>WHEN YOU ASK</span>
+${point("Checking late isn't too late.", "The giver picks, so it's never first come, first served.")}
+${point("Ask privately.", "Your request goes to the giver, not a public thread.")}</div>
+<div class="points"><span class="label"><span class="ring"></span>WHEN YOU GIVE</span>
+${point("No “is this still available?”", "No pile on the curb, and no trip to the drop-off.")}
+${point("Post once, text it to anyone.", "Send a listing to a friend who isn't on Domi yet.")}</div>
 </section>
 
-<section id="circles" class="domis">
-<div><h2>Your neighborhood, and the people you choose.</h2>
-<p class="lead" style="margin-top:16px">Your people aren't only the ones next door. Start a domi for friends, family or your building, and invite them in with a link.</p>
-<p class="sub" style="margin-top:12px">Domi is Latin for “at home.”</p></div>
-<div class="invite"><div class="faces"><span class="bay">S</span><span>J</span><span class="fog">A</span></div>
-<p class="invite-title">Sam invited you to Hopkins St. gardeners</p><small>23 people · invite only</small></div>
-</section>
-
-<section class="give-get">
-<h2>Safe and private.</h2>
-<div class="points"><span class="label"><span class="dot"></span>YOUR PRIVACY</span>
-${point("Your address stays private.", "Listings show your general area, never your address.")}
-${point("Sign in with Apple or Google.", "No new password to remember. Report or block anyone, and delete your account anytime.")}</div>
-<div class="points"><span class="label"><span class="ring"></span>WHO'S BEHIND DOMI</span>
-${point("Domi is independent and made locally.", "It started with a simple idea: neighbors who pass things along end up knowing each other.")}</div>
+<section>
+<div class="made">${poppy("poppy")}
+<h2>Made locally, with love.</h2>
+<p>Domi is independent and started with a simple idea: neighbors who pass things along end up knowing each other.</p>
+<p class="tag">The best part happens offline, not in comment threads.</p></div>
 </section>
 </main>
 

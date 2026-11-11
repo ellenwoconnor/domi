@@ -131,8 +131,9 @@ test("home page has the landing sections and links to terms and privacy", async 
   assert.equal(res.status, 200);
   assert.match(html, /Good things find a new home nearby\./);
   assert.match(html, /id="how"/);
-  assert.match(html, /Easy to give\./);
-  assert.match(html, /id="circles"/);
+  assert.match(html, /id="domis"/);
+  assert.match(html, /Too good to toss\./);
+  assert.match(html, /Made locally, with love\./);
   assert.match(html, /href="\/terms"/);
   assert.match(html, /href="\/privacy"/);
   assert.ok(!html.includes("${"), "no unfilled template holes");
