@@ -72,7 +72,7 @@ describe("wishes and offers", () => {
     expect(await sam.as.query(api.wishlist.browse, {})).toEqual([]);
   });
 
-  test("if the pick falls through, the wisher can pick another offer", async () => {
+  test("if the wisher backs out, the offer ends gently and they can pick another", async () => {
     const t = await setup();
     const maya = await newUser(t, "Maya");
     const sam = await newUser(t, "Sam");
@@ -83,8 +83,19 @@ describe("wishes and offers", () => {
     await maya.as.mutation(api.wishlist.pickOffer, { itemId: samOffer });
     const [req] = await maya.as.query(api.requests.mine, {});
     await maya.as.mutation(api.requests.withdraw, { requestId: req.id });
-    expect((await doc(t, samOffer))?.status).toBe("available");
-    expect((await eventsFor(t, sam.userId)).at(-1)?.type).toBe("offer_unpicked");
+    expect((await doc(t, samOffer))?.status).toBe("removed");
+    expect((await eventsFor(t, sam.userId)).at(-1)).toMatchObject({ type: "offer_unpicked", body: "Maya can't take the Crib anymore." });
+    // No picking it up and dropping it again: it's off her wish.
+    await expect(maya.as.mutation(api.wishlist.pickOffer, { itemId: samOffer })).rejects.toThrow();
+    expect((await maya.as.query(api.wishlist.offers, { wishId })).map((o) => o.id)).toEqual([joOffer]);
+    // Sam sees a gentle ending and can still share it with everyone.
+    expect((await sam.as.query(api.items.get, { itemId: samOffer })).offerEnding).toMatchObject({
+      head: "Maya couldn't take it after all",
+      canShareAgain: true,
+    });
+    expect((await sam.as.query(api.mystuff.giving, {})).find((r) => r.itemId === samOffer)?.status).toBe(
+      "Maya couldn't take it after all. Thanks for offering!",
+    );
     await maya.as.mutation(api.wishlist.pickOffer, { itemId: joOffer });
     expect((await doc(t, joOffer))?.status).toBe("pending");
   });

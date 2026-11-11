@@ -138,7 +138,7 @@ export function OwnerSection({
         <Text style={type.meta}>{ending.who}</Text>
       </View>
     ) : (
-      <Card head={`${ending.who}'s all set`} text="Thanks for offering!" warm />
+      <Card head={ending.head ?? `${ending.who}'s all set`} text="Thanks for offering!" warm />
     );
   } else if (item.wish && item.status === "removed") {
     const who = item.wish.wisher.displayName;

@@ -12,6 +12,7 @@ import { displayName } from "./access";
 export type OfferEnding = {
   who: string; // the wisher
   note: string | null; // their "no thanks" note, if they wrote one
+  head: string; // the card's heading on your listing
   line: string; // the status line
   canShareAgain: boolean; // photos still there, so "Share with others" can post it publicly
 };
@@ -23,12 +24,27 @@ export async function offerEnding(ctx: Ctx, item: Doc<"items">): Promise<OfferEn
   const wish = await ctx.db.get(item.wishlistItemId);
   if (!wish) return null;
   const declined = item.declinedAt !== undefined;
-  if (!declined && wish.status !== "fulfilled") return null;
   const who = await displayName(ctx, wish.userId);
+  if (!declined && wish.status !== "fulfilled") {
+    // The wisher picked it, then couldn't take it after all: the offer ended, gently.
+    const request = await ctx.db
+      .query("requests")
+      .withIndex("by_item_requester", (q) => q.eq("itemId", item._id).eq("requesterId", wish.userId))
+      .first();
+    if (request?.status !== "withdrawn") return null;
+    return {
+      who,
+      note: null,
+      head: `${who} couldn't take it after all`,
+      line: `${who} couldn't take it after all. Thanks for offering!`,
+      canShareAgain: item.photosPurgedAt === undefined,
+    };
+  }
   const note = declined ? (item.declineNote ?? null) : null;
   return {
     who,
     note,
+    head: `${who}'s all set`,
     line: note ? `${who}: “${note}”` : `${who}'s all set. Thanks for offering!`,
     canShareAgain: item.photosPurgedAt === undefined,
   };

@@ -67,8 +67,9 @@ export async function endSelection(
   await ctx.db.patch(request._id, { status: how === "unpicked" ? "cancelled" : "withdrawn", updatedAt: now });
   await closeConversationsFor(ctx, request._id, now);
   if (item.status === "pending") {
-    // An un-picked offer (a private listing for one wish) ends: un-picking it means the giver can't give it.
-    const ends = how === "unpicked" && item.visibility === "private";
+    // An offer (a private listing for one wish) ends either way: the giver un-picking means they can't give it,
+    // and the wisher backing out means they don't want it (decided 2026-11-10; no picking it up and dropping it again).
+    const ends = item.visibility === "private";
     await ctx.db.patch(item._id, { status: ends ? "removed" : "available", updatedAt: now });
   }
   if (!notify) return;

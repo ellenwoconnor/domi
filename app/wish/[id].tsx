@@ -557,7 +557,7 @@ function CantTakeIt({ offer }: { offer: Offer }) {
   const confirm = () => {
     if (!offer.myRequest) return;
     const requestId = offer.myRequest.id;
-    Alert.alert("Can't take it?", `${name} will be told, and you can pick another offer.`, [
+    Alert.alert("Can't take it?", `${name} will be told, and this offer comes off your wish. You can still pick another one.`, [
       { text: "Not now", style: "cancel" },
       {
         text: "I can't take it",
