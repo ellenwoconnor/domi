@@ -178,9 +178,10 @@ ${STEPS_CSS}
 @media (min-width:900px){
   .wrap{padding:0 32px}
   header{padding:24px 0}.logo{font-size:28px}nav .text{display:inline}
-  .hero{flex-direction:row-reverse;align-items:flex-end;gap:48px}
-  .hill{flex:1 1 420px;min-width:0;width:auto;margin:0 0 56px;border-radius:28px}
-  .hero-text{flex:1 1 460px;padding:24px 0 72px;margin:0;background:none;gap:20px}
+  .hero{flex-direction:row-reverse;align-items:center;gap:56px;padding:16px 0 64px}
+  .hill{flex:1 1 420px;min-width:0;width:auto;margin:0;border-radius:28px}
+  .hero-text{flex:1 1 520px;padding:0;margin:0;background:none;gap:20px}
+  h1{font-size:clamp(44px,4.4vw,60px)}
   .lead{font-size:19px}
   .cta{align-self:flex-start;padding:0 28px}.cta-sub{align-items:flex-start}.note{text-align:left}
   .ctas{flex-direction:row;gap:12px}
