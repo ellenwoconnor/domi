@@ -34,7 +34,7 @@ const cards = [
     "fog",
     `<div class="mini mini-list">${domiRow("📍", "fog", "Kensington", "212 neighbors")}${domiRow("🍼", "blush", "Maya's baby shower", "14 people")}${domiRow("🏢", "blush", "Cedar St. building", "9 people", true)}</div>`,
     "Find your domi",
-    "A domi is your circle of people. You start in your neighborhood, and you can start private domis for friends, family or your building.",
+    "A domi is your circle of people. You start in your neighborhood, and you can make private domis for friends, family or your building.",
   ],
   [
     "blush",
