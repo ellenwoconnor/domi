@@ -15,6 +15,8 @@ import { ReportSheet, type ReportTarget } from "../../src/features/safety/Report
 import { WishSafetySheet, type WishSafetyTarget } from "../../src/features/wishlist/WishSafetySheet";
 import { errorMessage } from "../../src/lib/errors";
 import { Avatar } from "../../src/ui/Avatar";
+import { useConfirmSheet } from "../../src/ui/ConfirmSheet";
+import { IconButton, ThingActions } from "../../src/ui/IconButton";
 import { PoppyMark } from "../../src/ui/Logo";
 import { PhotoTile } from "../../src/ui/PhotoTile";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
@@ -99,13 +101,10 @@ function TheirWish({ wish }: { wish: Wish }) {
       </ScrollView>
 
       <BackButton top={insets.top + space.sm} />
-      <Pressable
-        onPress={() => setSafety({ wishId: wish.id, userId: wish.user.userId, displayName: name })}
-        accessibilityLabel="Report or block"
-        style={[styles.round, { top: insets.top + space.sm, right: space.lg }]}
-      >
-        <Ionicons name="ellipsis-horizontal" size={20} color={color.ink} />
-      </Pressable>
+      <ThingActions
+        onMore={() => setSafety({ wishId: wish.id, userId: wish.user.userId, displayName: name })}
+        style={{ position: "absolute", top: insets.top + space.sm, right: space.lg }}
+      />
 
       <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {wish.pending ? (
@@ -159,6 +158,7 @@ function YourWish({ wish }: { wish: Wish }) {
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
   const circles = wish.circles.map(circleLabel).join(", ");
+  const { askRemove, removeSheet } = useRemoveWish(wish, offers);
 
   // If the offer you chose goes away (withdrawn, blocked), clear the choice.
   useEffect(() => {
@@ -211,6 +211,7 @@ function YourWish({ wish }: { wish: Wish }) {
                       </Text>
                       <Text style={type.meta}>From {o.owner.displayName}</Text>
                     </View>
+                    <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} tone="fog" onPress={() => setPerson(o)} />
                   </Pressable>
                 ))}
               </View>
@@ -257,6 +258,7 @@ function YourWish({ wish }: { wish: Wish }) {
                           From {o.owner.displayName} · {postedLabel(o.createdAt)}
                         </Text>
                       </View>
+                      <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} tone="fog" onPress={() => setPerson(o)} />
                       <Ionicons
                         name={on ? "radio-button-on" : "radio-button-off"}
                         size={24}
@@ -272,7 +274,6 @@ function YourWish({ wish }: { wish: Wish }) {
           {wish.status === "open" ? (
             <View style={styles.links}>
               {picked ? <CantTakeIt offer={picked} /> : null}
-              <RemoveWish wish={wish} offers={offers} />
             </View>
           ) : null}
         </View>
@@ -280,15 +281,16 @@ function YourWish({ wish }: { wish: Wish }) {
 
       {picked ? null : <BackButton top={insets.top + space.sm} tone="fog" />}
       {wish.status === "open" ? (
-        // The same Edit button as on your listings (square and pencil). White on the Blush hero, Fog on white.
-        <Pressable
-          onPress={() => router.push({ pathname: "/wish/edit/[id]", params: { id: wish.id } })}
-          accessibilityLabel="Edit wish"
-          style={[styles.round, { top: insets.top + space.sm, right: space.lg, backgroundColor: picked ? color.white : color.fog }]}
-        >
-          <Ionicons name="create-outline" size={19} color={color.ink} />
-        </Pressable>
+        // The same edit and remove icons as on your listings. White on the Blush hero, Fog on white.
+        <ThingActions
+          onEdit={() => router.push({ pathname: "/wish/edit/[id]", params: { id: wish.id } })}
+          onRemove={askRemove}
+          removeLabel="Remove wish"
+          tone={picked ? "white" : "fog"}
+          style={{ position: "absolute", top: insets.top + space.sm, right: space.lg }}
+        />
       ) : null}
+      {removeSheet}
 
       {showBar && chosen ? (
         <View style={[styles.bar, styles.barRow, { paddingBottom: insets.bottom + space.md }]}>
@@ -576,8 +578,10 @@ function CantTakeIt({ offer }: { offer: Offer }) {
   );
 }
 
-function RemoveWish({ wish, offers }: { wish: Wish; offers: Offer[] }) {
+/** Remove your wish: the trash icon's confirm, in the Domi sheet. */
+function useRemoveWish(wish: Wish, offers: Offer[]) {
   const remove = useMutation(api.wishlist.remove);
+  const { confirm, confirmSheet } = useConfirmSheet();
   const names = [...new Set(offers.map((o) => o.owner.displayName))];
   const who =
     names.length === 0
@@ -587,27 +591,17 @@ function RemoveWish({ wish, offers }: { wish: Wish; offers: Offer[] }) {
         : names.length === 2
           ? `${names[0]} and ${names[1]} offered.`
           : `${names.length} people offered.`;
-  const confirm = () =>
-    Alert.alert("Remove your wish?", who ? `${who} We'll let them know you don't need one anymore.` : "Nobody else will see it anymore.", [
-      { text: "Keep it", style: "cancel" },
-      {
-        text: "Remove wish",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await remove({ wishId: wish.id });
-            router.back();
-          } catch (e) {
-            Alert.alert("Couldn't remove it", errorMessage(e));
-          }
-        },
+  const askRemove = () =>
+    confirm({
+      title: "Remove your wish?",
+      message: who ? `${who} We'll let them know you don't need one anymore.` : "Nobody else will see it anymore.",
+      action: "Remove wish",
+      run: async () => {
+        await remove({ wishId: wish.id });
+        router.back();
       },
-    ]);
-  return (
-    <Pressable onPress={confirm} hitSlop={8} accessibilityRole="button">
-      <Text style={styles.quiet}>Remove wish</Text>
-    </Pressable>
-  );
+    });
+  return { askRemove, removeSheet: confirmSheet };
 }
 
 const styles = StyleSheet.create({

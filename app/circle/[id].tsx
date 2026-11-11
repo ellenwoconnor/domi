@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useConvex, useMutation } from "convex/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -11,6 +11,8 @@ import { CircleBadge } from "../../src/features/circles/CircleBadge";
 import { shareInvite } from "../../src/features/circles/invite";
 import { errorMessage } from "../../src/lib/errors";
 import { ErrorNote, PrimaryButton, TextButton } from "../../src/ui/Form";
+import { useConfirmSheet } from "../../src/ui/ConfirmSheet";
+import { IconButton, ThingActions } from "../../src/ui/IconButton";
 import { Avatar } from "../../src/ui/Avatar";
 import { PoppyMark } from "../../src/ui/Logo";
 import { ScreenHeader } from "../../src/ui/ScreenHeader";
@@ -18,15 +20,6 @@ import { color, font, radius, space, type } from "../../src/ui/theme";
 
 function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
-}
-
-function confirm(title: string, message: string, action: string, destructive = false) {
-  return new Promise<boolean>((resolve) =>
-    Alert.alert(title, message, [
-      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-      { text: action, style: destructive ? "destructive" : "default", onPress: () => resolve(true) },
-    ]),
-  );
 }
 
 export default function CircleDetail() {
@@ -40,6 +33,7 @@ export default function CircleDetail() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const { confirm, confirmSheet } = useConfirmSheet();
 
   const c = circleQ.data;
   if (circleQ.error) {
@@ -85,33 +79,35 @@ export default function CircleDetail() {
       const message =
         (lost.length ? `This will cancel ${lost.join(", ")} that only live in this domi. ` : "") +
         (isOwner ? "Someone else will take over this domi." : "You can rejoin with an invite.");
-      if (!(await confirm(`Leave ${c.name}?`, message, "Leave", true))) return;
-      await leave({ communityId: c.id });
-      router.back();
+      confirm({
+        title: `Leave ${c.name}?`,
+        message,
+        action: "Leave this domi",
+        keep: "Stay",
+        run: async () => {
+          await leave({ communityId: c.id });
+          router.back();
+        },
+      });
     });
 
   const doDelete = () =>
-    run(async () => {
-      const ok = await confirm(
-        `Delete ${c.name}?`,
-        "Everyone is removed and listings that only live here are taken down. This can't be undone.",
-        "Delete this domi",
-        true,
-      );
-      if (!ok) return;
-      await deleteCircle({ communityId: c.id });
-      router.back();
+    confirm({
+      title: `Delete ${c.name}?`,
+      message: "Everyone is removed and listings that only live here are taken down. This can't be undone.",
+      action: "Delete this domi",
+      run: async () => {
+        await deleteCircle({ communityId: c.id });
+        router.back();
+      },
     });
 
   const doRemove = (member: { userId: Id<"users">; displayName: string }) =>
-    run(async () => {
-      const ok = await confirm(
-        `Remove ${member.displayName}?`,
-        `${member.displayName} will leave ${c.name} and can't rejoin with an invite.`,
-        "Remove",
-        true,
-      );
-      if (ok) await removeMember({ communityId: c.id, userId: member.userId });
+    confirm({
+      title: `Remove ${member.displayName}?`,
+      message: `${member.displayName} will leave ${c.name} and can't rejoin with an invite.`,
+      action: `Remove ${member.displayName}`,
+      run: () => removeMember({ communityId: c.id, userId: member.userId }),
     });
 
   return (
@@ -119,9 +115,13 @@ export default function CircleDetail() {
       <ScreenHeader
         right={
           isOwner && custom ? (
-            <Pressable onPress={() => router.push({ pathname: "/circle/form", params: { id: c.id } })} hitSlop={12}>
-              <Text style={styles.edit}>Edit</Text>
-            </Pressable>
+            // The same edit and remove icons as on listings and wishes.
+            <ThingActions
+              onEdit={() => router.push({ pathname: "/circle/form", params: { id: c.id } })}
+              onRemove={doDelete}
+              removeLabel="Delete this domi"
+              tone="fog"
+            />
           ) : null
         }
       />
@@ -159,17 +159,14 @@ export default function CircleDetail() {
         <View>
           <Text style={styles.h2}>Members</Text>
           {visible.map((m) => (
-            <Pressable
-              key={m.userId}
-              disabled={!canRemove || m.isMe}
-              onPress={() => doRemove(m)}
-              style={styles.member}
-              accessibilityHint={canRemove && !m.isMe ? "Remove from this domi" : undefined}
-            >
+            <View key={m.userId} style={styles.member}>
               <Avatar name={m.displayName} />
               <Text style={[type.body, { flex: 1 }]}>{m.isMe ? "You" : m.displayName}</Text>
               {m.role === "owner" ? <Text style={type.meta}>Started it</Text> : null}
-            </Pressable>
+              {canRemove && !m.isMe ? (
+                <IconButton icon="ellipsis-horizontal" label={`Remove ${m.displayName}`} tone="fog" onPress={() => doRemove(m)} />
+              ) : null}
+            </View>
           ))}
           {members.length > visible.length ? (
             <TextButton title={`See all ${members.length}`} onPress={() => setShowAll(true)} />
@@ -179,10 +176,10 @@ export default function CircleDetail() {
         {custom ? (
           <View style={styles.danger}>
             <Quiet label="Leave this domi" onPress={doLeave} />
-            {isOwner ? <Quiet label="Delete this domi" onPress={doDelete} /> : null}
           </View>
         ) : null}
       </ScrollView>
+      {confirmSheet}
     </SafeAreaView>
   );
 }

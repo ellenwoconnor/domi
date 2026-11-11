@@ -9,11 +9,14 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { api } from "../../../convex/_generated/api";
 import { errorMessage } from "../../lib/errors";
 import { Avatar } from "../../ui/Avatar";
+import { useConfirmSheet } from "../../ui/ConfirmSheet";
+import { IconButton, ThingActions } from "../../ui/IconButton";
+import { PoppyMark } from "../../ui/Logo";
 import { Sheet, SheetAction, sheetStyles } from "../../ui/Sheet";
 import { color, font, radius, space, type } from "../../ui/theme";
 import { BlockSheet, type BlockTarget } from "../safety/BlockSheet";
 import { ReportSheet, type ReportTarget } from "../safety/ReportSheet";
-import { lowerFirst, postedLabel, type ItemView } from "./format";
+import { circleLabel, lowerFirst, postedLabel, type ItemView } from "./format";
 import { useShareListing } from "./shareListing";
 
 // Your own listing (docs/m4-requirements.md R1, R2, R5; canvas "R1 v2b").
@@ -42,49 +45,59 @@ function namesInLine(names: string[]) {
   return `The ${names.length} others stay in line in case it falls through.`;
 }
 
-/** Edit and Share as small buttons on the photo. */
+/** Share, edit and remove: the round icons on the photo, in that order (src/ui/IconButton.tsx). */
 export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }) {
   const { share, sheet } = useShareListing();
+  const remove = useMutation(api.items.remove);
+  const { confirm, confirmSheet } = useConfirmSheet();
   const canEdit = item.status === "available" || item.status === "pending" || item.status === "expired";
   const canShare = item.status === "available" && item.visibility === "public";
-  if (!canEdit && !canShare) return null;
+  const canRemove = item.status !== "gone" && item.status !== "removed";
+  const askRemove = () =>
+    confirm({
+      title: "Remove this listing?",
+      message: item.wish
+        ? `${item.wish.wisher.displayName} won't see your offer anymore.`
+        : item.requestCount > 0
+          ? "Everyone who asked will be told it's no longer available."
+          : "Nobody else will see it anymore.",
+      action: "Remove listing",
+      run: async () => {
+        await remove({ itemId: item.id });
+        router.back();
+      },
+    });
   return (
-    <View style={[styles.photoActions, { top }]}>
-      {canEdit ? (
-        <Pressable
-          onPress={() => router.push({ pathname: "/listing/edit/[id]", params: { id: item.id } })}
-          accessibilityLabel="Edit listing"
-          style={styles.photoButton}
-        >
-          <Ionicons name="create-outline" size={19} color={color.ink} />
-        </Pressable>
-      ) : null}
-      {canShare ? (
-        <Pressable onPress={() => share(item.id, item.title)} accessibilityLabel="Share outside Domi" style={styles.photoButton}>
-          <Ionicons name="share-outline" size={19} color={color.ink} />
-        </Pressable>
-      ) : null}
+    <>
+      <ThingActions
+        style={[styles.photoActions, { top }]}
+        onShare={canShare ? () => share(item.id, item.title) : undefined}
+        onEdit={canEdit ? () => router.push({ pathname: "/listing/edit/[id]", params: { id: item.id } }) : undefined}
+        onRemove={canRemove ? askRemove : undefined}
+        removeLabel="Remove listing"
+      />
       {sheet}
-    </View>
+      {confirmSheet}
+    </>
   );
 }
 
+/** One line under the title: where it is (or whose wish it answers) and when. */
 export function OwnerMeta({ item }: { item: ItemView }) {
   const live = item.status === "available" || item.status === "pending";
   if (item.wish) {
     const who = item.wish.wisher.displayName;
     return (
       <Text style={type.meta}>
-        {item.status === "available" ? `Sent to ${who} ${postedLabel(item.createdAt)}` : `For ${who}'s wish`}
+        {item.status === "available" ? `For ${who}'s wish · sent ${postedLabel(item.createdAt)}` : `For ${who}'s wish`}
       </Text>
     );
   }
-  return (
-    <Text style={type.meta}>
-      Posted {postedLabel(item.createdAt)}
-      {live ? ` · ${daysLeft(item.expiresAt)}` : ""}
-    </Text>
-  );
+  const first = item.circles[0];
+  const where = !first ? null : item.circles.length === 1 ? `In ${circleLabel(first)}` : `In ${circleLabel(first)} and ${item.circles.length - 1} more`;
+  const when = live ? daysLeft(item.expiresAt) : `posted ${postedLabel(item.createdAt)}`;
+  const line = [where, when].filter(Boolean).join(" · ");
+  return <Text style={type.meta}>{line.charAt(0).toUpperCase() + line.slice(1)}</Text>;
 }
 
 /** The heart of your listing: who asked, who it's going to, and your chats. */
@@ -100,10 +113,6 @@ export function OwnerSection({
   const live = item.status === "available" || item.status === "pending";
   const asksQ = useQuery({ ...convexQuery(api.requests.forItem, { itemId: item.id }), enabled: live });
   const asks = asksQ.data ?? [];
-  const inLine = asks.filter((a) => a.status === "open");
-  const [person, setPerson] = useState<AskRow | null>(null);
-  const [report, setReport] = useState<ReportTarget | null>(null);
-  const [block, setBlock] = useState<BlockTarget | null>(null);
 
   const going = item.chat?.other.displayName;
 
@@ -113,12 +122,14 @@ export function OwnerSection({
     if (asksQ.data && !stillThere) onChoose(null);
   }, [asksQ.data, stillThere, onChoose]);
 
+  // One status card per state: what's happening, and the next step (canvas "Your own listing", O2–O7).
   let body: ReactNode = null;
   if (item.wish && item.status === "available" && item.onHold) {
     const who = item.wish.wisher.displayName;
     body = <Card head={`${who}'s set for now`} text="Yours is ready if plans change. Only they see it." />;
   } else if (item.wish && item.status === "available") {
-    body = <WaitingForWisher wish={item.wish} />;
+    const who = item.wish.wisher.displayName;
+    body = <Card head={`Waiting for ${who} to choose`} text={`Only ${who} sees your offer. You'll get a push when they pick.`} />;
   } else if (item.wish && item.status === "removed" && item.offerEnding) {
     const ending = item.offerEnding;
     body = ending.note ? (
@@ -138,91 +149,58 @@ export function OwnerSection({
         <Card head={`${who} removed the wish`} text="Thanks for offering." />
       );
   } else if (item.status === "available" && asks.length === 0) {
-    body = (
-      <View style={{ gap: 2 }}>
-        <Text style={type.title}>No requests yet</Text>
-        <Text style={type.meta}>When people ask, you'll pick one person to give it to.</Text>
-      </View>
-    );
+    body = <Card head="No requests yet" text="When people ask, they'll show up here and you pick one." />;
   } else if (item.status === "available") {
     body = (
       <View>
-        <Text style={type.title}>
+        <Text style={styles.sectionHead}>
           {asks.length} {asks.length === 1 ? "person" : "people"} asked
         </Text>
-        <Text style={[type.meta, { fontSize: 15, marginTop: 2, marginBottom: space.sm }]}>Pick one to give it to.</Text>
+        <Text style={[type.meta, { fontSize: 14, marginTop: 2, marginBottom: space.xs }]}>Pick one to give it to.</Text>
         <View accessibilityRole="radiogroup">
           {asks.map((a, i) => {
             const on = chosen?.id === a.id;
             return (
-              <Pressable
-                key={a.id}
-                onPress={() => onChoose(on ? null : a)}
-                onLongPress={() => setPerson(a)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: on }}
-                accessibilityHint="Long press to report or block"
-                style={[styles.askRow, i < asks.length - 1 && styles.line]}
-              >
-                <Avatar name={a.requester.displayName} size={44} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.askName}>
-                    {a.requester.displayName}{" "}
-                    <Text style={type.meta}>
-                      · {shortAgo(a.createdAt)}
-                      {a.viaLink ? " · via your link" : ""}
+              <View key={a.id} style={[styles.askRow, i < asks.length - 1 && styles.line]}>
+                <Pressable
+                  onPress={() => onChoose(on ? null : a)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: on }}
+                  style={{ flex: 1, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}
+                >
+                  <Avatar name={a.requester.displayName} size={44} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.askName}>
+                      {a.requester.displayName}{" "}
+                      <Text style={type.meta}>
+                        · {shortAgo(a.createdAt)}
+                        {a.viaLink ? " · via your link" : ""}
+                      </Text>
                     </Text>
-                  </Text>
-                  {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
-                </View>
-                <Ionicons
-                  name={on ? "radio-button-on" : "radio-button-off"}
-                  size={26}
-                  color={on ? color.bay : color.inkFaint}
-                  style={{ marginTop: 9 }}
+                    {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
+                  </View>
+                  <Ionicons
+                    name={on ? "radio-button-on" : "radio-button-off"}
+                    size={26}
+                    color={on ? color.bay : color.inkFaint}
+                    style={{ marginTop: 9 }}
+                  />
+                </Pressable>
+                <PersonMore
+                  userId={a.requester.userId}
+                  name={a.requester.displayName}
+                  onBlocked={() => {
+                    if (chosen?.id === a.id) onChoose(null);
+                  }}
                 />
-              </Pressable>
+              </View>
             );
           })}
         </View>
       </View>
     );
   } else if (item.status === "pending") {
-    body = (
-      <View style={{ gap: space.lg }}>
-        <Card head={`Going to ${going ?? "someone"}`} text="Plan pickup in your chat, then mark it picked up." />
-        {item.chat ? <ChatLink id={item.chat.id} name={item.chat.other.displayName} /> : null}
-        <UnpickLink item={item} name={going ?? "them"} />
-        {inLine.length > 0 ? (
-          <View>
-            <Text style={type.label}>In line ({inLine.length})</Text>
-            <Text style={[type.meta, { marginBottom: space.xs }]}>
-              If it falls through with {going ?? "them"}, you can pick one of them.
-            </Text>
-            {inLine.map((a, i) => (
-              <Pressable
-                key={a.id}
-                onLongPress={() => setPerson(a)}
-                accessibilityHint="Long press to report or block"
-                style={[styles.askRow, i < inLine.length - 1 && styles.line]}
-              >
-                <Avatar name={a.requester.displayName} size={44} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.askName}>
-                    {a.requester.displayName}{" "}
-                    <Text style={type.meta}>
-                      · {shortAgo(a.createdAt)}
-                      {a.viaLink ? " · via your link" : ""}
-                    </Text>
-                  </Text>
-                  {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-      </View>
-    );
+    body = <PendingCard item={item} name={going ?? "them"} />;
   } else if (item.status === "gone") {
     body = (
       <View style={{ gap: space.lg }}>
@@ -230,59 +208,242 @@ export function OwnerSection({
           head={going ? `Picked up by ${going}` : "Picked up"}
           text="It found a new home. Thanks for giving it."
           warm
+          icon={<PoppyMark size={30} />}
+          link={item.chat ? { label: `Your chat with ${item.chat.other.displayName}`, chatId: item.chat.id } : undefined}
         />
-        {item.chat ? <ChatLink id={item.chat.id} name={item.chat.other.displayName} /> : null}
         <CircleNudge item={item} />
       </View>
     );
   } else if (item.status === "expired") {
-    body = <Card head="Expired" text="Post it again for another 30 days. Anyone who asked is still in line." />;
+    body = <ExpiredCard item={item} />;
   } else if (item.status === "removed") {
     body = <Card head="Removed" text="Nobody else can see this listing anymore." />;
   }
-
-  return (
-    <View style={{ gap: space.xl }}>
-      {body}
-      <PastChats item={item} />
-      <Sheet visible={!!person} onClose={() => setPerson(null)} title={person?.requester.displayName}>
-        <View>
-          <SheetAction
-            icon={<Ionicons name="flag-outline" size={22} color={color.inkSoft} />}
-            label={`Report ${person?.requester.displayName ?? ""}`}
-            onPress={() => {
-              if (person) setReport({ type: "user", id: person.requester.userId, label: person.requester.displayName });
-              setPerson(null);
-            }}
-          />
-          <SheetAction
-            icon={<Ionicons name="ban-outline" size={22} color={color.inkSoft} />}
-            label={`Block ${person?.requester.displayName ?? ""}`}
-            last
-            onPress={() => {
-              if (person) setBlock({ userId: person.requester.userId, displayName: person.requester.displayName });
-              if (person && chosen?.id === person.id) onChoose(null);
-              setPerson(null);
-            }}
-          />
-        </View>
-        <Pressable onPress={() => setPerson(null)} style={sheetStyles.secondary} accessibilityRole="button">
-          <Text style={sheetStyles.secondaryText}>Cancel</Text>
+  // An offer the wisher passed on: it can still go to everyone.
+  if (item.status === "removed" && item.offerEnding?.canShareAgain) {
+    body = (
+      <View style={{ gap: space.md }}>
+        {body}
+        <Pressable
+          onPress={() => router.push({ pathname: "/listing/again/[id]", params: { id: item.id } })}
+          style={sheetStyles.give}
+          accessibilityRole="button"
+        >
+          <Text style={sheetStyles.giveText}>Share with others</Text>
         </Pressable>
-      </Sheet>
-      <ReportSheet target={report} onClose={() => setReport(null)} />
-      <BlockSheet target={block} onClose={() => setBlock(null)} />
+      </View>
+    );
+  }
+
+  return body;
+}
+
+/**
+ * The bottom of your listing: history folded into rows that open in place, so the
+ * screen leads with the status. Pending: the people still in line. Any state: earlier chats.
+ */
+export function OwnerHistory({ item }: { item: ItemView }) {
+  const pending = item.status === "pending";
+  const asksQ = useQuery({ ...convexQuery(api.requests.forItem, { itemId: item.id }), enabled: pending });
+  const inLine = pending ? (asksQ.data ?? []).filter((a) => a.status === "open") : [];
+  const [open, setOpen] = useState<"line" | "chats" | null>(null);
+  const going = item.chat?.other.displayName ?? "them";
+  const chats = item.pastChats;
+  const people = [...new Set(chats.map((c) => c.other.displayName))];
+  if (inLine.length === 0 && chats.length === 0) return null;
+  return (
+    <View>
+      {inLine.length > 0 ? (
+        <Fold
+          title={`${inLine.length} ${inLine.length === 1 ? "other" : "others"} in line`}
+          detail={`${listNames(inLine.map((a) => a.requester.displayName))}, in case it falls through with ${going}`}
+          open={open === "line"}
+          onToggle={() => setOpen(open === "line" ? null : "line")}
+        >
+          {inLine.map((a, i) => (
+            <View key={a.id} style={[styles.askRow, i < inLine.length - 1 && styles.line]}>
+              <Avatar name={a.requester.displayName} size={40} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.askName}>
+                  {a.requester.displayName} <Text style={type.meta}>· {shortAgo(a.createdAt)}</Text>
+                </Text>
+                {a.note ? <Text style={styles.askNote}>{a.note}</Text> : null}
+              </View>
+              <PersonMore userId={a.requester.userId} name={a.requester.displayName} />
+            </View>
+          ))}
+        </Fold>
+      ) : null}
+      {chats.length > 0 ? (
+        <Fold
+          title={people.length === 1 ? `Earlier chats with ${people[0]} (${chats.length})` : `Earlier chats (${chats.length})`}
+          detail={chats.length === 1 ? "A pickup that didn't happen" : `${chats.length} pickups that didn't happen`}
+          open={open === "chats"}
+          onToggle={() => setOpen(open === "chats" ? null : "chats")}
+        >
+          <PastChats item={item} header={false} />
+        </Fold>
+      ) : null}
     </View>
   );
 }
 
+function listNames(names: string[]) {
+  if (names.length <= 2) return names.join(" and ");
+  return `${names.slice(0, 2).join(", ")} and ${names.length - 2} more`;
+}
+
+/** A row that opens in place: a title, one line under it, and a chevron that turns. */
+function Fold({
+  title,
+  detail,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  detail: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <View style={styles.fold}>
+      <Pressable onPress={onToggle} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.foldHead}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.askName}>{title}</Text>
+          <Text style={type.meta}>{detail}</Text>
+        </View>
+        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} color={color.inkSoft} />
+      </Pressable>
+      {open ? <View style={{ paddingBottom: space.sm }}>{children}</View> : null}
+    </View>
+  );
+}
+
+/** ⋯ on a person's row: report or block them (no hidden long-press). */
+function PersonMore({ userId, name, onBlocked }: { userId: AskRow["requester"]["userId"]; name: string; onBlocked?: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [report, setReport] = useState<ReportTarget | null>(null);
+  const [block, setBlock] = useState<BlockTarget | null>(null);
+  return (
+    <>
+      <IconButton icon="ellipsis-horizontal" label={`Report or block ${name}`} tone="fog" onPress={() => setOpen(true)} style={{ marginTop: 2 }} />
+      <Sheet visible={open} onClose={() => setOpen(false)} title={name}>
+        <View>
+          <SheetAction
+            icon={<Ionicons name="flag-outline" size={22} color={color.inkSoft} />}
+            label={`Report ${name}`}
+            onPress={() => {
+              setReport({ type: "user", id: userId, label: name });
+              setOpen(false);
+            }}
+          />
+          <SheetAction
+            icon={<Ionicons name="ban-outline" size={22} color={color.inkSoft} />}
+            label={`Block ${name}`}
+            last
+            onPress={() => {
+              setBlock({ userId, displayName: name });
+              setOpen(false);
+            }}
+          />
+        </View>
+        <Pressable onPress={() => setOpen(false)} style={sheetStyles.secondary} accessibilityRole="button">
+          <Text style={sheetStyles.secondaryText}>Cancel</Text>
+        </Pressable>
+      </Sheet>
+      <ReportSheet target={report} onClose={() => setReport(null)} />
+      <BlockSheet target={block} onClose={() => setBlock(null)} onBlocked={onBlocked} />
+    </>
+  );
+}
+
+/** Going to someone: the chat, then picked up, with a quiet way to un-pick. */
+function PendingCard({ item, name }: { item: ItemView; name: string }) {
+  const markPickedUp = useMutation(api.items.markPickedUp);
+  const thing = lowerFirst(item.title);
+  const confirmPickedUp = () =>
+    Alert.alert(`Mark the ${thing} picked up?`, "The listing ends and everyone in line is told. Your chat stays open.", [
+      { text: "Not yet", style: "cancel" },
+      {
+        text: "Picked up",
+        onPress: async () => {
+          try {
+            await markPickedUp({ itemId: item.id });
+          } catch (e) {
+            Alert.alert("Couldn't mark it picked up", errorMessage(e));
+          }
+        },
+      },
+    ]);
+  return (
+    <Card head={`Going to ${name}`} text="Plan pickup in your chat, then mark it picked up." warm>
+      {item.chat ? (
+        <Pressable
+          onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.chat!.id } })}
+          style={[styles.cardButton, { backgroundColor: color.bay }]}
+          accessibilityRole="button"
+        >
+          <Text style={[type.button, { fontSize: 16 }]} numberOfLines={1}>
+            Message {name}
+          </Text>
+        </Pressable>
+      ) : null}
+      <Pressable onPress={confirmPickedUp} style={[styles.cardButton, { backgroundColor: color.white }]} accessibilityRole="button">
+        <Text style={[styles.secondaryText, { color: color.bay }]}>Mark picked up</Text>
+      </Pressable>
+      <UnpickLink item={item} name={name} />
+    </Card>
+  );
+}
+
+/** Expired: nobody sees it; post it again, and anyone who asked is still in line. */
+function ExpiredCard({ item }: { item: ItemView }) {
+  const repost = useMutation(api.items.repost);
+  const [busy, setBusy] = useState(false);
+  const waiting = item.requestCount;
+  return (
+    <Card
+      head="Expired"
+      text={
+        waiting > 0
+          ? `Nobody can see it right now. ${waiting === 1 ? "1 person is" : `${waiting} people are`} still in line if you post it again.`
+          : "Nobody can see it right now."
+      }
+    >
+      <Pressable
+        disabled={busy}
+        onPress={async () => {
+          setBusy(true);
+          try {
+            await repost({ itemId: item.id });
+          } catch (e) {
+            Alert.alert("Couldn't post it again", errorMessage(e));
+          } finally {
+            setBusy(false);
+          }
+        }}
+        style={[styles.cardButton, { backgroundColor: color.bay }, busy && { opacity: 0.6 }]}
+        accessibilityRole="button"
+      >
+        <Text style={[type.button, { fontSize: 16 }]}>Post again for 30 days</Text>
+      </Pressable>
+    </Card>
+  );
+}
+
 /** Ended chats about this item, readable for good. */
-export function PastChats({ item }: { item: ItemView }) {
+export function PastChats({ item, header = true }: { item: ItemView; header?: boolean }) {
   if (item.pastChats.length === 0) return null;
   return (
     <View>
-      <Text style={type.label}>Past chats</Text>
-      <Text style={[type.meta, { marginBottom: space.xs }]}>Kept so you can look back at what you arranged.</Text>
+      {header ? (
+        <>
+          <Text style={type.label}>Past chats</Text>
+          <Text style={[type.meta, { marginBottom: space.xs }]}>Kept so you can look back at what you arranged.</Text>
+        </>
+      ) : null}
       {item.pastChats.map((c, i) => (
         <Pressable
           key={c.id}
@@ -292,7 +453,9 @@ export function PastChats({ item }: { item: ItemView }) {
         >
           <Avatar name={c.other.displayName} size={42} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.askName}>{c.other.displayName}</Text>
+            <Text style={styles.askName}>
+              {c.other.displayName} <Text style={type.meta}>· ended {postedLabel(c.endedAt)}</Text>
+            </Text>
             {c.lastMessage ? (
               <Text style={type.meta} numberOfLines={1}>
                 {c.lastMessage.mine ? "You" : c.other.displayName}: {c.lastMessage.body}
@@ -306,19 +469,6 @@ export function PastChats({ item }: { item: ItemView }) {
   );
 }
 
-function ChatLink({ id, name }: { id: string; name: string }) {
-  return (
-    <Pressable
-      onPress={() => router.push({ pathname: "/chat/[id]", params: { id } })}
-      accessibilityRole="button"
-      style={styles.chatLink}
-    >
-      <Avatar name={name} size={42} />
-      <Text style={[styles.askName, { flex: 1 }]}>Your chat with {name}</Text>
-      <Ionicons name="chevron-forward" size={18} color={color.inkSoft} />
-    </Pressable>
-  );
-}
 
 function UnpickLink({ item, name }: { item: ItemView; name: string }) {
   const unpick = useMutation(api.items.unpick);
@@ -338,31 +488,9 @@ function UnpickLink({ item, name }: { item: ItemView; name: string }) {
       { text: `${name} didn't show`, onPress: run(true) },
     ]);
   return (
-    <Pressable onPress={confirm} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "flex-start", marginTop: -space.sm }}>
+    <Pressable onPress={confirm} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "center", paddingTop: space.xs }}>
       <Text style={styles.quiet}>Un-pick {name}</Text>
     </Pressable>
-  );
-}
-
-/** Your offer, before the wisher picks: whose wish it answers, in their words. */
-function WaitingForWisher({ wish }: { wish: NonNullable<ItemView["wish"]> }) {
-  const who = wish.wisher.displayName;
-  return (
-    <View>
-      <Text style={type.title}>Waiting for {who}</Text>
-      <Text style={[type.meta, { fontSize: 15, marginTop: 2, marginBottom: space.sm }]}>
-        Only {who} sees this. They'll pick from the offers on their wish.
-      </Text>
-      <View style={[styles.askRow, styles.wishRow]}>
-        <Avatar name={who} size={44} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.askName}>
-            {who} <Text style={type.meta}>· wished for {lowerFirst(wish.title)}</Text>
-          </Text>
-          {wish.description ? <Text style={styles.askNote}>“{wish.description}”</Text> : null}
-        </View>
-      </View>
-    </View>
   );
 }
 
@@ -375,7 +503,7 @@ function CircleNudge({ item }: { item: ItemView }) {
   const [dismissed, setDismissed] = useState(false);
   if (!nudge || dismissed) return null;
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, styles.cardBody, { gap: 4 }]}>
       <Text style={styles.cardHead}>Swap with {nudge.name} often?</Text>
       <Text style={type.meta}>
         {nudge.hasCustomCircle
@@ -398,136 +526,56 @@ function CircleNudge({ item }: { item: ItemView }) {
   );
 }
 
-function Card({ head, text, warm = false }: { head: string; text: string; warm?: boolean }) {
+/** The status card: a head, one line, then any actions; optionally a row linking to a chat. */
+function Card({
+  head,
+  text,
+  warm = false,
+  icon,
+  link,
+  children,
+}: {
+  head: string;
+  text: string;
+  warm?: boolean;
+  icon?: ReactNode;
+  link?: { label: string; chatId: string };
+  children?: ReactNode;
+}) {
   return (
     <View style={[styles.card, warm && { backgroundColor: color.blush }]}>
-      <Text style={styles.cardHead}>{head}</Text>
-      <Text style={type.meta}>{text}</Text>
+      <View style={styles.cardBody}>
+        <View style={{ flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
+          {icon}
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={styles.cardHead}>{head}</Text>
+            <Text style={[type.meta, { fontSize: 14, lineHeight: 20 }]}>{text}</Text>
+          </View>
+        </View>
+        {children}
+      </View>
+      {link ? (
+        <Pressable
+          onPress={() => router.push({ pathname: "/chat/[id]", params: { id: link.chatId } })}
+          accessibilityRole="button"
+          style={styles.cardLink}
+        >
+          <Text style={[styles.askName, { color: color.bay, fontSize: 15 }]}>{link.label}</Text>
+          <Ionicons name="chevron-forward" size={18} color={color.bay} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
-/** "Remove listing", quiet, at the end of your own listing. */
-export function RemoveListingLink({ item }: { item: ItemView }) {
-  const remove = useMutation(api.items.remove);
-  if (item.status === "gone" || item.status === "removed") return null;
-  const confirm = () =>
-    Alert.alert(
-      "Remove this listing?",
-      item.wish
-        ? `${item.wish.wisher.displayName} won't see your offer anymore.`
-        : item.requestCount > 0
-          ? "Everyone who asked will be told it's no longer available."
-          : "Nobody else will see it anymore.",
-      [
-        { text: "Keep it", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await remove({ itemId: item.id });
-              router.back();
-            } catch (e) {
-              Alert.alert("Couldn't remove it", errorMessage(e));
-            }
-          },
-        },
-      ],
-    );
+/** The bar at the bottom: only "Give to …" once you've picked someone. Every other action lives in the status card. */
+export function OwnerBar({ item, chosen, onGive }: { item: ItemView; chosen: AskRow | null; onGive: () => void }) {
+  if (item.status !== "available" || !chosen) return null;
   return (
-    <Pressable onPress={confirm} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "flex-start" }}>
-      <Text style={styles.quiet}>Remove listing</Text>
+    <Pressable onPress={onGive} style={sheetStyles.give} accessibilityRole="button">
+      <Text style={sheetStyles.giveText}>Give to {chosen.requester.displayName}</Text>
     </Pressable>
   );
-}
-
-/** The bar at the bottom: one action at a time, or nothing. */
-export function OwnerBar({ item, chosen, onGive }: { item: ItemView; chosen: AskRow | null; onGive: () => void }) {
-  const repost = useMutation(api.items.repost);
-  const markPickedUp = useMutation(api.items.markPickedUp);
-  const [busy, setBusy] = useState(false);
-  const thing = lowerFirst(item.title);
-
-  if (item.status === "available") {
-    if (!chosen) return null;
-    return (
-      <Pressable onPress={onGive} style={sheetStyles.give} accessibilityRole="button">
-        <Text style={sheetStyles.giveText}>Give to {chosen.requester.displayName}</Text>
-      </Pressable>
-    );
-  }
-  if (item.status === "pending") {
-    const name = item.chat?.other.displayName;
-    const confirm = () =>
-      Alert.alert(`Mark the ${thing} picked up?`, "The listing ends and everyone in line is told. Your chat stays open.", [
-        { text: "Not yet", style: "cancel" },
-        {
-          text: "Picked up",
-          onPress: async () => {
-            try {
-              await markPickedUp({ itemId: item.id });
-            } catch (e) {
-              Alert.alert("Couldn't mark it picked up", errorMessage(e));
-            }
-          },
-        },
-      ]);
-    return (
-      <View style={styles.row}>
-        <Pressable onPress={confirm} style={[styles.button, styles.secondary]} accessibilityRole="button">
-          <Text style={styles.secondaryText}>Mark picked up</Text>
-        </Pressable>
-        {item.chat ? (
-          <Pressable
-            onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.chat!.id } })}
-            style={[styles.button, styles.primaryFlex]}
-            accessibilityRole="button"
-          >
-            <Text style={[type.button, { fontSize: 16 }]} numberOfLines={1}>
-              Message {name}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
-    );
-  }
-  if (item.status === "expired") {
-    return (
-      <Pressable
-        disabled={busy}
-        onPress={async () => {
-          setBusy(true);
-          try {
-            await repost({ itemId: item.id });
-          } catch (e) {
-            Alert.alert("Couldn't post it again", errorMessage(e));
-          } finally {
-            setBusy(false);
-          }
-        }}
-        style={[sheetStyles.primary, busy && { opacity: 0.6 }]}
-        accessibilityRole="button"
-      >
-        <Text style={type.button}>Post it again</Text>
-      </Pressable>
-    );
-  }
-  if (item.status === "removed" && item.offerEnding?.canShareAgain) {
-    return (
-      <View style={{ gap: space.sm }}>
-        <Text style={[type.meta, { textAlign: "center", fontSize: 15 }]}>Someone nearby might still want it.</Text>
-        <Pressable
-          onPress={() => router.push({ pathname: "/listing/again/[id]", params: { id: item.id } })}
-          style={sheetStyles.give}
-          accessibilityRole="button"
-        >
-          <Text style={sheetStyles.giveText}>Share with others</Text>
-        </Pressable>
-      </View>
-    );
-  }
-  return <Text style={type.meta}>This listing has ended.</Text>;
 }
 
 /** "Give the crib to Maya?": the step that explains the private chat. */
@@ -589,7 +637,7 @@ export function GiveSheet({
 }
 
 const styles = StyleSheet.create({
-  photoActions: { position: "absolute", right: space.lg, flexDirection: "row", gap: space.sm },
+  photoActions: { position: "absolute", right: space.lg },
   photoButton: {
     width: 40,
     height: 40,
@@ -612,8 +660,22 @@ const styles = StyleSheet.create({
     borderRadius: radius.thing,
     padding: 14,
   },
-  card: { backgroundColor: color.fog, borderRadius: radius.thing, padding: 14, gap: 2 },
-  cardHead: { fontFamily: font.uiSemi, fontSize: 15, color: color.ink },
+  card: { backgroundColor: color.fog, borderRadius: radius.thing, overflow: "hidden" },
+  cardBody: { padding: space.md + 4, gap: 14 },
+  cardHead: { fontFamily: font.uiSemi, fontSize: 17, lineHeight: 22, color: color.ink },
+  cardButton: { height: 50, borderRadius: radius.control, alignItems: "center", justifyContent: "center", paddingHorizontal: space.sm },
+  cardLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: space.md + 4,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(24,34,46,0.08)",
+  },
+  sectionHead: { fontFamily: font.uiSemi, fontSize: 17, lineHeight: 22, color: color.ink },
+  fold: { borderTopWidth: 1, borderTopColor: color.line },
+  foldHead: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: 14 },
   noteQuote: { fontFamily: font.curatorLight, fontSize: 19, lineHeight: 27, color: color.ink },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },
   noteBox: { backgroundColor: color.fog, borderRadius: radius.control, paddingHorizontal: 14, paddingVertical: space.md },

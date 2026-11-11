@@ -29,7 +29,7 @@ import {
   OwnerPhotoActions,
   OwnerSection,
   PastChats,
-  RemoveListingLink,
+  OwnerHistory,
   type AskRow,
 } from "../../src/features/items/OwnerListing";
 import { PhotoPager } from "../../src/features/items/PhotoPager";
@@ -37,6 +37,7 @@ import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockShe
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { errorMessage } from "../../src/lib/errors";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
+import { ThingActions } from "../../src/ui/IconButton";
 import { PoppyMark } from "../../src/ui/Logo";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
@@ -87,7 +88,8 @@ export default function ItemDetail() {
   const yours = !item.isOwner && item.myRequest?.status === "selected" && (pending || item.status === "gone");
   // Un-picked: the owner cancelled the exchange, and the listing is closed for this person (they can't ask again).
   const cancelled = !item.isOwner && item.myRequest?.status === "cancelled";
-  const ownerBarHidden = (item.isOwner && item.status === "available" && !chosen) || cancelled;
+  // Your own listing keeps every action in its status card; the bar is only for "Give to …".
+  const ownerBarHidden = (item.isOwner && !(item.status === "available" && chosen)) || cancelled;
   const asked = item.myRequest && (item.myRequest.status === "open" || item.myRequest.status === "selected") ? item.myRequest : null;
 
   const send = async () => {
@@ -137,7 +139,11 @@ export default function ItemDetail() {
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
         <View>
-          <PhotoPager urls={item.photoUrls} dimmed={pending || cancelled} height={cancelled ? 260 : undefined} />
+          <PhotoPager
+            urls={item.photoUrls}
+            dimmed={pending || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
+            height={cancelled ? 260 : item.isOwner ? 300 : undefined}
+          />
           <Pressable
             onPress={() => router.back()}
             accessibilityLabel="Back"
@@ -145,7 +151,12 @@ export default function ItemDetail() {
           >
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
-          {item.isOwner ? <OwnerPhotoActions item={item} top={insets.top + space.sm} /> : null}
+          {item.isOwner ? (
+            <OwnerPhotoActions item={item} top={insets.top + space.sm} />
+          ) : (
+            // Someone else's listing: ⋯ for report or block, in the same spot as your own listing's actions.
+            <ThingActions onMore={() => setSafetyOpen(true)} style={[styles.more, { top: insets.top + space.sm }]} />
+          )}
           {item.status === "available" && !item.isOwner && !cancelled && (
             <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
               <View style={styles.freeDot} />
@@ -220,7 +231,7 @@ export default function ItemDetail() {
           {item.description && !cancelled ? <Text style={type.body}>{item.description}</Text> : null}
 
           {/* Offers for a wish go to one person, not to circles. */}
-          {item.circles.length > 0 && !cancelled ? (
+          {item.circles.length > 0 && !cancelled && !item.isOwner ? (
             <View style={{ gap: space.sm }}>
               <Text style={type.label}>{item.isOwner ? "Posted in" : "Shared with"}</Text>
               <View style={styles.circleRow}>
@@ -242,13 +253,8 @@ export default function ItemDetail() {
             </Text>
           </View>}
 
-          {item.isOwner ? (
-            <RemoveListingLink item={item} />
-          ) : (
-            <Pressable onPress={() => setSafetyOpen(true)} hitSlop={8} accessibilityRole="button" style={{ alignSelf: "flex-start" }}>
-              <Text style={styles.quiet}>Report or block</Text>
-            </Pressable>
-          )}
+          {/* Your own listing: history folded at the bottom (people in line, earlier chats). */}
+          {item.isOwner ? <OwnerHistory item={item} /> : null}
         </View>
       </ScrollView>
 
@@ -378,9 +384,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // A giving moment: Poppy, with Ink text for contrast
+  more: { position: "absolute", right: space.lg },
   freeSticker: {
     position: "absolute",
-    right: space.lg,
+    right: space.lg + 48, // left of the ⋯ button
+    marginTop: 3,
     height: 34,
     flexDirection: "row",
     alignItems: "center",
