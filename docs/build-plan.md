@@ -85,7 +85,7 @@ The backend "done when" checks are proved by tests; the device checks in each mi
 
 #### 1a. Switch to an external TestFlight group with a public link
 Internal testing makes each person accept two emails in order (App Store Connect, then TestFlight). An external group with a public link needs neither: tap link → install TestFlight → install Domi.
-- [ ] Seed the App Review circle on prod and make the review account (steps in `docs/app-review.md`, "Before submitting" step 2).
+- [x] (Inferred from Beta App Review approval on 2026-11-10, which needs the review account.) Seed the App Review circle on prod and make the review account (steps in `docs/app-review.md`, "Before submitting" step 2).
 - [x] App Store Connect: App Privacy answers, description, support URL (domicircles.com/support), privacy URL (`docs/app-review.md` steps 3 and 4).
 - [x] (Approved 2026-11-10; group "dominos", public link https://testflight.apple.com/join/ZNuE3qN7.) Create the external group, turn on the public link, add the build, and submit for Beta App Review with the review notes (`docs/app-review.md` step 5). Usually takes about a day. Later builds of the same version often skip review.
 - [x] Put the public link in `TESTFLIGHT_URL` in `web/wrangler.toml`, then `cd web && npx wrangler deploy`, so the "Get Domi" step on invite, listing and /beta pages works. Until then step 2 says "Ask <inviter> to send you the Domi test link." (Get it: App Store Connect › Domi › TestFlight › the external group › Public Link, after Beta App Review approves a build. Looks like `https://testflight.apple.com/join/…`.)
@@ -94,9 +94,9 @@ Internal testing makes each person accept two emails in order (App Store Connect
 #### 1b. Production backend and website
 Prod (`rugged-dragon-667`) exists and `wrangler.toml` already points at it (not committed yet).
 - [ ] Check prod: full zip table loaded, `DEV_PASSWORD_AUTH` not set, report alerts sent and received (`web/README.md`).
-- [ ] Commit `web/wrangler.toml` and `convex/_generated`, then `cd web && npx wrangler deploy`.
+- [x] (Done: both committed; the site is live with the TestFlight link.) Commit `web/wrangler.toml` and `convex/_generated`, then `cd web && npx wrangler deploy`.
 - [x] (Done 2026-11-10, $40/month limit.) Move Convex to Starter (pay as you go, $0 base) **before** sending the public link. On the free plan, a hit cap breaks the app for everyone.
-- [ ] Merge branch `zip-limit-no-shows` (zip change limit, mark missed pickup) once tests pass, and ship it with `npm run update:production`.
+- [x] (Merged 2026-11-02, commit b3a4b26.) Merge branch `zip-limit-no-shows` (zip change limit, mark missed pickup) once tests pass, and ship it with `npm run update:production`.
 
 #### 1c. Stability: one full run on real phones
 Several milestones were built and tested in code, but their checks on a real device are still open.
@@ -106,17 +106,17 @@ Several milestones were built and tested in code, but their checks on a real dev
   - 2026-11-08 run (fresh accounts, sections 0–2 of the checklist): fixes on branch `test-fixes`. Also added: editing a wish (server change: needs `npx convex deploy`), and adding a wish moved from the sheet to the listing editor. Sheets close on swipe down (the wish sheet couldn't be dismissed); delete account asks in a Domi sheet and no longer flashes the signup screen; invite and listing pages show a hint when the open-in-Domi button does nothing (app not installed). Ship: merge, `npm run update:production` (app) and `cd web && npx wrangler deploy` (website).
 
 #### 1d. Easy onboarding
-- [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most.
+- [ ] **Open where the link pointed**: after signing up from an invite, open that circle instead of Browse. Small, JS only, and it's the moment new people notice most. (Status 2026-11-12: returning users who sign in from a link already land on the circle; new signups still go to the welcome cards, then Browse.)
 - [x] Show the invite on the sign-in screen ("Ellen invited you to …") when a code is saved. Done 2026-11-08 (`src/features/auth/SignInInvite.tsx`), together with install match below and a visible code box at signup (live "You'll join …" check).
 - [x] iPhone install match, moved up from phase 3 after the 2026-11-08 test run (new users lost the code between the web page and first open). Buttons on invite and listing pages send the code to `POST /m`; the Worker keeps it an hour under a salted IP hash in KV (`web/src/match.js`); the sign-in screen asks `GET /m` and shows "Ellen invited you to … Is that you?". Privacy Policy updated. Doesn't match when Safari uses iCloud Private Relay or the phone changes networks; the code box covers those.
-- [ ] Set up install match on Cloudflare: `cd web && npx wrangler kv namespace create MATCHES`, paste the id into the commented `[[kv_namespaces]]` block in `wrangler.toml` and uncomment it, `npx wrangler secret put MATCH_SALT` (any long random string), then `npx wrangler deploy`. Until then `/m` does nothing and people type the code.
+- [x] (Done: `MATCHES` namespace in `wrangler.toml`, commit 25ebd6d.) Set up install match on Cloudflare: `cd web && npx wrangler kv namespace create MATCHES`, paste the id into the commented `[[kv_namespaces]]` block in `wrangler.toml` and uncomment it, `npx wrangler secret put MATCH_SALT` (any long random string), then `npx wrangler deploy`. Until then `/m` does nothing and people type the code.
 
 #### 1e. Finalize brand details
 Settle what testers see first: the app icon, the TestFlight description, the website and the invite pages. Open questions come from "Domi Circles — Brand Strategy (Draft)" in Drive.
-- [ ] Decide the launch audience and lead message. Recommendation: the East Bay parent first (not students), gifting first. That matches what's built, since everything on Domi is free for now.
-- [ ] Pick the tagline ("Pass it on, close to home." / "Good things stay in the neighborhood." / "Give it a new home nearby.") and use it on the home page, the TestFlight and App Store description, and invite pages.
-- [ ] Replace or keep the home page headline "Outgrown, not outrun." (`web/src/home.js`). It reads as confusing.
-- [ ] Lock the logo and app icon for the TestFlight build (icon changes need a new build). A designer's pass on the logo can come later.
+- [ ] Decide the launch audience and lead message. Recommendation: the East Bay parent first (not students), gifting first. That matches what's built, since everything on Domi is free for now. (Still open in the brand strategy doc.)
+- [x] (Done: "Good things find a new home nearby." on the home page and the welcome screen. Check the TestFlight description uses it too.) Pick the tagline ("Pass it on, close to home." / "Good things stay in the neighborhood." / "Give it a new home nearby.") and use it on the home page, the TestFlight and App Store description, and invite pages.
+- [x] (Replaced: the headline is now "Good things find a new home nearby.") Replace or keep the home page headline "Outgrown, not outrun." (`web/src/home.js`). It reads as confusing.
+- [x] (Leaning poppy icon, 2026-11-07, in the build approved 2026-11-10.) Lock the logo and app icon for the TestFlight build (icon changes need a new build). A designer's pass on the logo can come later.
 
 #### 1f. Feedback for this phase
 - **Decision:** don't build anything. Use TestFlight's built-in feedback (screenshot, then Share Beta Feedback) plus a group text. Tell testers how in the invite message.
@@ -142,7 +142,7 @@ Settle what testers see first: the app icon, the TestFlight description, the web
 Superusers will post share links in Buy Nothing groups, so links will reach people outside any circle.
 - [ ] Leave out `approxLat`/`approxLng` (`convex/lib/cards.ts`) for people who reached the listing only through a share link.
 - [ ] "Stop sharing" on the owner's listing, calling the existing `shares.revoke`.
-- [ ] Mark requests that came in through a link ("via your link") so owners can favor neighbors.
+- [x] (Done 2026-11-09, commit d8e0b06.) Mark requests that came in through a link ("via your link") so owners can favor neighbors.
 
 #### 2d. Sign in with Facebook
 Buy Nothing superusers mostly live on Facebook, so this cuts signup friction for them. It's a new dependency and native code, so it needs a new build and the Meta setup takes a while: start it early in phase 2.
@@ -174,8 +174,8 @@ Many Buy Nothing members use Android, and Google requires a closed test (current
 
 #### 2g. Neighbor card and thank-you tokens
 Strangers arrive in phase 2, and the giver picks who gets each item, so "who is this person?" needs an answer. The thank-you token is the handoff celebration from the Buy Nothing research (2026-11-03): the most-loved part of Buy Nothing was gratitude. Scope change: the spec lists "karma/points" as out of scope. Tokens are thanks you can't lose, not a score, so they're allowed; update `docs/spec.md` (scope line and decision log) when this is built.
-- [ ] **Pick the token** with a quick mock at real size: poppy (bouquet that fills in), cookie (with ripples on the profile) or marble jar. Working name below: "poppies".
-- [ ] **Send a poppy** after a handoff, in both directions ("Maya sent you a poppy for the crib"), from the picked-up screen and the chat. One per person per handoff. Writes an event and pushes per the events rules.
+- [x] (Poppy, the "domi flower", 2026-11-07.) **Pick the token** with a quick mock at real size: poppy (bouquet that fills in), cookie (with ripples on the profile) or marble jar. Working name below: "poppies".
+- [ ] **Send a poppy** after a handoff, in both directions ("Maya sent you a poppy for the crib"), from the picked-up screen and the chat. One per person per handoff. Writes an event and pushes per the events rules. (Status 2026-11-12: recipient → giver is built, `thanks.send`; giver → recipient is still to do.)
 - [ ] **Handoff moment**: the short "The crib is home." screen for both people when an item is marked picked up, leading into Send a poppy. Decide whether the recipient confirms with a "Home!" tap.
 - [ ] **Neighbor card**: tap a name to open it. Shows name and initial avatar (no photo uploads), the circles you share ("You're both in Rose St Parents"), member since, and their poppies as the filled-in display, never a number to rank by. No pickup history, nothing that hints at where they live.
 - [ ] Only people who share a circle with them can open it, plus the owner of a listing they requested through a share link. Access checks and allowed/denied tests in `convex/`.
