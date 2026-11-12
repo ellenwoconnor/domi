@@ -156,7 +156,16 @@ export default function ItemDetail() {
             )
           }
           photoUrls={item.photoUrls}
-          dimmed={(pending && !yours) || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
+          dimmed={pending && !yours}
+          ended={
+            cancelled
+              ? "Closed"
+              : item.isOwner && item.status === "expired"
+                ? "Expired"
+                : item.isOwner && item.status === "removed"
+                  ? "Removed"
+                  : null
+          }
           sticker={yours ? "poppy" : item.status === "available" && !item.isOwner && !cancelled ? "free" : null}
           kicker={yours ? (item.status === "gone" ? `${owner} gave you` : `${owner} picked you for`) : undefined}
           title={item.title}

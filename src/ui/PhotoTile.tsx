@@ -15,6 +15,7 @@ export function PhotoTile({
   style,
   rounded = true,
   dimmed = false,
+  grayscale = false,
 }: {
   uri?: string | null;
   emoji?: string;
@@ -22,6 +23,8 @@ export function PhotoTile({
   style?: StyleProp<ViewStyle>;
   rounded?: boolean;
   dimmed?: boolean;
+  /** Black and white, for things that have ended (expired, removed, closed for you). */
+  grayscale?: boolean;
 }) {
   return (
     <View style={[styles.tile, rounded && { borderRadius: radius.thing }, style]}>
@@ -40,6 +43,10 @@ export function PhotoTile({
       ) : (
         <Ionicons name="image-outline" size={28} color={color.inkFaint} />
       )}
+      {grayscale ? (
+        // A gray layer in "saturation" blend mode keeps the photo's light and dark but takes out its color.
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "#808080", mixBlendMode: "saturation" }]} />
+      ) : null}
     </View>
   );
 }

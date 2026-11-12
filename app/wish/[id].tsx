@@ -172,6 +172,7 @@ function YourWish({ wish }: { wish: Wish }) {
         ) : (
           <DetailHeader
             actions={actions}
+            ended={wish.status === "removed" ? "Removed" : null}
             kicker="You're looking for"
             title={wish.title}
             byline={<Byline name="You" meta={`wished ${postedLabel(wish.createdAt)}`} />}

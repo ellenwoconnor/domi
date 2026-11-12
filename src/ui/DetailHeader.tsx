@@ -23,6 +23,7 @@ export function DetailHeader({
   kicker,
   title,
   byline,
+  ended = null,
 }: {
   actions?: ReactNode;
   photoUrls?: string[];
@@ -32,22 +33,31 @@ export function DetailHeader({
   kicker?: string;
   title: string;
   byline: ReactNode;
+  /** It's over ("Expired", "Removed", "Closed"): Fog instead of Blush, a black-and-white photo, this word as a tag. */
+  ended?: string | null;
 }) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.band, { paddingTop: insets.top + space.sm }]}>
+    <View style={[styles.band, ended ? { backgroundColor: color.fog } : null, { paddingTop: insets.top + space.sm }]}>
       <View style={styles.topRow}>
         <IconButton icon="chevron-back" label="Back" onPress={() => router.back()} />
         {actions}
       </View>
-      {photoUrls ? <PhotoPrint urls={photoUrls} dimmed={dimmed} sticker={sticker} /> : null}
-      {kicker ? <Text style={[styles.kicker, !photoUrls && { marginTop: space.md }]}>{kicker}</Text> : null}
+      {photoUrls ? <PhotoPrint urls={photoUrls} dimmed={dimmed && !ended} ended={ended} sticker={ended ? null : sticker} /> : null}
+      {ended && !photoUrls ? (
+        <View style={[styles.endedTag, styles.endedAlone]}>
+          <Text style={styles.endedText}>{ended}</Text>
+        </View>
+      ) : kicker ? (
+        <Text style={[styles.kicker, !photoUrls && { marginTop: space.md }]}>{kicker}</Text>
+      ) : null}
       <Text
         style={[
           type.display,
           styles.title,
-          { marginTop: kicker ? 6 : photoUrls ? 22 : space.md },
+          { marginTop: kicker || (ended && !photoUrls) ? 6 : photoUrls ? 22 : space.md },
           !photoUrls && { fontSize: 36, lineHeight: 42 },
+          ended ? { color: color.inkSoft } : null,
         ]}
         accessibilityRole="header"
       >
@@ -61,13 +71,23 @@ export function DetailHeader({
 const PRINT = 264;
 
 /** Every listing photo is the same square, cropped to fill, shown as a print tilted a touch. Swipe for more. */
-function PhotoPrint({ urls, dimmed, sticker }: { urls: string[]; dimmed: boolean; sticker: "free" | "poppy" | null }) {
+function PhotoPrint({
+  urls,
+  dimmed,
+  ended,
+  sticker,
+}: {
+  urls: string[];
+  dimmed: boolean;
+  ended: string | null;
+  sticker: "free" | "poppy" | null;
+}) {
   const [page, setPage] = useState(0);
   return (
     <View style={styles.printWrap}>
       <View style={styles.print}>
         {urls.length <= 1 ? (
-          <PhotoTile uri={urls[0]} dimmed={dimmed} style={styles.photo} />
+          <PhotoTile uri={urls[0]} dimmed={dimmed || !!ended} grayscale={!!ended} style={styles.photo} />
         ) : (
           <ScrollView
             horizontal
@@ -78,11 +98,15 @@ function PhotoPrint({ urls, dimmed, sticker }: { urls: string[]; dimmed: boolean
             accessibilityLabel={`Photo ${page + 1} of ${urls.length}`}
           >
             {urls.map((uri) => (
-              <PhotoTile key={uri} uri={uri} dimmed={dimmed} rounded={false} style={{ width: PRINT, height: PRINT }} />
+              <PhotoTile key={uri} uri={uri} dimmed={dimmed || !!ended} grayscale={!!ended} rounded={false} style={{ width: PRINT, height: PRINT }} />
             ))}
           </ScrollView>
         )}
-        {sticker === "free" ? (
+        {ended ? (
+          <View style={[styles.endedTag, styles.endedOnPrint]}>
+            <Text style={styles.endedText}>{ended}</Text>
+          </View>
+        ) : sticker === "free" ? (
           <View style={styles.free} accessibilityLabel="Free">
             <View style={styles.freeDot} />
             <Text style={styles.freeText}>Free</Text>
@@ -188,6 +212,18 @@ const styles = StyleSheet.create({
   freeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.white },
   freeText: { fontFamily: font.uiBold, fontSize: 15, color: color.ink },
   poppy: { position: "absolute", top: -26, left: -22, transform: [{ rotate: "-4deg" }] },
+  endedTag: {
+    height: 30,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: color.white,
+    borderWidth: 1,
+    borderColor: color.line,
+  },
+  endedOnPrint: { position: "absolute", top: -12, left: -12, transform: [{ rotate: "-4deg" }] },
+  endedAlone: { alignSelf: "center", marginTop: space.md },
+  endedText: { fontFamily: font.uiBold, fontSize: 13, letterSpacing: 0.3, color: color.inkSoft },
   dots: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: space.md },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(31,78,121,0.3)" },
   dotOn: { width: 18, backgroundColor: color.bay },
