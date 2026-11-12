@@ -128,11 +128,24 @@ function PhotoPrint({
   );
 }
 
-/** A person under a title: their initial, their name (or "You"), then where and when. */
-export function Byline({ name, meta, center = true }: { name: string; meta?: string | null; center?: boolean }) {
+/**
+ * A person under a title: their initial, their name (or "You"), then where and when.
+ * The avatar is a white disc on a tint (Blush header, Fog card) and a Fog disc on white.
+ */
+export function Byline({
+  name,
+  meta,
+  center = true,
+  onWhite = false,
+}: {
+  name: string;
+  meta?: string | null;
+  center?: boolean;
+  onWhite?: boolean;
+}) {
   return (
     <View style={[styles.byline, center && { justifyContent: "center" }]}>
-      <Avatar name={name} size={28} onFog />
+      <Avatar name={name} size={28} onFog={!onWhite} />
       <Text style={styles.bylineText} numberOfLines={2}>
         <Text style={styles.bylineName}>{name}</Text>
         {meta ? ` · ${meta}` : ""}

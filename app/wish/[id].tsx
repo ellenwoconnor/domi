@@ -261,7 +261,7 @@ function YourWish({ wish }: { wish: Wish }) {
                             {o.description}
                           </Text>
                         ) : null}
-                        <Byline name={o.owner.displayName} meta={postedLabel(o.createdAt)} center={false} />
+                        <Byline name={o.owner.displayName} meta={postedLabel(o.createdAt)} center={false} onWhite />
                       </View>
                       <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} tone="fog" onPress={() => setPerson(o)} />
                       <Ionicons
