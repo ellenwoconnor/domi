@@ -59,6 +59,7 @@ export default function ItemDetail() {
   const [safetyOpen, setSafetyOpen] = useState(false);
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
+  const [barHeight, setBarHeight] = useState(170);
   const item = itemQ.data;
 
   if (itemQ.isPending) {
@@ -85,6 +86,16 @@ export default function ItemDetail() {
   const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
   const owner = item.owner.displayName;
   const away = distanceLabel(me, item);
+  const first = item.circles[0];
+  const theirMeta = [
+    `From ${owner}`,
+    // Offers for a wish go to one person, not to circles.
+    item.wish ? "for your wish" : !first ? null : item.circles.length === 1 ? `in ${circleLabel(first)}` : `in ${circleLabel(first)} and ${item.circles.length - 1} more`,
+    !away ? null : away === "nearby" ? "nearby" : `about ${away} away`,
+    `posted ${postedLabel(item.createdAt)}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const yours = !item.isOwner && item.myRequest?.status === "selected" && (pending || item.status === "gone");
   // Un-picked: the owner cancelled the exchange, and the listing is closed for this person (they can't ask again).
   const cancelled = !item.isOwner && item.myRequest?.status === "cancelled";
@@ -137,14 +148,14 @@ export default function ItemDetail() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: (ownerBarHidden ? insets.bottom : barHeight) + space.xl }}>
         {/* The buttons get their own strip under the status bar, so the camera cutout and the
             buttons never cover the photo. */}
         <View style={{ paddingTop: insets.top + space.sm + 40 + space.sm }}>
           <PhotoPager
             urls={item.photoUrls}
             dimmed={pending || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
-            height={cancelled ? 260 : item.isOwner ? 300 : undefined}
+            height={cancelled ? 260 : 300}
           />
           <Pressable
             onPress={() => router.back()}
@@ -182,17 +193,10 @@ export default function ItemDetail() {
 
           {cancelled ? (
             <Text style={[type.meta, { marginTop: -space.lg }]}>From {owner}</Text>
-          ) : item.isOwner ? null : <View style={styles.owner}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{owner.charAt(0)}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={type.label}>From {owner}</Text>
-              <Text style={type.meta}>
-                {away ? `About ${away} away. ` : ""}Posted {postedLabel(item.createdAt)}.
-              </Text>
-            </View>
-          </View>}
+          ) : item.isOwner ? null : (
+            // Same single line as your own listing's OwnerMeta: who, where, how far, when.
+            <Text style={[type.meta, { marginTop: -space.lg }]}>{theirMeta}</Text>
+          )}
 
           {yours ? (
             <View style={styles.yours}>
@@ -232,20 +236,6 @@ export default function ItemDetail() {
 
           {item.description && !cancelled ? <Text style={type.body}>{item.description}</Text> : null}
 
-          {/* Offers for a wish go to one person, not to circles. */}
-          {item.circles.length > 0 && !cancelled && !item.isOwner ? (
-            <View style={{ gap: space.sm }}>
-              <Text style={type.label}>{item.isOwner ? "Posted in" : "Shared with"}</Text>
-              <View style={styles.circleRow}>
-                {item.circles.map((c) => (
-                  <View key={c.id} style={styles.circleChip}>
-                    <Text style={styles.circleChipText}>{circleLabel(c)}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          ) : null}
-
           {item.isOwner || cancelled ? null : <View style={styles.privacy}>
             <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
             <Text style={[type.meta, { flex: 1 }]}>
@@ -261,7 +251,10 @@ export default function ItemDetail() {
       </ScrollView>
 
       {/* Action bar */}
-      {ownerBarHidden ? null : <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+      {ownerBarHidden ? null : <View
+        onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}
+        style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}
+      >
         {item.isOwner ? (
           <OwnerBar item={item} chosen={chosen} onGive={() => setGiving(chosen)} />
         ) : yours && item.chat ? (
@@ -402,27 +395,6 @@ const styles = StyleSheet.create({
   freeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.white },
   freeText: { fontFamily: font.uiBold, fontSize: 15, color: color.ink },
   body: { paddingHorizontal: space.lg, paddingTop: space.xl, gap: space.xl },
-  owner: { flexDirection: "row", alignItems: "center", gap: space.md },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: color.fog,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontFamily: font.uiBold, fontSize: 17, color: color.bay },
-  circleRow: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
-  circleChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: color.fog,
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    height: 32,
-  },
-  circleChipText: { fontFamily: font.uiMedium, color: color.ink, fontSize: 14 },
   privacy: {
     flexDirection: "row",
     gap: space.sm,
