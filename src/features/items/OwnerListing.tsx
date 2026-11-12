@@ -46,7 +46,7 @@ function namesInLine(names: string[]) {
 }
 
 /** Share, edit and remove: the round icons on the photo, in that order (src/ui/IconButton.tsx). */
-export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }) {
+export function OwnerPhotoActions({ item, top, tone = "white" }: { item: ItemView; top: number; tone?: "white" | "fog" }) {
   const { share, sheet } = useShareListing();
   const remove = useMutation(api.items.remove);
   const { confirm, confirmSheet } = useConfirmSheet();
@@ -71,6 +71,7 @@ export function OwnerPhotoActions({ item, top }: { item: ItemView; top: number }
     <>
       <ThingActions
         style={[styles.photoActions, { top }]}
+        tone={tone}
         onShare={canShare ? () => share(item.id, item.title) : undefined}
         onEdit={canEdit ? () => router.push({ pathname: "/listing/edit/[id]", params: { id: item.id } }) : undefined}
         onRemove={canRemove ? askRemove : undefined}

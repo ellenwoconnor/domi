@@ -138,7 +138,9 @@ export default function ItemDetail() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: 170 }}>
-        <View>
+        {/* The buttons get their own strip under the status bar, so the camera cutout and the
+            buttons never cover the photo. */}
+        <View style={{ paddingTop: insets.top + space.sm + 40 + space.sm }}>
           <PhotoPager
             urls={item.photoUrls}
             dimmed={pending || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
@@ -152,10 +154,10 @@ export default function ItemDetail() {
             <Ionicons name="chevron-back" size={22} color={color.ink} />
           </Pressable>
           {item.isOwner ? (
-            <OwnerPhotoActions item={item} top={insets.top + space.sm} />
+            <OwnerPhotoActions item={item} top={insets.top + space.sm} tone="fog" />
           ) : (
             // Someone else's listing: ⋯ for report or block, in the same spot as your own listing's actions.
-            <ThingActions onMore={() => setSafetyOpen(true)} style={[styles.more, { top: insets.top + space.sm }]} />
+            <ThingActions onMore={() => setSafetyOpen(true)} tone="fog" style={[styles.more, { top: insets.top + space.sm }]} />
           )}
           {item.status === "available" && !item.isOwner && !cancelled && (
             <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: color.white,
+    backgroundColor: color.fog,
     alignItems: "center",
     justifyContent: "center",
   },
