@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     borderTopColor: color.line,
   },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },
-  requestedNote: { backgroundColor: color.blush, borderRadius: radius.control, padding: space.md },
+  requestedNote: { backgroundColor: color.fog, borderRadius: radius.control, padding: space.md },
   secondary: {
     height: 48,
     borderRadius: radius.control,

@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   // "I have this" is the screen's main action: solid Bay, with the Poppy dot as the giving cue.
   haveThis: { flexDirection: "row", gap: 10 },
   haveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.poppy, borderWidth: 2, borderColor: color.white },
-  card: { backgroundColor: color.blush, borderRadius: radius.thing, padding: space.md + 4, gap: 2 },
+  card: { backgroundColor: color.fog, borderRadius: radius.thing, padding: space.md + 4, gap: 2 },
   // The offers: a Fog card like "N people asked" on your listing, each offer a white row inside it.
   offersCard: { backgroundColor: color.fog, borderRadius: radius.thing, padding: space.md + 4, gap: 2 },
   cardHead: { fontFamily: font.curator, fontSize: 22, lineHeight: 28, color: color.ink },

@@ -126,12 +126,12 @@ export function OwnerSection({
   } else if (item.wish && item.status === "removed" && item.offerEnding) {
     const ending = item.offerEnding;
     body = ending.note ? (
-      <View style={[styles.card, { backgroundColor: color.blush, gap: space.sm, padding: space.lg }]}>
+      <View style={[styles.card, { gap: space.sm, padding: space.lg }]}>
         <Text style={styles.noteQuote}>“{ending.note}”</Text>
         <Text style={type.meta}>{ending.who}</Text>
       </View>
     ) : (
-      <Card head={ending.head ?? `${ending.who}'s all set`} text="Thanks for offering!" warm />
+      <Card head={ending.head ?? `${ending.who}'s all set`} text="Thanks for offering!" />
     );
   } else if (item.wish && item.status === "removed") {
     const who = item.wish.wisher.displayName;
@@ -201,7 +201,6 @@ export function OwnerSection({
         <Card
           head={going ? `Picked up by ${going}` : "Picked up"}
           text="It found a new home. Thanks for giving it."
-          warm
           icon={<PoppyMark size={30} />}
           link={item.chat ? { label: `Your chat with ${item.chat.other.displayName}`, chatId: item.chat.id } : undefined}
         />
@@ -382,7 +381,7 @@ function PendingCard({ item, name }: { item: ItemView; name: string }) {
       },
     ]);
   return (
-    <Card head={`Going to ${name}`} text="Plan pickup in your chat, then mark it picked up." warm>
+    <Card head={`Going to ${name}`} text="Plan pickup in your chat, then mark it picked up.">
       {item.chat ? (
         <Pressable
           onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.chat!.id } })}
@@ -534,20 +533,19 @@ function CircleNudge({ item }: { item: ItemView }) {
 function Card({
   head,
   text,
-  warm = false,
   icon,
   link,
   children,
 }: {
   head: string;
   text: string;
-  warm?: boolean;
   icon?: ReactNode;
   link?: { label: string; chatId: string };
   children?: ReactNode;
 }) {
   return (
-    <View style={[styles.card, warm && { backgroundColor: color.blush }]}>
+    // Always Fog: the Blush is the header's (docs: "Domi design principles", Screen patterns).
+    <View style={styles.card}>
       <View style={styles.cardBody}>
         <View style={{ flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
           {icon}

@@ -25,6 +25,8 @@ import { circleLabel, type CircleView } from "./format";
 const TITLE_MAX = 80;
 const DESCRIPTION_MAX = 1000;
 const NEXT_ROW_HEIGHT = 48;
+// The photo print: a bit smaller than on the listing (264), so every field fits above the keyboard.
+const PRINT = 220;
 
 /** A photo on the listing: a local file still to upload, or one already stored. */
 export type PhotoEntry = { uri: string; storageId?: string; thumbId?: string | null };
@@ -69,7 +71,7 @@ export function ListingEditor({
   onSubmit: (values: ListingValues) => Promise<void>;
 }) {
   const insets = useSafeAreaInsets();
-  const { width, height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight } = useWindowDimensions();
   const [photos, setPhotos] = useState(initial.photos);
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description);
@@ -113,14 +115,11 @@ export function ListingEditor({
   const titleLabel = isWish ? "What are you looking for?" : "What is it?";
   const missing = !isWish && photos.length === 0 ? "Add a photo" : title.trim() === "" ? "Name it" : !sendTo && chosen.length === 0 ? "Pick who sees it" : null;
 
-  // The photo as neighbors see it on the listing (a square), smaller, on Fog.
-  const square = Math.min(260, width - 128);
-  const photoHeight = insets.top + space.sm + square + space.md;
   const toggleCircle = (id: CircleView["id"]) =>
     setCircleIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
-    setPage(Math.round(e.nativeEvent.contentOffset.x / width));
+    setPage(Math.round(e.nativeEvent.contentOffset.x / PRINT));
 
   const addPhotos = () => {
     const room = MAX_PHOTOS - photos.length;
@@ -170,67 +169,64 @@ export function ListingEditor({
         keyboardDismissMode="interactive"
         contentContainerStyle={{ paddingBottom: 150 + keyboard }}
       >
-        <View
-          style={[
-            styles.photoArea,
-            isWish ? { height: insets.top + space.sm + 40 + space.md, backgroundColor: color.white } : { height: photoHeight },
-          ]}
-        >
-          {isWish ? null : photos.length > 0 ? (
-            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll}>
-              {photos.map((p) => (
-                <View key={p.uri} style={{ width, paddingTop: insets.top + space.sm, alignItems: "center" }}>
-                  <PhotoTile uri={p.uri} style={{ width: square, height: square }} />
-                </View>
-              ))}
-            </ScrollView>
-          ) : (
-            <Pressable onPress={addPhotos} style={styles.noPhoto} accessibilityRole="button">
-              <Ionicons name="camera-outline" size={36} color={color.bay} />
-              <Text style={type.label}>Add a photo</Text>
-            </Pressable>
-          )}
-          <Pressable
-            onPress={() => onClose(dirty)}
-            accessibilityLabel="Close"
-            style={[styles.round, { top: insets.top + space.sm, left: space.lg }, isWish && { backgroundColor: color.fog }]}
-          >
+        {/* The same Blush header as the listing itself (src/ui/DetailHeader.tsx): the photo as a square print. */}
+        <View style={[styles.band, { paddingTop: insets.top + space.sm }]}>
+          <Pressable onPress={() => onClose(dirty)} accessibilityLabel="Close" style={styles.round}>
             <Ionicons name="close" size={22} color={color.ink} />
           </Pressable>
           {isWish ? null : (
-            <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
-              <View style={styles.freeDot} />
-              <Text style={styles.freeText}>Free</Text>
-            </View>
-          )}
-          {!isWish && photos.length > 0 ? (
-            <View style={styles.photoBar}>
-              {photos.length > 1 ? (
-                <View style={styles.pill}>
-                  <Text style={styles.pillText}>
-                    {page + 1} of {photos.length}
-                  </Text>
+            <>
+              <View style={styles.printWrap}>
+                <View style={styles.print}>
+                  {photos.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      onMomentumScrollEnd={onScroll}
+                      style={styles.printPhoto}
+                    >
+                      {photos.map((p) => (
+                        <PhotoTile key={p.uri} uri={p.uri} rounded={false} style={{ width: PRINT, height: PRINT }} />
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <Pressable onPress={addPhotos} style={[styles.printPhoto, styles.noPhoto]} accessibilityRole="button">
+                      <Ionicons name="camera-outline" size={36} color={color.bay} />
+                      <Text style={type.label}>Add a photo</Text>
+                    </Pressable>
+                  )}
+                  <View style={styles.freeSticker}>
+                    <View style={styles.freeDot} />
+                    <Text style={styles.freeText}>Free</Text>
+                  </View>
                 </View>
-              ) : (
-                <View />
-              )}
-              <View style={{ flexDirection: "row", gap: space.sm }}>
-                {photos.length > 1 ? (
-                  <Pressable onPress={removeCurrent} style={styles.photoButton} accessibilityLabel="Remove this photo">
-                    <Ionicons name="trash-outline" size={16} color={color.ink} />
-                  </Pressable>
-                ) : null}
-                {photos.length < MAX_PHOTOS ? (
-                  <Pressable onPress={addPhotos} style={styles.photoButton} accessibilityRole="button">
-                    <Ionicons name="add" size={18} color={color.bay} />
-                    <Text style={styles.photoButtonText}>Photo</Text>
-                  </Pressable>
-                ) : null}
               </View>
-            </View>
-          ) : null}
+              {photos.length > 0 ? (
+                <View style={styles.photoBar}>
+                  {photos.length > 1 ? (
+                    <View style={styles.pill}>
+                      <Text style={styles.pillText}>
+                        {page + 1} of {photos.length}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {photos.length > 1 ? (
+                    <Pressable onPress={removeCurrent} style={styles.photoButton} accessibilityLabel="Remove this photo">
+                      <Ionicons name="trash-outline" size={16} color={color.ink} />
+                    </Pressable>
+                  ) : null}
+                  {photos.length < MAX_PHOTOS ? (
+                    <Pressable onPress={addPhotos} style={styles.photoButton} accessibilityRole="button">
+                      <Ionicons name="add" size={18} color={color.bay} />
+                      <Text style={styles.photoButtonText}>Photo</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              ) : null}
+            </>
+          )}
         </View>
-
         <View style={styles.body} onLayout={(e) => (bodyY.current = e.nativeEvent.layout.y)}>
           <View style={styles.field} onLayout={onFieldLayout("title")}>
             <Text style={[type.label, focused === "title" && styles.labelOn]}>{titleLabel}</Text>
@@ -294,6 +290,7 @@ export function ListingEditor({
                     accessibilityState={{ checked: on }}
                     style={[styles.circleChip, on && styles.circleChipOn]}
                   >
+                    {on ? <Ionicons name="checkmark" size={15} color={color.white} /> : null}
                     <Text style={[styles.circleChipText, on && { color: color.white }]}>{circleLabel(c)}</Text>
                   </Pressable>
                 );
@@ -368,10 +365,29 @@ function useKeyboardHeight() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
-  photoArea: { backgroundColor: color.fog },
-  noPhoto: { flex: 1, alignItems: "center", justifyContent: "center", gap: space.sm },
+  band: {
+    backgroundColor: color.blush,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    paddingHorizontal: space.lg,
+    paddingBottom: space.lg,
+  },
+  printWrap: { alignItems: "center", marginTop: space.xs },
+  print: {
+    width: PRINT + 12,
+    height: PRINT + 12,
+    padding: 6,
+    backgroundColor: color.white,
+    borderRadius: radius.thing,
+    transform: [{ rotate: "-2deg" }],
+    shadowColor: color.ink,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  printPhoto: { width: PRINT, height: PRINT, borderRadius: 11, overflow: "hidden", backgroundColor: color.fog },
+  noPhoto: { alignItems: "center", justifyContent: "center", gap: space.sm },
   round: {
-    position: "absolute",
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -381,7 +397,9 @@ const styles = StyleSheet.create({
   },
   freeSticker: {
     position: "absolute",
-    right: space.lg,
+    top: -12,
+    left: -12,
+    transform: [{ rotate: "-4deg" }],
     height: 34,
     flexDirection: "row",
     alignItems: "center",
@@ -392,17 +410,9 @@ const styles = StyleSheet.create({
   },
   freeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.white },
   freeText: { fontFamily: font.uiBold, fontSize: 15, color: color.ink },
-  photoBar: {
-    position: "absolute",
-    left: space.lg,
-    right: space.lg,
-    bottom: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  pill: { backgroundColor: "rgba(255,255,255,0.92)", borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText: { fontFamily: font.uiSemi, fontSize: 13, color: color.ink },
+  photoBar: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.sm, marginTop: space.lg },
+  pill: { height: 36, justifyContent: "center", backgroundColor: color.white, borderRadius: radius.pill, paddingHorizontal: 12 },
+  pillText: { fontFamily: font.uiSemi, fontSize: 13, color: color.inkSoft },
   photoButton: {
     height: 36,
     minWidth: 36,
@@ -419,26 +429,31 @@ const styles = StyleSheet.create({
   field: { gap: 6 },
   labelOn: { color: color.bay },
   optional: { fontFamily: font.ui, color: color.inkSoft },
-  inputOn: { borderBottomColor: color.bay },
+  inputOn: { borderColor: color.bay },
   title: {
     fontFamily: font.curator,
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 24,
+    lineHeight: 30,
     color: color.ink,
-    paddingBottom: 6,
-    borderBottomWidth: 1.5,
-    borderBottomColor: color.line,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.control,
   },
   owner: { flexDirection: "row", alignItems: "center", gap: space.md },
   description: {
-    minHeight: 72,
+    minHeight: 76,
     fontFamily: font.ui,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 22,
     color: color.ink,
-    paddingBottom: 6,
-    borderBottomWidth: 1.5,
-    borderBottomColor: color.line,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderWidth: 1,
+    borderColor: color.line,
+    borderRadius: radius.control,
     textAlignVertical: "top",
   },
   circleRow: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
@@ -490,12 +505,12 @@ const styles = StyleSheet.create({
   // A giving moment: Poppy with Ink text.
   poppy: { backgroundColor: color.poppy },
   poppyText: { color: color.ink, fontFamily: font.uiBold },
-  sendTo: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line, paddingTop: space.lg },
+  sendTo: { paddingTop: space.xs },
   sendAvatar: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: color.blush,
+    backgroundColor: color.fog,
     alignItems: "center",
     justifyContent: "center",
   },
