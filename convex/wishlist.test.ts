@@ -165,6 +165,9 @@ describe("no thanks to an offer", () => {
     expect(ended).toMatchObject({ status: "removed", declineNote: "Found some already. Thanks!" });
     expect(ended?.declinedAt).toBeDefined();
     expect((await maya.as.query(api.wishlist.offers, { wishId })).map((o) => o.title)).toEqual(["Sugar cubes"]);
+    // Jun can't offer again, so the wish leaves his Wishes board (Priya still sees it).
+    expect((await jun.as.query(api.wishlist.browse, {})).some((w) => w.id === wishId)).toBe(false);
+    expect((await priya.as.query(api.wishlist.browse, {})).some((w) => w.id === wishId)).toBe(true);
 
     const event = (await eventsFor(t, jun.userId)).at(-1);
     expect(event).toMatchObject({ type: "offer_declined", body: "Maya: “Found some already. Thanks!”" });

@@ -148,6 +148,15 @@ export const remove = mutation({
 });
 
 /** Open wishes in one circle or all my circles, newest first. */
+/** The wisher said no thanks to your offer: you can't offer on this wish again, so it stays off your Wishes board. */
+async function declinedMyOffer(ctx: QueryCtx, wishId: Id<"wishlistItems">, userId: Id<"users">) {
+  const offers = await ctx.db
+    .query("items")
+    .withIndex("by_wishlistItem", (q) => q.eq("wishlistItemId", wishId))
+    .collect();
+  return offers.some((o) => o.ownerId === userId && o.declinedAt !== undefined);
+}
+
 export const browse = query({
   args: { communityId: v.optional(v.id("communities")), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -170,6 +179,7 @@ export const browse = query({
         seen.add(link.wishlistItemId);
         const wish = await ctx.db.get(link.wishlistItemId);
         if (!wish || wish.status !== "open" || blocked.has(wish.userId)) continue;
+        if (wish.userId !== userId && (await declinedMyOffer(ctx, wish._id, userId))) continue;
         found.push(wish);
       }
     }
@@ -218,13 +228,7 @@ export const offer = mutation({
     if (wish.userId === userId) fail("You can't offer on your own wish");
     if (wish.status !== "open") fail("This wish is closed");
     if ((await liveOffers(ctx, wish._id)).some((o) => o.ownerId === userId)) fail("You've already offered something for this wish");
-    const declined = await ctx.db
-      .query("items")
-      .withIndex("by_wishlistItem", (q) => q.eq("wishlistItemId", wish._id))
-      .collect();
-    if (declined.some((o) => o.ownerId === userId && o.declinedAt !== undefined)) {
-      fail("You've already offered something for this wish");
-    }
+    if (await declinedMyOffer(ctx, wish._id, userId)) fail("You've already offered something for this wish");
     const text = itemText(args.title, args.description);
     await checkPhotos(ctx, args.photos, args.thumbs);
 
