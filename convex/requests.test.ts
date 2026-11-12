@@ -65,6 +65,9 @@ describe("requests and the item lifecycle (M4)", () => {
     await expect(maya.as.mutation(api.requests.create, { itemId })).rejects.toThrow("Ellen cancelled this exchange");
     expect((await maya.as.query(api.items.get, { itemId })).myRequest?.status).toBe("cancelled");
     expect((await maya.as.query(api.conversations.get, { conversationId: conv })).ending).toBe("cancelled");
+    // …and it's out of her Browse and search (it's still in Kai's).
+    expect((await maya.as.query(api.items.browse, {})).some((i) => i.id === itemId)).toBe(false);
+    expect((await kai.as.query(api.items.browse, {})).some((i) => i.id === itemId)).toBe(true);
     expect((await maya.as.query(api.mystuff.getting, {})).find((r) => r.itemId === itemId)?.status).toBe(
       "Ellen cancelled this exchange",
     );

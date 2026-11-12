@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import {
   blockedUserIds,
   canSeeItem,
@@ -24,6 +24,15 @@ import { LISTING_LIFETIME_MS } from "./lib/validate";
 // Listings: post, browse, search, and every owner-side status change.
 
 const LIVE: Doc<"items">["status"][] = ["available", "pending"];
+
+/** The owner cancelled this person's exchange: the listing is closed for them, so it stays out of their Browse and search. */
+async function closedForMe(ctx: QueryCtx, itemId: Id<"items">, userId: Id<"users">) {
+  const mine = await ctx.db
+    .query("requests")
+    .withIndex("by_item_requester", (q) => q.eq("itemId", itemId).eq("requesterId", userId))
+    .first();
+  return mine?.status === "cancelled";
+}
 
 /** Step 1 of posting: the app uploads each compressed photo, and its thumbnail, to one of these URLs. */
 export const generateUploadUrl = mutation({
@@ -278,6 +287,7 @@ export const browse = query({
         seen.add(link.itemId);
         const item = await ctx.db.get(link.itemId);
         if (!item || !LIVE.includes(item.status) || blocked.has(item.ownerId)) continue;
+        if (await closedForMe(ctx, item._id, userId)) continue;
         found.push(item);
       }
     }
@@ -309,6 +319,7 @@ export const search = query({
         if (!inCircle) continue;
       }
       if (!(await canSeeItem(ctx, userId, item))) continue;
+      if (await closedForMe(ctx, item._id, userId)) continue;
       out.push(await itemCard(ctx, item, userId));
       if (out.length >= 50) break;
     }
