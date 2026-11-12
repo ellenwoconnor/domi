@@ -14,10 +14,9 @@ import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockShe
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { WishSafetySheet, type WishSafetyTarget } from "../../src/features/wishlist/WishSafetySheet";
 import { errorMessage } from "../../src/lib/errors";
-import { Avatar } from "../../src/ui/Avatar";
 import { useConfirmSheet } from "../../src/ui/ConfirmSheet";
 import { IconButton, ThingActions } from "../../src/ui/IconButton";
-import { PoppyMark } from "../../src/ui/Logo";
+import { About, BarNote, Byline, DetailHeader } from "../../src/ui/DetailHeader";
 import { PhotoTile } from "../../src/ui/PhotoTile";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
 import { color, font, radius, space, type } from "../../src/ui/theme";
@@ -55,58 +54,39 @@ export default function WishScreen() {
   return wish.isMine ? <YourWish wish={wish} /> : <TheirWish wish={wish} />;
 }
 
-function BackButton({ top, tone = "white" }: { top: number; tone?: "white" | "fog" }) {
-  return (
-    <Pressable
-      onPress={() => router.back()}
-      accessibilityLabel="Back"
-      style={[styles.round, { top, left: space.lg, backgroundColor: tone === "white" ? color.white : color.fog }]}
-    >
-      <Ionicons name="chevron-back" size={22} color={color.ink} />
-    </Pressable>
-  );
-}
 
 /** Someone else's wish: everything they wrote, and "I have this". */
 function TheirWish({ wish }: { wish: Wish }) {
   const insets = useSafeAreaInsets();
   const [safety, setSafety] = useState<WishSafetyTarget | null>(null);
+  const [barHeight, setBarHeight] = useState(150);
   const name = wish.user.displayName;
   const circles = wish.circles.map(circleLabel).join(", ");
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 200 }}>
-        <View style={[styles.hero, { paddingTop: insets.top + 64 }]}>
-          <Text style={styles.kicker}>{name} is looking for</Text>
-          <Text style={type.display}>{wish.title}</Text>
-          {wish.pending ? (
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>Pending pickup</Text>
-            </View>
-          ) : null}
-        </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: barHeight + space.xl }}>
+        <DetailHeader
+          actions={<ThingActions onMore={() => setSafety({ wishId: wish.id, userId: wish.user.userId, displayName: name })} />}
+          kicker={`${name} is looking for`}
+          title={wish.title}
+          byline={<Byline name={name} meta={`wished ${postedLabel(wish.createdAt)}`} />}
+        />
         <View style={styles.body}>
-          {wish.description ? <Text style={styles.note}>“{wish.description}”</Text> : null}
-          <View style={[styles.person, wish.description ? styles.topLine : null]}>
-            <Avatar name={name} size={42} />
-            <View style={{ flex: 1 }}>
-              <Text style={type.label}>{name}</Text>
-              <Text style={type.meta}>
-                {circles ? `In ${circles} · ` : ""}wished {postedLabel(wish.createdAt)}
-              </Text>
-            </View>
-          </View>
+          <About
+            description={wish.description}
+            pills={wish.circles.map(circleLabel)}
+            extra={
+              wish.pending ? (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>Pending pickup</Text>
+                </View>
+              ) : null
+            }
+          />
         </View>
       </ScrollView>
-
-      <BackButton top={insets.top + space.sm} />
-      <ThingActions
-        onMore={() => setSafety({ wishId: wish.id, userId: wish.user.userId, displayName: name })}
-        style={{ position: "absolute", top: insets.top + space.sm, right: space.lg }}
-      />
-
-      <View style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+      <View onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)} style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
         {wish.pending ? (
           <Text style={[type.meta, { textAlign: "center" }]}>
             {name} is arranging pickup for an offer. If it falls through, the wish opens up again.
@@ -127,11 +107,11 @@ function TheirWish({ wish }: { wish: Wish }) {
             <Text style={[type.meta, { textAlign: "center" }]}>Only {name} sees your offer, and picks from any offers.</Text>
             <Pressable
               onPress={() => router.push({ pathname: "/fulfill/[wishId]", params: { wishId: wish.id } })}
-              style={({ pressed }) => [styles.haveThis, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [sheetStyles.primary, styles.haveThis, pressed && { opacity: 0.85 }]}
               accessibilityRole="button"
             >
               <View style={styles.haveDot} />
-              <Text style={styles.haveText}>I have this</Text>
+              <Text style={type.button}>I have this</Text>
             </Pressable>
           </>
         )}
@@ -157,7 +137,7 @@ function YourWish({ wish }: { wish: Wish }) {
   const [other, setOther] = useState<Offer | null>(null);
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
-  const circles = wish.circles.map(circleLabel).join(", ");
+  const [barHeight, setBarHeight] = useState(150);
   const { askRemove, removeSheet } = useRemoveWish(wish, offers);
 
   // If the offer you chose goes away (withdrawn, blocked), clear the choice.
@@ -166,32 +146,58 @@ function YourWish({ wish }: { wish: Wish }) {
   }, [offersQ.data, chosen, waiting]);
 
   const showBar = !picked && !!chosen;
+  // The same edit and remove icons as on your listings, white on the Blush header.
+  const actions =
+    wish.status === "open" ? (
+      <ThingActions
+        onEdit={() => router.push({ pathname: "/wish/edit/[id]", params: { id: wish.id } })}
+        onRemove={askRemove}
+        removeLabel="Remove wish"
+      />
+    ) : undefined;
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={{ paddingBottom: showBar ? 150 : 60 }}>
-        {picked ? <PickedHero offer={picked} top={insets.top} /> : null}
-
-        <View style={[styles.body, { paddingTop: picked ? space.xl : insets.top + 64 }]}>
-          <View style={{ gap: space.sm }}>
-            {picked ? <Text style={type.label}>Your wish</Text> : null}
-            <Text style={picked ? type.title : type.display}>{wish.title}</Text>
-            <Text style={type.meta}>
-              {picked
-                ? "Shows as pending to others until you've picked it up."
-                : `Your wish${circles ? ` · in ${circles}` : ""}`}
-            </Text>
-            {wish.description && !picked ? <Text style={type.body}>“{wish.description}”</Text> : null}
-          </View>
-
+      <ScrollView contentContainerStyle={{ paddingBottom: (showBar || picked ? barHeight : insets.bottom) + space.xl }}>
+        {picked ? (
+          // The moment it's yours: their photo with the poppy, and what it's for.
+          <DetailHeader
+            actions={actions}
+            photoUrls={picked.thumbUrls}
+            sticker="poppy"
+            kicker={`${picked.owner.displayName} is giving you`}
+            title={picked.title}
+            byline={<Byline name={picked.owner.displayName} meta={postedLabel(picked.createdAt)} />}
+          />
+        ) : (
+          <DetailHeader
+            actions={actions}
+            kicker="You're looking for"
+            title={wish.title}
+            byline={<Byline name="You" meta={`wished ${postedLabel(wish.createdAt)}`} />}
+          />
+        )}
+        <View style={styles.body}>
+          {picked ? (
+            <About
+              description={picked.description}
+              extra={
+                <Text style={type.meta}>
+                  For your wish: <Text style={styles.strong}>{wish.title}</Text>
+                </Text>
+              }
+            />
+          ) : (
+            <About description={wish.description} pills={wish.circles.map(circleLabel)} />
+          )}
           {wish.status !== "open" ? (
             <View style={styles.card}>
-              <Text style={type.label}>{wish.status === "fulfilled" ? "Your wish came true." : "You removed this wish."}</Text>
+              <Text style={styles.cardHead}>{wish.status === "fulfilled" ? "Your wish came true." : "You removed this wish."}</Text>
             </View>
           ) : picked ? (
             waiting.length > 0 ? (
-              <View style={styles.topLine}>
-                <Text style={[type.label, { marginTop: space.lg }]}>Other offers ({waiting.length})</Text>
+              <View style={styles.offersCard}>
+                <Text style={styles.cardHead}>Other offers ({waiting.length})</Text>
                 <Text style={[type.meta, { marginBottom: space.xs }]}>
                   If it falls through with {picked.owner.displayName}, you can pick another.
                 </Text>
@@ -205,13 +211,13 @@ function YourWish({ wish }: { wish: Wish }) {
                     style={styles.smallOffer}
                   >
                     <PhotoTile uri={o.thumbUrls[0]} style={styles.smallPhoto} />
-                    <View style={{ flex: 1 }}>
+                    <View style={{ flex: 1, gap: 4 }}>
                       <Text style={type.objectLabel} numberOfLines={2}>
                         {o.title}
                       </Text>
-                      <Text style={type.meta}>From {o.owner.displayName}</Text>
+                      <Byline name={o.owner.displayName} meta={postedLabel(o.createdAt)} center={false} />
                     </View>
-                    <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} tone="fog" onPress={() => setPerson(o)} />
+                    <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} onPress={() => setPerson(o)} />
                   </Pressable>
                 ))}
               </View>
@@ -219,19 +225,19 @@ function YourWish({ wish }: { wish: Wish }) {
           ) : offersQ.isPending ? (
             <ActivityIndicator color={color.bay} />
           ) : waiting.length === 0 ? (
-            <View style={[styles.card, { backgroundColor: color.fog }]}>
-              <Text style={type.label}>No offers yet</Text>
+            <View style={styles.offersCard}>
+              <Text style={styles.cardHead}>No offers yet</Text>
               <Text style={type.meta}>When someone offers one, it shows up here and in My stuff.</Text>
             </View>
           ) : (
-            <View style={[styles.topLine, { paddingTop: space.xl, gap: space.md }]}>
+            <View style={[styles.offersCard, { gap: space.md }]}>
               <View style={{ gap: 2 }}>
-                <Text style={type.title}>
+                <Text style={styles.cardHead}>
                   {waiting.length === 1 ? "Someone has one for you" : `${waiting.length} people have one for you`}
                 </Text>
-                <Text style={[type.meta, { fontSize: 15 }]}>Pick the one you'd like.</Text>
+                <Text style={type.meta}>Pick the one you'd like.</Text>
               </View>
-              <View accessibilityRole="radiogroup" style={{ gap: space.md }}>
+              <View accessibilityRole="radiogroup" style={{ gap: space.sm }}>
                 {waiting.map((o) => {
                   const on = chosen?.id === o.id;
                   return (
@@ -254,9 +260,7 @@ function YourWish({ wish }: { wish: Wish }) {
                             {o.description}
                           </Text>
                         ) : null}
-                        <Text style={type.meta}>
-                          From {o.owner.displayName} · {postedLabel(o.createdAt)}
-                        </Text>
+                        <Byline name={o.owner.displayName} meta={postedLabel(o.createdAt)} center={false} />
                       </View>
                       <IconButton icon="ellipsis-horizontal" label={`Report or block ${o.owner.displayName}`} tone="fog" onPress={() => setPerson(o)} />
                       <Ionicons
@@ -270,30 +274,32 @@ function YourWish({ wish }: { wish: Wish }) {
               </View>
             </View>
           )}
-
-          {wish.status === "open" ? (
-            <View style={styles.links}>
-              {picked ? <CantTakeIt offer={picked} /> : null}
-            </View>
-          ) : null}
         </View>
       </ScrollView>
-
-      {picked ? null : <BackButton top={insets.top + space.sm} tone="fog" />}
-      {wish.status === "open" ? (
-        // The same edit and remove icons as on your listings. White on the Blush hero, Fog on white.
-        <ThingActions
-          onEdit={() => router.push({ pathname: "/wish/edit/[id]", params: { id: wish.id } })}
-          onRemove={askRemove}
-          removeLabel="Remove wish"
-          tone={picked ? "white" : "fog"}
-          style={{ position: "absolute", top: insets.top + space.sm, right: space.lg }}
-        />
+      {picked ? (
+        <View onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)} style={[styles.bar, { paddingBottom: insets.bottom + space.md }]}>
+          <BarNote>Say thanks and agree on a time. {picked.owner.displayName} shares where in your chat.</BarNote>
+          {picked.chat ? (
+            <Pressable
+              onPress={() => router.push({ pathname: "/chat/[id]", params: { id: picked.chat!.id } })}
+              style={sheetStyles.primary}
+              accessibilityRole="button"
+            >
+              <Text style={type.button}>Message {picked.owner.displayName}</Text>
+            </Pressable>
+          ) : null}
+          <View style={{ alignItems: "center", paddingVertical: space.xs }}>
+            <CantTakeIt offer={picked} />
+          </View>
+        </View>
       ) : null}
       {removeSheet}
 
       {showBar && chosen ? (
-        <View style={[styles.bar, styles.barRow, { paddingBottom: insets.bottom + space.md }]}>
+        <View
+          onLayout={(e) => setBarHeight(e.nativeEvent.layout.height)}
+          style={[styles.bar, styles.barRow, { paddingBottom: insets.bottom + space.md }]}
+        >
           <Pressable onPress={() => setDeclining(chosen)} style={styles.noThanks} accessibilityRole="button">
             <Text style={styles.noThanksText}>No thanks</Text>
           </Pressable>
@@ -366,40 +372,6 @@ function takeLabel(o: Offer) {
   return `Take ${o.owner.displayName}'s ${thing}`;
 }
 
-/** The moment: the offer you picked is yours. */
-function PickedHero({ offer, top }: { offer: Offer; top: number }) {
-  const name = offer.owner.displayName;
-  return (
-    <View style={[styles.picked, { paddingTop: top + space.sm }]}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="Back" style={[styles.roundStatic]}>
-        <Ionicons name="chevron-back" size={22} color={color.ink} />
-      </Pressable>
-      <View style={{ alignItems: "center", gap: space.md }}>
-        <View style={styles.pickedPhotoWrap}>
-          <PhotoTile uri={offer.thumbUrls[0]} style={styles.pickedPhoto} />
-          <View style={styles.pickedMark}>
-            <PoppyMark size={30} />
-          </View>
-        </View>
-        <Text style={[type.display, { fontSize: 30, lineHeight: 36, textAlign: "center" }]}>
-          The {lowerFirst(offer.title)} is yours!
-        </Text>
-        <Text style={[type.body, { textAlign: "center", color: color.inkSoft }]}>
-          From {name}. Say thanks and agree on a time.
-        </Text>
-      </View>
-      {offer.chat ? (
-        <Pressable
-          onPress={() => router.push({ pathname: "/chat/[id]", params: { id: offer.chat!.id } })}
-          style={sheetStyles.primary}
-          accessibilityRole="button"
-        >
-          <Text style={type.button}>Message {name}</Text>
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
 
 /** "Take Jun's helmet?": the step that explains the private chat. */
 function TakeSheet({ offer, others, onClose }: { offer: Offer | null; others: string[]; onClose: () => void }) {
@@ -607,25 +579,6 @@ function useRemoveWish(wish: Wish, offers: Offer[]) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
   link: { fontFamily: font.uiSemi, color: color.bay, fontSize: 16 },
-  round: {
-    position: "absolute",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: color.white,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  roundStatic: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: color.white,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hero: { backgroundColor: color.blush, paddingHorizontal: space.lg, paddingBottom: space.xl, gap: 6 },
-  kicker: { fontFamily: font.uiSemi, fontSize: 13.5, color: color.inkSoft },
   tag: {
     alignSelf: "flex-start",
     marginTop: space.xs,
@@ -636,9 +589,6 @@ const styles = StyleSheet.create({
   },
   tagText: { fontFamily: font.uiSemi, fontSize: 12, color: color.bay },
   body: { paddingHorizontal: space.lg, paddingTop: space.xl, gap: space.xl },
-  note: { fontFamily: font.curatorLight, fontSize: 18, lineHeight: 27, color: color.ink },
-  person: { flexDirection: "row", alignItems: "center", gap: space.md },
-  topLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.line, paddingTop: space.lg },
   bar: {
     position: "absolute",
     left: 0,
@@ -651,33 +601,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     paddingTop: space.md,
   },
-  haveThis: {
-    height: 54,
-    borderRadius: radius.control,
-    backgroundColor: color.blush,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-  },
-  haveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.poppy },
-  haveText: { fontFamily: font.uiBold, fontSize: 17, color: color.ink },
-  card: { backgroundColor: color.blush, borderRadius: radius.thing, padding: space.md, gap: 2 },
+  // "I have this" is the screen's main action: solid Bay, with the Poppy dot as the giving cue.
+  haveThis: { flexDirection: "row", gap: 10 },
+  haveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.poppy, borderWidth: 2, borderColor: color.white },
+  card: { backgroundColor: color.blush, borderRadius: radius.thing, padding: space.md + 4, gap: 2 },
+  // The offers: a Fog card like "N people asked" on your listing, each offer a white row inside it.
+  offersCard: { backgroundColor: color.fog, borderRadius: radius.thing, padding: space.md + 4, gap: 2 },
+  cardHead: { fontFamily: font.curator, fontSize: 22, lineHeight: 28, color: color.ink },
+  strong: { fontFamily: font.uiSemi, color: color.ink },
   offer: {
     flexDirection: "row",
-    gap: 14,
-    alignItems: "flex-start",
+    gap: space.md,
+    alignItems: "center",
     padding: space.md,
     borderRadius: radius.thing,
-    borderWidth: 1,
-    borderColor: color.line,
+    backgroundColor: color.white,
+    borderWidth: 2,
+    borderColor: color.white,
   },
-  offerOn: { borderWidth: 2, borderColor: color.bay, padding: space.md - 1 },
-  offerPhoto: { width: 96, height: 116 },
+  offerOn: { borderColor: color.bay },
+  offerPhoto: { width: 72, height: 72, borderRadius: 12 },
   offerText: { fontFamily: font.ui, fontSize: 14, lineHeight: 20, color: color.ink },
   smallOffer: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm },
-  smallPhoto: { width: 56, height: 64, borderRadius: 12 },
-  links: { flexDirection: "row", gap: space.xl, paddingBottom: space.lg },
+  smallPhoto: { width: 56, height: 56, borderRadius: 12 },
   barRow: { flexDirection: "row", alignItems: "center" },
   // Borderless, like Cancel: "Take" stays the clear choice.
   noThanks: { height: 54, paddingHorizontal: space.md, alignItems: "center", justifyContent: "center" },
@@ -698,8 +644,4 @@ const styles = StyleSheet.create({
   },
   keepIt: { height: 44, alignItems: "center", justifyContent: "center" },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft },
-  picked: { backgroundColor: color.blush, paddingHorizontal: space.lg, paddingBottom: space.xl, gap: space.lg },
-  pickedPhotoWrap: { width: 150, height: 180, transform: [{ rotate: "3deg" }] },
-  pickedPhoto: { width: 150, height: 180, borderWidth: 6, borderColor: color.white },
-  pickedMark: { position: "absolute", left: -16, top: -12 },
 });

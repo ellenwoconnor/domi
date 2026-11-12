@@ -25,20 +25,19 @@ import { circleLabel, distanceLabel, postedLabel } from "../../src/features/item
 import {
   GiveSheet,
   OwnerBar,
-  OwnerMeta,
+  ownerByline,
   OwnerPhotoActions,
   OwnerSection,
   PastChats,
   OwnerHistory,
   type AskRow,
 } from "../../src/features/items/OwnerListing";
-import { PhotoPager } from "../../src/features/items/PhotoPager";
+import { About, BarNote, Byline, DetailHeader } from "../../src/ui/DetailHeader";
 import { BlockSheet, type BlockTarget } from "../../src/features/safety/BlockSheet";
 import { ReportSheet, type ReportTarget } from "../../src/features/safety/ReportSheet";
 import { errorMessage } from "../../src/lib/errors";
 import { Sheet, SheetAction, sheetStyles } from "../../src/ui/Sheet";
 import { ThingActions } from "../../src/ui/IconButton";
-import { PoppyMark } from "../../src/ui/Logo";
 import { color, font, radius, space, type } from "../../src/ui/theme";
 
 const NOTE_MAX = 140;
@@ -86,13 +85,11 @@ export default function ItemDetail() {
   const shortTitle = item.title.charAt(0).toLowerCase() + item.title.slice(1);
   const owner = item.owner.displayName;
   const away = distanceLabel(me, item);
-  const first = item.circles[0];
+  // Their byline: whose wish it answers, how far, when. Where it's shared shows as pills.
   const theirMeta = [
-    `From ${owner}`,
-    // Offers for a wish go to one person, not to circles.
-    item.wish ? "for your wish" : !first ? null : item.circles.length === 1 ? `in ${circleLabel(first)}` : `in ${circleLabel(first)} and ${item.circles.length - 1} more`,
-    !away ? null : away === "nearby" ? "nearby" : `about ${away} away`,
-    `posted ${postedLabel(item.createdAt)}`,
+    item.wish ? "for your wish" : null,
+    !away ? null : away === "nearby" ? "nearby" : `${away} away`,
+    postedLabel(item.createdAt),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -149,69 +146,24 @@ export default function ItemDetail() {
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={{ paddingBottom: (ownerBarHidden ? insets.bottom : barHeight) + space.xl }}>
-        {/* The buttons get their own strip under the status bar, so the camera cutout and the
-            buttons never cover the photo. */}
-        <View style={{ paddingTop: insets.top + space.sm + 40 + space.sm }}>
-          <PhotoPager
-            urls={item.photoUrls}
-            dimmed={pending || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
-            height={cancelled ? 260 : 300}
-          />
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityLabel="Back"
-            style={[styles.back, { top: insets.top + space.sm }]}
-          >
-            <Ionicons name="chevron-back" size={22} color={color.ink} />
-          </Pressable>
-          {item.isOwner ? (
-            <OwnerPhotoActions item={item} top={insets.top + space.sm} tone="fog" />
-          ) : (
-            // Someone else's listing: ⋯ for report or block, in the same spot as your own listing's actions.
-            <ThingActions onMore={() => setSafetyOpen(true)} tone="fog" style={[styles.more, { top: insets.top + space.sm }]} />
-          )}
-          {item.status === "available" && !item.isOwner && !cancelled && (
-            <View style={[styles.freeSticker, { top: insets.top + space.sm }]}>
-              <View style={styles.freeDot} />
-              <Text style={styles.freeText}>Free</Text>
-            </View>
-          )}
-        </View>
+        <DetailHeader
+          actions={
+            item.isOwner ? (
+              <OwnerPhotoActions item={item} />
+            ) : (
+              // Someone else's listing: ⋯ for report or block, in the same spot as your own listing's actions.
+              <ThingActions onMore={() => setSafetyOpen(true)} />
+            )
+          }
+          photoUrls={item.photoUrls}
+          dimmed={(pending && !yours) || cancelled || (item.isOwner && (item.status === "expired" || item.status === "removed"))}
+          sticker={yours ? "poppy" : item.status === "available" && !item.isOwner && !cancelled ? "free" : null}
+          kicker={yours ? (item.status === "gone" ? `${owner} gave you` : `${owner} picked you for`) : undefined}
+          title={item.title}
+          byline={item.isOwner ? <Byline name="You" meta={ownerByline(item)} /> : <Byline name={owner} meta={theirMeta} />}
+        />
 
-        {/* The placard */}
         <View style={styles.body}>
-          <Text style={[type.display, { fontSize: 32, lineHeight: 38 }]}>{item.title}</Text>
-
-          {item.isOwner ? (
-            <>
-              <View style={{ marginTop: -space.lg }}>
-                <OwnerMeta item={item} />
-              </View>
-              <OwnerSection item={item} chosen={chosen} onChoose={setChosen} />
-            </>
-          ) : null}
-
-          {cancelled ? (
-            <Text style={[type.meta, { marginTop: -space.lg }]}>From {owner}</Text>
-          ) : item.isOwner ? null : (
-            // Same single line as your own listing's OwnerMeta: who, where, how far, when.
-            <Text style={[type.meta, { marginTop: -space.lg }]}>{theirMeta}</Text>
-          )}
-
-          {yours ? (
-            <View style={styles.yours}>
-              <PoppyMark size={40} />
-              <Text style={[type.display, { fontSize: 28, lineHeight: 34, textAlign: "center" }]}>
-                {item.status === "gone" ? `Enjoy the ${shortTitle}!` : `The ${shortTitle} is yours!`}
-              </Text>
-              <Text style={[type.body, { textAlign: "center", color: color.inkSoft }]}>
-                {item.status === "gone"
-                  ? `Picked up from ${owner}. Your chat stays open if you want to say thanks.`
-                  : `Plan pickup with ${owner} in your private chat. ${owner} will share where.`}
-              </Text>
-            </View>
-          ) : null}
-
           {/* Closed for you (design 2d, 2026-11-10): one card says why, with the way back to the chat. Nothing else to read. */}
           {cancelled ? (
             <View style={styles.closedCard}>
@@ -230,21 +182,13 @@ export default function ItemDetail() {
                 </Pressable>
               ) : null}
             </View>
-          ) : null}
+          ) : (
+            // Offers for a wish go to one person, not to domis, so they have no pills.
+            <About description={item.description} pills={item.circles.map(circleLabel)} />
+          )}
 
+          {item.isOwner ? <OwnerSection item={item} chosen={chosen} onChoose={setChosen} /> : null}
           {!item.isOwner && !cancelled ? <PastChats item={item} /> : null}
-
-          {item.description && !cancelled ? <Text style={type.body}>{item.description}</Text> : null}
-
-          {item.isOwner || cancelled ? null : <View style={styles.privacy}>
-            <Ionicons name="lock-closed-outline" size={16} color={color.inkSoft} />
-            <Text style={[type.meta, { flex: 1 }]}>
-              {item.isOwner
-                ? "You'll share the pickup spot in a private chat with the person you pick. No public comments."
-                : `${owner} shares the pickup spot in a private chat with whoever they pick. No public comments.`}
-            </Text>
-          </View>}
-
           {/* Your own listing: history folded at the bottom (people in line, earlier chats). */}
           {item.isOwner ? <OwnerHistory item={item} /> : null}
         </View>
@@ -259,6 +203,11 @@ export default function ItemDetail() {
           <OwnerBar item={item} chosen={chosen} onGive={() => setGiving(chosen)} />
         ) : yours && item.chat ? (
           <>
+            <BarNote>
+              {item.status === "gone"
+                ? `Picked up. Your chat with ${owner} stays open if you want to say thanks.`
+                : `Say thanks and agree on a time. ${owner} shares where in your chat.`}
+            </BarNote>
             <Pressable
               onPress={() => router.push({ pathname: "/chat/[id]", params: { id: item.chat!.id } })}
               style={styles.primary}
@@ -290,9 +239,9 @@ export default function ItemDetail() {
           </>
         ) : (
           <>
-            {pending ? (
-              <Text style={type.meta}>{owner} has picked someone. You can still ask and wait in line.</Text>
-            ) : null}
+            <BarNote>
+              {pending ? `${owner} has picked someone. You can still ask and wait in line.` : `Only ${owner} sees your request.`}
+            </BarNote>
             <Pressable onPress={() => setSheetOpen(true)} style={styles.primary}>
               <Text style={type.button}>{pending ? "Get in line" : "Ask for it"}</Text>
             </Pressable>
@@ -368,41 +317,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.white },
   missing: { flex: 1, padding: space.lg, gap: space.md, backgroundColor: color.white },
   link: { fontFamily: font.uiSemi, color: color.bay, fontSize: 16 },
-  back: {
-    position: "absolute",
-    left: space.lg,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: color.fog,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // A giving moment: Poppy, with Ink text for contrast
-  more: { position: "absolute", right: space.lg },
-  freeSticker: {
-    position: "absolute",
-    right: space.lg + 48, // left of the ⋯ button
-    marginTop: 3,
-    height: 34,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    paddingHorizontal: 13,
-    borderRadius: radius.pill,
-    backgroundColor: color.poppy,
-  },
-  freeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: color.white },
-  freeText: { fontFamily: font.uiBold, fontSize: 15, color: color.ink },
   body: { paddingHorizontal: space.lg, paddingTop: space.xl, gap: space.xl },
-  privacy: {
-    flexDirection: "row",
-    gap: space.sm,
-    alignItems: "flex-start",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: color.line,
-    paddingTop: space.lg,
-  },
   bar: {
     position: "absolute",
     left: 0,
@@ -432,7 +347,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: color.line,
   },
-  yours: { backgroundColor: color.blush, borderRadius: radius.sheet, padding: space.xl, alignItems: "center", gap: space.md },
   quiet: { fontFamily: font.uiSemi, fontSize: 15, color: color.inkSoft, textDecorationLine: "underline" },
   requestedNote: { backgroundColor: color.blush, borderRadius: radius.control, padding: space.md },
   secondary: {

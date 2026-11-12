@@ -45,8 +45,8 @@ function namesInLine(names: string[]) {
   return `The ${names.length} others stay in line in case it falls through.`;
 }
 
-/** Share, edit and remove: the round icons on the photo, in that order (src/ui/IconButton.tsx). */
-export function OwnerPhotoActions({ item, top, tone = "white" }: { item: ItemView; top: number; tone?: "white" | "fog" }) {
+/** Share, edit and remove: the round icons at the top of your listing, in that order (src/ui/IconButton.tsx). */
+export function OwnerPhotoActions({ item, top, tone = "white" }: { item: ItemView; top?: number; tone?: "white" | "fog" }) {
   const { share, sheet } = useShareListing();
   const remove = useMutation(api.items.remove);
   const { confirm, confirmSheet } = useConfirmSheet();
@@ -70,7 +70,7 @@ export function OwnerPhotoActions({ item, top, tone = "white" }: { item: ItemVie
   return (
     <>
       <ThingActions
-        style={[styles.photoActions, { top }]}
+        style={top === undefined ? undefined : [styles.photoActions, { top }]}
         tone={tone}
         onShare={canShare ? () => share(item.id, item.title) : undefined}
         onEdit={canEdit ? () => router.push({ pathname: "/listing/edit/[id]", params: { id: item.id } }) : undefined}
@@ -83,22 +83,14 @@ export function OwnerPhotoActions({ item, top, tone = "white" }: { item: ItemVie
   );
 }
 
-/** One line under the title: where it is (or whose wish it answers) and when. */
-export function OwnerMeta({ item }: { item: ItemView }) {
+/** Your byline under the title ("You · …"): whose wish it answers, or when you posted it and how long it has left. Where it's shared shows as pills. */
+export function ownerByline(item: ItemView) {
   const live = item.status === "available" || item.status === "pending";
   if (item.wish) {
     const who = item.wish.wisher.displayName;
-    return (
-      <Text style={type.meta}>
-        {item.status === "available" ? `For ${who}'s wish · sent ${postedLabel(item.createdAt)}` : `For ${who}'s wish`}
-      </Text>
-    );
+    return item.status === "available" ? `for ${who}'s wish · sent ${postedLabel(item.createdAt)}` : `for ${who}'s wish`;
   }
-  const first = item.circles[0];
-  const where = !first ? null : item.circles.length === 1 ? `In ${circleLabel(first)}` : `In ${circleLabel(first)} and ${item.circles.length - 1} more`;
-  const when = live ? daysLeft(item.expiresAt) : `posted ${postedLabel(item.createdAt)}`;
-  const line = [where, when].filter(Boolean).join(" · ");
-  return <Text style={type.meta}>{line.charAt(0).toUpperCase() + line.slice(1)}</Text>;
+  return [`posted ${postedLabel(item.createdAt)}`, live ? daysLeft(item.expiresAt) : null].filter(Boolean).join(" · ");
 }
 
 /** The heart of your listing: who asked, who it's going to, and your chats. */
@@ -153,7 +145,7 @@ export function OwnerSection({
     body = <Card head="No requests yet" text="When people ask, they'll show up here and you pick one." />;
   } else if (item.status === "available") {
     body = (
-      <View>
+      <View style={[styles.card, styles.askCard]}>
         <Text style={styles.sectionHead}>
           {asks.length} {asks.length === 1 ? "person" : "people"} asked
         </Text>
@@ -162,14 +154,14 @@ export function OwnerSection({
           {asks.map((a, i) => {
             const on = chosen?.id === a.id;
             return (
-              <View key={a.id} style={[styles.askRow, i < asks.length - 1 && styles.line]}>
+              <View key={a.id} style={styles.askRow}>
                 <Pressable
                   onPress={() => onChoose(on ? null : a)}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on }}
                   style={{ flex: 1, flexDirection: "row", gap: space.md, alignItems: "flex-start" }}
                 >
-                  <Avatar name={a.requester.displayName} size={44} />
+                  <Avatar name={a.requester.displayName} size={44} onFog />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.askName}>
                       {a.requester.displayName}{" "}
@@ -190,6 +182,7 @@ export function OwnerSection({
                 <PersonMore
                   userId={a.requester.userId}
                   name={a.requester.displayName}
+                  tone="white"
                   onBlocked={() => {
                     if (chosen?.id === a.id) onChoose(null);
                   }}
@@ -323,13 +316,23 @@ function Fold({
 }
 
 /** ⋯ on a person's row: report or block them (no hidden long-press). */
-function PersonMore({ userId, name, onBlocked }: { userId: AskRow["requester"]["userId"]; name: string; onBlocked?: () => void }) {
+function PersonMore({
+  userId,
+  name,
+  onBlocked,
+  tone = "fog",
+}: {
+  userId: AskRow["requester"]["userId"];
+  name: string;
+  onBlocked?: () => void;
+  tone?: "white" | "fog";
+}) {
   const [open, setOpen] = useState(false);
   const [report, setReport] = useState<ReportTarget | null>(null);
   const [block, setBlock] = useState<BlockTarget | null>(null);
   return (
     <>
-      <IconButton icon="ellipsis-horizontal" label={`Report or block ${name}`} tone="fog" onPress={() => setOpen(true)} style={{ marginTop: 2 }} />
+      <IconButton icon="ellipsis-horizontal" label={`Report or block ${name}`} tone={tone} onPress={() => setOpen(true)} style={{ marginTop: 2 }} />
       <Sheet visible={open} onClose={() => setOpen(false)} title={name}>
         <View>
           <SheetAction
@@ -663,7 +666,8 @@ const styles = StyleSheet.create({
   },
   card: { backgroundColor: color.fog, borderRadius: radius.thing, overflow: "hidden" },
   cardBody: { padding: space.md + 4, gap: 14 },
-  cardHead: { fontFamily: font.uiSemi, fontSize: 17, lineHeight: 22, color: color.ink },
+  // Card headings are the curator's voice (docs: "Domi design principles", Type).
+  cardHead: { fontFamily: font.curator, fontSize: 20, lineHeight: 26, color: color.ink },
   cardButton: { height: 50, borderRadius: radius.control, alignItems: "center", justifyContent: "center", paddingHorizontal: space.sm },
   cardLink: {
     flexDirection: "row",
@@ -674,7 +678,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "rgba(24,34,46,0.08)",
   },
-  sectionHead: { fontFamily: font.uiSemi, fontSize: 17, lineHeight: 22, color: color.ink },
+  sectionHead: { fontFamily: font.curator, fontSize: 22, lineHeight: 28, color: color.ink },
+  askCard: { paddingHorizontal: space.md + 4, paddingTop: space.md + 4, paddingBottom: space.xs },
   fold: { borderTopWidth: 1, borderTopColor: color.line },
   foldHead: { flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: 14 },
   noteQuote: { fontFamily: font.curatorLight, fontSize: 19, lineHeight: 27, color: color.ink },
